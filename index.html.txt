@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taweltak Reservations</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        /* CSS - Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .app-container {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h2 { color: #333; margin-bottom: 20px; }
+        label { display: block; text-align: left; margin: 10px 0 5px; font-weight: bold; color: #555; }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box; 
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #eef;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .checkbox-container input { width: auto; margin: 0 10px 0 0; }
+        .checkbox-container label { margin: 0; }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        button:hover { background-color: #218838; }
+
+        /* Review Section Styling */
+        .summary-box {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .summary-item { margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .summary-item:last-child { border-bottom: none; }
+        .summary-label { font-weight: bold; color: #333; }
+
+        /* Step Management */
+        .step { display: none; }
+        .active { display: block; }
+        
+        /* Loading Animation */
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #28a745;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-icon {
+            color: #28a745;
+            font-size: 50px;
+        }
+        
+        .error-message { color: red; display: none; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div id="step1" class="step active">
+        <h2>Reserve Your Table</h2>
+        
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" placeholder="John Doe">
+
+        <label for="phone">Phone Number:</label>
+        <input type="tel" id="phone" placeholder="+1 234 567 890">
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+        <label for="date">Select Date:</label>
+        <input type="date" id="date" required>
+
+        <label for="time">Select Time Slot:</label>
+        <select id="time">
+            <option value="" disabled selected>Choose a time...</option>
+            <option value="18:00">6:00 PM</option>
+            <option value="19:00">7:00 PM</option>
+            <option value="20:00">8:00 PM</option>
+            <option value="21:00">9:00 PM</option>
+        </select>
+
+        <label for="persons">Number of Persons:</label>
+        <input type="number" id="persons" min="1" max="20" placeholder="e.g. 4">
+
+        <div class="checkbox-container">
+            <input type="checkbox" id="viewPref">
+            <label for="viewPref">Request table with view</label>
+        </div>
+
+        <button onclick="goToReview()">Next</button>
+    </div>
+
+    <div id="step2" class="step">
+        <h2>Review Booking</h2>
+        <p>Please check your details.</p>
+        
+        <div class="summary-box">
+            <div class="summary-item"><span class="summary-label">Name:</span> <span id="reviewName"></span></div>
+            <div class="summary-item"><span class="summary-label">Phone:</span> <span id="reviewPhone"></span></div>
+            <div class="summary-item"><span class="summary-label">Date:</span> <span id="reviewDate"></span></div>
+            <div class="summary-item"><span class="summary-label">Time:</span> <span id="reviewTime"></span></div>
+            <div class="summary-item"><span class="summary-label">Guests:</span> <span id="reviewPersons"></span></div>
+            <div class="summary-item"><span class="summary-label">View Request:</span> <span id="reviewView"></span></div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button onclick="goBack()" style="background-color: #6c757d;">Back</button>
+            <button onclick="sendEmail()">Confirm</button>
+        </div>
+        <div id="errorMsg" class="error-message">Something went wrong. Please try again.</div>
+    </div>
+
+    <div id="step3" class="step">
+        <h2>Processing</h2>
+        <p>Sending reservation...</p>
+        <div class="loader"></div>
+    </div>
+
+    <div id="step4" class="step">
+        <div class="success-icon">✔</div>
+        <h2>Taweltak Confirmed</h2>
+        <p>Thank you, <span id="finalName" style="font-weight:bold;"></span>!</p>
+        <p>We have received your request by email.</p>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const PUBLIC_KEY = '4p2u3G8LGQWTJBWGc'; 
+    const SERVICE_ID = 'service_09j0ci6';
+    const TEMPLATE_ID = 'template_xnsuy3p';
+
+    // Initialize EmailJS
+    (function(){
+        emailjs.init(PUBLIC_KEY);
+    })();
+
+    // --- APP LOGIC ---
+    function goToReview() {
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const persons = document.getElementById('persons').value;
+        const viewPref = document.getElementById('viewPref').checked;
+
+        if(!name || !phone || !date || !time || !persons) {
+            alert("Please fill in all fields.");
+            return;
+        }
+
+        document.getElementById('reviewName').innerText = name;
+        document.getElementById('reviewPhone').innerText = phone;
+        document.getElementById('reviewDate').innerText = date;
+        document.getElementById('reviewTime').innerText = time;
+        document.getElementById('reviewPersons').innerText = persons;
+        document.getElementById('reviewView').innerText = viewPref ? "Yes" : "No";
+        document.getElementById('finalName').innerText = name;
+
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+    }
+
+    function goBack() {
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step1').classList.add('active');
+    }
+
+    function sendEmail() {
+        // Show Loading
+        document.getElementById('step2').classList.remove('active');
+        document.getElementById('step3').classList.add('active');
+
+        // Prepare parameters to match your EmailJS Template
+        const templateParams = {
+            from_name: document.getElementById('name').value,
+            phone_number: document.getElementById('phone').value,
+            date: document.getElementById('date').value,
+            time: document.getElementById('time').value,
+            persons: document.getElementById('persons').value,
+            view_pref: document.getElementById('viewPref').checked ? "Yes" : "No"
+        };
+
+        // Send via EmailJS
+        emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
+            .then(function(response) {
+                // Success
+                document.getElementById('step3').classList.remove('active');
+                document.getElementById('step4').classList.add('active');
+                console.log('SUCCESS!', response.status, response.text);
+            }, function(error) {
+                // Error
+                console.log('FAILED...', error);
+                document.getElementById('step3').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('errorMsg').innerText = "Error sending email. Please check internet connection.";
+            });
+    }
+</script>
+
+</body>
+</html>
