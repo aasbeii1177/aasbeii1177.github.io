@@ -8,60 +8,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- THEME SETTINGS (Based on your Logo) --- */
+        /* --- THEME (Same as before) --- */
         :root {
-            --primary-color: #5D4037;   /* Dark Brown (Logo Text) */
-            --accent-color: #8D6E63;    /* Lighter Brown */
-            --bg-color: #FDFBF7;        /* Off-White/Cream (Logo Background) */
-            --card-bg: #FFFFFF;         /* Pure White for cards */
+            --primary-color: #5D4037;
+            --accent-color: #8D6E63;
+            --bg-color: #FDFBF7;
+            --card-bg: #FFFFFF;
             --text-color: #3E2723;
         }
-
-        body {
-            font-family: 'Lato', sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 0;
-            color: var(--text-color);
-            min-height: 100vh;
-        }
-
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg-color); margin: 0; color: var(--text-color); min-height: 100vh; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; }
-
-        /* --- HEADER & LOGO --- */
-        header {
-            text-align: center;
-            padding: 30px 20px;
-        }
-
-        .logo-text {
-            font-size: 42px;
-            color: var(--primary-color);
-            margin: 0;
-        }
         
-        .tagline {
-            color: var(--accent-color);
-            font-size: 14px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-top: 5px;
-        }
+        header { text-align: center; padding: 30px 20px; }
+        .logo-text { font-size: 42px; color: var(--primary-color); margin: 0; }
+        .tagline { color: var(--accent-color); font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* --- PAGE SECTIONS --- */
-        .page-section {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            display: none; /* Hidden by default */
-            animation: fadeIn 0.5s ease;
-        }
-        
+        .page-section { max-width: 600px; margin: 0 auto; padding: 20px; display: none; animation: fadeIn 0.5s ease; }
         .active-section { display: block; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- HOME PAGE: RESTAURANT LIST --- */
+        /* CARD STYLES */
         .restaurant-card {
             background: var(--card-bg);
             border-radius: 15px;
@@ -72,113 +38,24 @@
             cursor: pointer;
             border: 1px solid #efebe9;
         }
-
         .restaurant-card:hover { transform: translateY(-5px); }
-
-        .card-img {
-            height: 180px;
-            background-color: #d7ccc8; /* Placeholder color */
-            background-size: cover;
-            background-position: center;
-            position: relative;
-        }
-
+        .card-img { height: 180px; background-color: #d7ccc8; background-size: cover; background-position: center; }
         .card-details { padding: 20px; }
-        
-        .card-title {
-            margin: 0 0 5px;
-            color: var(--primary-color);
-            font-size: 22px;
-        }
-        
+        .card-title { margin: 0 0 5px; color: var(--primary-color); font-size: 22px; }
         .card-loc { color: #888; font-size: 14px; margin-bottom: 15px; display: block;}
+        .btn-book { background-color: var(--primary-color); color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; display: inline-block; font-size: 14px; font-weight: bold; }
 
-        .btn-book {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        /* --- BOOKING FORM --- */
-        .form-container {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-
+        /* FORM STYLES */
+        .form-container { background: var(--card-bg); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem; }
-        
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #d7ccc8;
-            border-radius: 8px;
-            box-sizing: border-box; 
-            font-family: 'Lato', sans-serif;
-            background: #FAFAFA;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            background: #fff;
-        }
-
-        button.action-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 15px;
-            font-size: 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            transition: background 0.3s;
-        }
-
-        button.action-btn:hover { background-color: #3e2723; }
-
-        .back-btn {
-            background: none;
-            border: none;
-            color: #888;
-            cursor: pointer;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-        }
-
-        /* REVIEW BOX */
-        .summary-box {
-            background: var(--bg-color);
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px dashed var(--accent-color);
-            margin-bottom: 20px;
-        }
-
-        /* UTILS */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 30px auto;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        input, select { width: 100%; padding: 12px; border: 1px solid #d7ccc8; border-radius: 8px; box-sizing: border-box; font-family: 'Lato', sans-serif; background: #FAFAFA; }
+        button.action-btn { background-color: var(--primary-color); color: white; border: none; padding: 15px; font-size: 16px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 10px; }
+        .back-btn { background: none; border: none; color: #888; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; font-size: 14px; }
+        .summary-box { background: var(--bg-color); padding: 20px; border-radius: 10px; border: 1px dashed var(--accent-color); margin-bottom: 20px; }
         .hidden { display: none; }
-
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 30px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -190,57 +67,22 @@
 
     <div id="home-page" class="page-section active-section">
         <h2 style="text-align:center; color: var(--primary-color); margin-bottom:30px;">Choose a Location</h2>
-
-        <div class="restaurant-card" onclick="openBooking('Tawelty - Main Branch')">
-            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
-            <div class="card-details">
-                <h3 class="card-title">Main Branch</h3>
-                <span class="card-loc">Damascus City Center</span>
-                <span class="btn-book">Book Table</span>
+        <div id="restaurant-list-container">
             </div>
-        </div>
-
-        <div class="restaurant-card" onclick="openBooking('Tawelty - Rooftop')">
-            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1559339352-11d035aa65de?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');"></div>
-            <div class="card-details">
-                <h3 class="card-title">The Rooftop</h3>
-                <span class="card-loc">Damascus View</span>
-                <span class="btn-book">Book Table</span>
-            </div>
-        </div>
     </div>
 
     <div id="booking-page" class="page-section">
         <button class="back-btn" onclick="goHome()">← Back to Restaurants</button>
-        
         <div class="form-container">
             <h2 id="selected-restaurant-title" style="margin-top:0;">Reserve Table</h2>
-            
             <div id="step1">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="name" placeholder="Your Name">
-                </div>
-                <div class="form-group">
-                    <label>Phone Number</label>
-                    <input type="tel" id="phone" placeholder="09xx xxx xxx">
-                </div>
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="date">
-                </div>
-                <div class="form-group">
-                    <label>Time (10:00 AM - 10:00 PM)</label>
-                    <select id="time">
-                        </select>
-                </div>
-                <div class="form-group">
-                    <label>Guests</label>
-                    <input type="number" id="persons" min="1" max="20" placeholder="4">
-                </div>
+                <div class="form-group"><label>Full Name</label><input type="text" id="name" placeholder="Your Name"></div>
+                <div class="form-group"><label>Phone Number</label><input type="tel" id="phone" placeholder="09xx xxx xxx"></div>
+                <div class="form-group"><label>Date</label><input type="date" id="date"></div>
+                <div class="form-group"><label>Time</label><select id="time"></select></div>
+                <div class="form-group"><label>Guests</label><input type="number" id="persons" min="1" max="20" placeholder="4"></div>
                 <button class="action-btn" onclick="goToReview()">Review Booking</button>
             </div>
-
             <div id="step2" class="hidden">
                 <h3>Confirm Details</h3>
                 <div class="summary-box">
@@ -253,57 +95,96 @@
                 <button class="action-btn" onclick="sendEmail()">Confirm Reservation</button>
                 <button class="back-btn" onclick="switchFormStep('step2', 'step1')" style="margin-top:10px; width:100%; text-align:center;">Edit Details</button>
             </div>
-
             <div id="step3" class="hidden" style="text-align: center;">
                 <div style="font-size:50px; color: green;">✔</div>
                 <h3>Confirmed!</h3>
                 <p>We have received your reservation for <br><strong id="final-loc"></strong>.</p>
                 <button class="action-btn" onclick="goHome()">Done</button>
             </div>
-
             <div id="loader" class="loader hidden"></div>
-            <div id="error-msg" class="hidden" style="color:red; text-align:center; margin-top:10px;"></div>
         </div>
     </div>
 
 <script>
-    // --- 1. CONFIGURATION ---
+    // --- 1. YOUR RESTAURANT LIST ---
+    // TO ADD A NEW BRANCH: Just add a new line inside this list!
+    const restaurants = [
+        {
+            name: "Askim",
+            location: "Fourseason Boulevard",
+            image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"
+        },
+        {
+            name: "Galliard",
+            location: "Avenue Mall",
+            image: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800"
+        },
+        {
+            name: "Le Capital",
+            location: "Old City Damascus",
+            image: "https://images.unsplash.com/photo-1579027989536-b7b1f875659b?w=800"
+        },
+        {
+            name: "Beit Halab",
+            location: "Al-Mogambo",
+            image: "https://images.unsplash.com/photo-1514362545857-3bc16549766b?w=800"
+        },
+        {
+            name: "View Lattakia", 
+            location: "Corniche", 
+            image: "https://link-to-your-image.com/photo.jpg" 
+        },
+        {
+            name: "Casper and Gambini", 
+            location: "Avenue Mall", 
+            image: "https://link-to-your-image.com/photo.jpg" 
+        }
+        
+    ];
+
+    // --- 2. CONFIGURATION ---
     const PUBLIC_KEY = '4p2u3G8LGQWTJBWGc'; 
     const SERVICE_ID = 'service_09j0ci6';
     const TEMPLATE_ID = 'template_xnsuy3p';
-
     (function(){ emailjs.init(PUBLIC_KEY); })();
 
-    // --- 2. GLOBAL VARIABLES ---
     let selectedRestaurant = "";
 
     // --- 3. INIT LOGIC ---
     window.onload = function() {
-        // Generate Time Slots (10:00 to 22:00)
-        const timeSelect = document.getElementById('time');
-        let options = '<option value="" disabled selected>Select Time</option>';
-        for(let i=10; i<=22; i++) {
-            let displayTime = i > 12 ? (i-12) + ':00 PM' : i + ':00 ' + (i===12 ? 'PM' : 'AM');
-            let valTime = i + ":00";
-            options += `<option value="${valTime}">${displayTime}</option>`;
-        }
-        timeSelect.innerHTML = options;
-
-        // Block past dates
+        renderRestaurants(); // Build the list automatically
+        populateTime();
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').setAttribute('min', today);
     };
 
-    // --- 4. NAVIGATION FUNCTIONS ---
-    function openBooking(restaurantName) {
-        selectedRestaurant = restaurantName;
-        document.getElementById('selected-restaurant-title').innerText = "Book: " + restaurantName;
+    // --- 4. RENDER FUNCTION (THE MAGIC) ---
+    function renderRestaurants() {
+        const container = document.getElementById('restaurant-list-container');
+        let html = '';
         
-        // Hide Home, Show Booking
+        // Loop through the list and create HTML for each one
+        restaurants.forEach(branch => {
+            html += `
+            <div class="restaurant-card" onclick="openBooking('${branch.name}')">
+                <div class="card-img" style="background-image: url('${branch.image}');"></div>
+                <div class="card-details">
+                    <h3 class="card-title">${branch.name}</h3>
+                    <span class="card-loc">${branch.location}</span>
+                    <span class="btn-book">Book Table</span>
+                </div>
+            </div>`;
+        });
+        
+        container.innerHTML = html;
+    }
+
+    // --- 5. NAVIGATION & FORMS ---
+    function openBooking(name) {
+        selectedRestaurant = name;
+        document.getElementById('selected-restaurant-title').innerText = "Book: " + name;
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
-        
-        // Reset form steps
         switchFormStep('step2', 'step1');
         switchFormStep('step3', 'step1');
     }
@@ -313,58 +194,57 @@
         document.getElementById('home-page').classList.add('active-section');
     }
 
-    function switchFormStep(hideId, showId) {
-        document.getElementById(hideId).classList.add('hidden');
-        document.getElementById(showId).classList.remove('hidden');
+    function switchFormStep(hide, show) {
+        document.getElementById(hide).classList.add('hidden');
+        document.getElementById(show).classList.remove('hidden');
     }
 
-    // --- 5. BOOKING LOGIC ---
+    function populateTime() {
+        const timeSelect = document.getElementById('time');
+        let options = '<option value="" disabled selected>Select Time</option>';
+        for(let i=10; i<=22; i++) {
+            let d = i > 12 ? (i-12) + ':00 PM' : i + ':00 ' + (i===12 ? 'PM' : 'AM');
+            options += `<option value="${i}:00">${d}</option>`;
+        }
+        timeSelect.innerHTML = options;
+    }
+
     function goToReview() {
         const name = document.getElementById('name').value;
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
         const persons = document.getElementById('persons').value;
-
-        if(!name || !date || !time || !persons) {
-            alert("Please fill in all fields");
-            return;
-        }
-
-        // Fill Review Data
+        if(!name || !date || !time || !persons) { alert("Please fill in all fields"); return; }
+        
         document.getElementById('rev-loc').innerText = selectedRestaurant;
         document.getElementById('rev-name').innerText = name;
         document.getElementById('rev-date').innerText = date;
         document.getElementById('rev-time').innerText = time;
         document.getElementById('rev-guests').innerText = persons;
-
         switchFormStep('step1', 'step2');
     }
 
     function sendEmail() {
-        // Show Loader
         document.getElementById('step2').classList.add('hidden');
         document.getElementById('loader').classList.remove('hidden');
-
         const params = {
+            email_subject: "New Booking: " + selectedRestaurant,
+            restaurant_name: selectedRestaurant,
             from_name: document.getElementById('name').value,
             phone_number: document.getElementById('phone').value,
             date: document.getElementById('date').value,
             time: document.getElementById('time').value,
-            persons: document.getElementById('persons').value,
-            view_pref: selectedRestaurant // Using the view pref field to store Restaurant Name
+            persons: document.getElementById('persons').value
         };
-
-        emailjs.send(SERVICE_ID, TEMPLATE_ID, params)
-            .then(function() {
-                document.getElementById('loader').classList.add('hidden');
-                document.getElementById('final-loc').innerText = selectedRestaurant;
-                document.getElementById('step3').classList.remove('hidden');
-            }, function(error) {
-                document.getElementById('loader').classList.add('hidden');
-                document.getElementById('step2').classList.remove('hidden');
-                document.getElementById('error-msg').innerText = "Error sending. Check internet.";
-                document.getElementById('error-msg').classList.remove('hidden');
-            });
+        emailjs.send(SERVICE_ID, TEMPLATE_ID, params).then(function() {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('final-loc').innerText = selectedRestaurant;
+            document.getElementById('step3').classList.remove('hidden');
+        }, function(error) {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            alert("Error sending. Check connection.");
+        });
     }
 </script>
 
