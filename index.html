@@ -214,8 +214,24 @@
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
         const persons = document.getElementById('persons').value;
-        if(!name || !date || !time || !persons) { alert("Please fill in all fields"); return; }
+
+        // 1. Check if empty
+        if(!name || !date || !time || !persons) { 
+            alert("Please fill in all fields"); 
+            return; 
+        }
+
+        // 2. SECURITY CHECK: Is the date in the past?
+        const selectedDate = new Date(date);
+        const today = new Date();
+        today.setHours(0,0,0,0); // Reset time to midnight so we compare dates only
+
+        if(selectedDate < today) {
+            alert("You cannot book a date in the past! Please choose a future date.");
+            return; // Stop everything
+        }
         
+        // 3. If passed, show review
         document.getElementById('rev-loc').innerText = selectedRestaurant;
         document.getElementById('rev-name').innerText = name;
         document.getElementById('rev-date').innerText = date;
