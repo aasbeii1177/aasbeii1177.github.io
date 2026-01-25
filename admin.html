@@ -10,27 +10,28 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #EEF2F5; margin: 0; padding: 40px 20px; color: #333; }
         .container { max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); }
 
-        h1, h2 { color: #1a1a1a; margin-top: 0; font-weight: 700; text-align: center; }
+        h1, h2, h3 { color: #1a1a1a; margin-top: 0; font-weight: 700; text-align: center; }
         
-        /* Section Dividers */
         .section-title { font-size: 14px; font-weight: 800; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; margin-top: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 15px; }
 
         label { font-size: 12px; font-weight: 700; color: #95A5A6; display: block; margin-bottom: 5px; margin-top: 15px; }
-        input { 
-            width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: 0.3s; 
-        }
+        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: 0.3s; }
         input:focus { border-color: #D4AF37; outline: none; background: #fafafa; }
         
-        .btn-primary { 
-            width: 100%; padding: 16px; background: #1a1a1a; color: white; 
-            border: none; border-radius: 10px; font-size: 16px; font-weight: 600; 
-            cursor: pointer; margin-top: 30px; transition: 0.2s; 
-        }
+        .btn-primary { width: 100%; padding: 16px; background: #1a1a1a; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 30px; transition: 0.2s; }
         .btn-primary:hover { background: #D4AF37; transform: translateY(-2px); }
 
         .btn-logout { background: none; border: none; color: #95A5A6; font-size: 14px; cursor: pointer; text-decoration: underline; margin-top: 20px; width: 100%; }
-        
-        .success-msg { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px; display: none; border: 1px solid #c3e6cb; }
+
+        /* LIST STYLES */
+        .res-list { margin-top: 40px; border-top: 2px dashed #eee; padding-top: 20px; }
+        .res-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f0f0f0; }
+        .res-item:last-child { border-bottom: none; }
+        .res-name { font-weight: 600; font-size: 16px; }
+        .btn-delete { background: #fee; color: #e74c3c; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn-delete:hover { background: #e74c3c; color: white; }
+
+        .success-msg { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px; display: none; }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #D4AF37; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
@@ -51,35 +52,33 @@
 
     <div id="dashboard-section" class="container hidden">
         <h2 style="margin-bottom: 10px;">Setup New Venue</h2>
-        <p style="text-align:center; color:#999; font-size:14px; margin-bottom:20px;">Add restaurant details & create manager login.</p>
         
         <div class="section-title">1. Restaurant Details</div>
-        <label>Name</label>
-        <input type="text" id="res-name" placeholder="e.g. Naranj">
-        
-        <label>Location</label>
-        <input type="text" id="res-location" placeholder="e.g. Old Damascus">
-        
-        <label>Image Link</label>
-        <input type="text" id="res-image" placeholder="https://...">
+        <label>Name</label><input type="text" id="res-name" placeholder="e.g. Naranj">
+        <label>Location</label><input type="text" id="res-location" placeholder="e.g. Old Damascus">
+        <label>Image Link</label><input type="text" id="res-image" placeholder="https://...">
 
         <div class="section-title">2. Manager Login</div>
-        <label>Manager Email</label>
-        <input type="email" id="mgr-email" placeholder="manager@naranj.com">
-        
-        <label>Manager Password</label>
-        <input type="text" id="mgr-pass" placeholder="Create a password">
+        <label>Manager Email</label><input type="email" id="mgr-email" placeholder="manager@naranj.com">
+        <label>Manager Password</label><input type="text" id="mgr-pass" placeholder="Create a password">
 
         <button id="btn-add" class="btn-primary" onclick="addRestaurantAndManager()">+ Create Everything</button>
-        
         <div id="msg" class="success-msg">✨ Success! Venue & Manager Created.</div>
+
+        <div class="res-list">
+            <h3>Manage Venues</h3>
+            <div id="restaurants-container">
+                <p style="text-align:center; color:#ccc;">Loading list...</p>
+            </div>
+        </div>
+
         <button class="btn-logout" onclick="logout()">Logout</button>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // --- YOUR KEYS ---
     const firebaseConfig = {
@@ -111,15 +110,15 @@
         if (user) {
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.remove('hidden');
+            loadRestaurants(); // LOAD LIST WHEN LOGGED IN
         } else {
             document.getElementById('login-section').classList.remove('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
         }
     });
 
-    // --- MAIN FUNCTION: CREATE RESTAURANT + MANAGER ---
+    // --- CREATE FUNCTION ---
     window.addRestaurantAndManager = async () => {
-        // 1. Get Values
         const rName = document.getElementById('res-name').value;
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
@@ -127,58 +126,89 @@
         const mPass = document.getElementById('mgr-pass').value;
         const btn = document.getElementById('btn-add');
 
-        // 2. Validate
         if(!rName || !rLoc || !mEmail || !mPass) return alert("Please fill all fields.");
-        if(mPass.length < 6) return alert("Password must be at least 6 characters.");
 
         btn.innerHTML = '<div class="loader"></div> Creating...';
         btn.disabled = true;
 
         try {
-            // STEP A: Create the Restaurant in Database
+            // 1. Add Restaurant
             await addDoc(collection(db, "restaurants"), {
-                name: rName,
-                location: rLoc,
-                image: rImg || 'https://via.placeholder.com/400x300'
+                name: rName, location: rLoc, image: rImg || 'https://via.placeholder.com/400x300'
             });
 
-            // STEP B: Create Manager Account (Without logging out Admin)
-            // We initialize a secondary "Ghost" app just to create the user
+            // 2. Create Manager (Ghost App)
             const secondaryApp = initializeApp(firebaseConfig, "Secondary");
             const secondaryAuth = getAuth(secondaryApp);
             await createUserWithEmailAndPassword(secondaryAuth, mEmail, mPass);
             
-            // STEP C: Link Manager Email to Restaurant Name
-            // We create a doc in 'managers' collection where ID is the email
+            // 3. Link Manager
             await setDoc(doc(db, "managers", mEmail), {
-                restaurant: rName,
-                createdAt: new Date()
+                restaurant: rName, createdAt: new Date()
             });
 
-            // Cleanup
-            // (We leave secondaryApp in memory, it's fine for this session)
-
-            // Success UI
             document.getElementById('msg').style.display = 'block';
-            clearInputs();
+            document.getElementById('res-name').value = "";
+            document.getElementById('res-location').value = "";
+            document.getElementById('mgr-email').value = "";
+            document.getElementById('mgr-pass').value = "";
+            
+            loadRestaurants(); // REFRESH LIST
             setTimeout(() => document.getElementById('msg').style.display = 'none', 4000);
 
         } catch (e) {
             alert("Error: " + e.message);
-            console.error(e);
         } finally {
             btn.innerHTML = '+ Create Everything';
             btn.disabled = false;
         }
     };
 
-    function clearInputs() {
-        document.getElementById('res-name').value = "";
-        document.getElementById('res-location').value = "";
-        document.getElementById('res-image').value = "";
-        document.getElementById('mgr-email').value = "";
-        document.getElementById('mgr-pass').value = "";
-    }
+    // --- NEW: LOAD RESTAURANTS ---
+    window.loadRestaurants = async () => {
+        const container = document.getElementById('restaurants-container');
+        container.innerHTML = '<div class="loader"></div>';
+        
+        try {
+            const querySnapshot = await getDocs(collection(db, "restaurants"));
+            let html = '';
+            
+            if(querySnapshot.empty) {
+                container.innerHTML = '<p style="text-align:center; color:#ccc;">No venues found.</p>';
+                return;
+            }
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                html += `
+                <div class="res-item">
+                    <div>
+                        <div class="res-name">${data.name}</div>
+                        <div style="font-size:12px; color:#999;">${data.location}</div>
+                    </div>
+                    <button class="btn-delete" onclick="deleteRestaurant('${doc.id}', '${data.name}')">🗑️ Remove</button>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
+        } catch(e) {
+            console.error(e);
+            container.innerHTML = '<p style="color:red">Error loading list.</p>';
+        }
+    };
+
+    // --- NEW: DELETE RESTAURANT ---
+    window.deleteRestaurant = async (id, name) => {
+        if(confirm(`Are you sure you want to delete ${name}? This will remove it from the customer website.`)) {
+            try {
+                await deleteDoc(doc(db, "restaurants", id));
+                loadRestaurants(); // Refresh list immediately
+            } catch(e) {
+                alert("Error deleting: " + e.message);
+            }
+        }
+    };
+
 </script>
 </body>
 </html>
