@@ -4,67 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tawelty - Premium Dining</title>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     
     <style>
         /* --- LUXURY THEME --- */
         :root {
-            --primary: #1a1a1a;       /* Deep Black/Charcoal */
-            --gold: #D4AF37;          /* Luxury Gold */
-            --bg: #FAFAFA;            /* Soft Cream */
-            --surface: #FFFFFF;       /* Pure White */
-            --text-main: #2C3E50;
-            --text-light: #95A5A6;
+            --primary: #1a1a1a; --gold: #D4AF37; --bg: #FAFAFA; --surface: #FFFFFF;
         }
 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); margin: 0; color: var(--text-main); -webkit-font-smoothing: antialiased; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); margin: 0; color: --primary; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--primary); margin: 0; }
 
-        /* --- HERO SECTION --- */
         .hero {
             background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            height: 300px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
+            background-size: cover; background-position: center; height: 300px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; margin-bottom: 40px;
         }
         .hero h1 { color: white; font-size: 3.5rem; letter-spacing: 2px; margin-bottom: 10px; font-style: italic; }
         .hero p { font-size: 1rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 600; }
 
-        /* --- LAYOUT --- */
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
 
-        /* --- CARDS (The Restaurant List) --- */
+        /* CARDS */
         .card {
-            background: var(--surface);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: 1px solid rgba(0,0,0,0.03);
-            position: relative;
+            background: var(--surface); border-radius: 16px; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: all 0.3s ease;
+            cursor: pointer; border: 1px solid rgba(0,0,0,0.03); position: relative;
         }
         .card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
-        .card-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            padding: 20px; box-sizing: border-box; opacity: 0; transition: 0.3s;
-        }
-        .card:hover .card-overlay { opacity: 1; }
+        .card-img { height: 220px; background-size: cover; background-position: center; }
         .card-content { padding: 25px; }
         .card-title { font-size: 1.5rem; margin-bottom: 8px; }
-        .card-loc { color: var(--text-light); font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+        .card-loc { color: #95A5A6; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
         
+        /* BUTTONS */
         .btn-card {
             display: block; width: 100%; padding: 12px; text-align: center;
             background: white; border: 1px solid var(--primary); color: var(--primary);
@@ -72,41 +46,24 @@
         }
         .card:hover .btn-card { background: var(--primary); color: white; }
 
-        /* --- BOOKING FORM (Modern) --- */
+        /* BUSY STATE STYLE */
+        .btn-busy {
+            background: #eee !important; color: #999 !important; border-color: #ddd !important;
+            cursor: not-allowed;
+        }
+
+        /* FORMS */
         .page-section { display: none; animation: slideUp 0.4s ease-out; }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         .form-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.08); max-width: 500px; margin: 0 auto; }
-        .banner-img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-bottom: 25px; }
+        .input-field { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; }
+        .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; }
         
-        .input-group { margin-bottom: 20px; position: relative; }
-        .input-group label { font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
-        .input-field {
-            width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 10px;
-            font-family: inherit; font-size: 1rem; outline: none; transition: 0.2s; box-sizing: border-box;
-        }
-        .input-field:focus { border-color: var(--primary); background: #fffcf5; }
-        
-        .btn-primary {
-            width: 100%; padding: 16px; background: var(--primary); color: white;
-            border: none; border-radius: 10px; font-size: 1rem; font-weight: 600;
-            cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .btn-primary:hover { background: #000; transform: scale(1.02); }
-
-        .back-link { display: inline-block; margin-bottom: 20px; color: var(--text-light); cursor: pointer; font-weight: 500; text-decoration: none; transition: 0.2s; }
-        .back-link:hover { color: var(--primary); }
-
-        /* --- LOGIN PORTAL (Glass Style) --- */
+        /* LOGIN MODAL */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); }
-        .modal-content {
-            background: white; width: 90%; max-width: 350px; margin: 15vh auto;
-            padding: 40px; border-radius: 20px; text-align: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative;
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-content { background: white; width: 90%; max-width: 350px; margin: 15vh auto; padding: 40px; border-radius: 20px; text-align: center; position: relative; }
         
         .footer { text-align: center; margin-top: 50px; padding: 20px; color: #ccc; font-size: 0.9rem; }
         .footer a { color: var(--gold); text-decoration: none; font-weight: 600; cursor: pointer; }
@@ -128,24 +85,21 @@
 
         <div id="booking-page" class="page-section">
             <div class="form-box">
-                <a class="back-link" onclick="goHome()">← Back to Venues</a>
-                <img id="selected-restaurant-img" class="banner-img" src="">
+                <a onclick="goHome()" style="cursor:pointer; color:#999; display:block; margin-bottom:20px;">← Back to Venues</a>
                 <h2 id="selected-restaurant-title" style="margin-bottom:20px;">Reserve Table</h2>
                 
                 <div id="step1">
-                    <div class="input-group"><label>Full Name</label><input type="text" class="input-field" id="name" placeholder="John Doe"></div>
-                    <div class="input-group"><label>Phone (WhatsApp)</label><input type="tel" class="input-field" id="phone" placeholder="09xx xxx xxx"></div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                        <div class="input-group"><label>Date</label><input type="date" class="input-field" id="date"></div>
-                        <div class="input-group"><label>Time</label><select id="time" class="input-field"></select></div>
-                    </div>
-                    <div class="input-group"><label>Guests</label><input type="number" class="input-field" id="persons" min="1" max="20" placeholder="4"></div>
+                    <input type="text" class="input-field" id="name" placeholder="Full Name">
+                    <input type="tel" class="input-field" id="phone" placeholder="Phone (WhatsApp)">
+                    <input type="date" class="input-field" id="date">
+                    <select id="time" class="input-field"></select>
+                    <input type="number" class="input-field" id="persons" min="1" max="20" placeholder="Number of Guests">
                     <button class="btn-primary" onclick="goToReview()">Continue</button>
                 </div>
 
                 <div id="step2" style="display:none;">
                     <h3>Confirm Details</h3>
-                    <div style="background:#f8f8f8; padding:20px; border-radius:10px; margin:20px 0; border:1px dashed #ddd;">
+                    <div style="background:#f8f8f8; padding:20px; border-radius:10px; margin:20px 0;">
                         <p><strong>Venue:</strong> <span id="rev-loc"></span></p>
                         <p><strong>Name:</strong> <span id="rev-name"></span></p>
                         <p><strong>Time:</strong> <span id="rev-date"></span> at <span id="rev-time"></span></p>
@@ -158,10 +112,9 @@
                 <div id="step3" style="display:none; text-align:center; padding:20px;">
                     <div style="font-size:60px;">⏳</div>
                     <h3 style="margin-top:10px;">Request Sent</h3>
-                    <p style="color:#666; line-height:1.6;">We have received your request.<br>Please wait for a <strong>WhatsApp confirmation</strong>.</p>
+                    <p style="color:#666;">We have received your request.<br>Please wait for a <strong>WhatsApp confirmation</strong>.</p>
                     <button class="btn-primary" onclick="goHome()" style="margin-top:20px;">Return Home</button>
                 </div>
-                <div id="loader" style="display:none; text-align:center; padding:20px;">Processing...</div>
             </div>
         </div>
     </div>
@@ -170,43 +123,39 @@
         <div class="modal-content">
             <span onclick="closeLogin()" style="position:absolute; right:20px; top:15px; font-size:24px; cursor:pointer;">&times;</span>
             <h2 style="margin-bottom:20px;">Staff Portal</h2>
-            <div class="input-group"><input type="email" id="login-email" class="input-field" placeholder="Email Address"></div>
-            <div class="input-group"><input type="password" id="login-pass" class="input-field" placeholder="Password"></div>
+            <input type="email" id="login-email" class="input-field" placeholder="Email Address">
+            <input type="password" id="login-pass" class="input-field" placeholder="Password">
             <button class="btn-primary" onclick="handleLogin()">Login</button>
             <p id="login-error" style="color:red; display:none; margin-top:10px; font-size:0.8rem;"></p>
         </div>
     </div>
 
-    <div class="footer">
-        © 2026 Tawelty. <a onclick="openLogin()">Staff Login</a>
-    </div>
+    <div class="footer">© 2026 Tawelty. <a onclick="openLogin()">Staff Login</a></div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // --- PASTE YOUR FIREBASE CONFIG HERE ---
     const firebaseConfig = {
-  apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
-  authDomain: "tawelty-realtime.firebaseapp.com",
-  projectId: "tawelty-realtime",
-  storageBucket: "tawelty-realtime.firebasestorage.app",
-  messagingSenderId: "127610217841",
-  appId: "1:127610217841:web:9535aedf4a06c645c9c2d0"
-};
+      apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
+      authDomain: "tawelty-realtime.firebaseapp.com",
+      projectId: "tawelty-realtime",
+      storageBucket: "tawelty-realtime.firebasestorage.app",
+      messagingSenderId: "127610217841",
+      appId: "1:127610217841:web:9535aedf4a06c645c9c2d0"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // --- CLEAN URL SCRIPT ---
     if (window.location.pathname.endsWith('/index.html')) {
         var newPath = window.location.pathname.replace('/index.html', '/');
         window.history.replaceState(null, '', newPath);
     }
 
-    // --- MAIN LOGIC ---
+    // --- MAIN LOADING LOGIC ---
     window.onload = async function() {
         populateTime();
         const today = new Date().toISOString().split('T')[0];
@@ -223,31 +172,41 @@
             } else {
                 querySnapshot.forEach((doc) => {
                     const branch = doc.data();
+                    
+                    // --- NEW: CHECK IF OPEN ---
+                    // Default to true if field is missing
+                    const isOpen = branch.isOpen !== false; 
+                    
+                    let buttonHtml = '';
+                    let clickAction = '';
+                    
+                    if(isOpen) {
+                        buttonHtml = `<span class="btn-card">Book Table</span>`;
+                        clickAction = `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}')"`;
+                    } else {
+                        buttonHtml = `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
+                        clickAction = `style="cursor:not-allowed; opacity:0.8;"`; // No click action
+                    }
+
                     html += `
-                    <div class="card" onclick="openBooking('${branch.name}', '${branch.image}')">
-                        <div class="card-img" style="background-image: url('${branch.image}');"></div>
+                    <div class="card" ${clickAction}>
+                        <div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div>
                         <div class="card-content">
                             <h3 class="card-title">${branch.name}</h3>
                             <span class="card-loc">📍 ${branch.location}</span>
-                            <span class="btn-card">Book Table</span>
+                            ${buttonHtml}
                         </div>
                     </div>`;
                 });
                 container.innerHTML = html;
             }
-        } catch (error) {
-            console.error(error);
-            container.innerHTML = "<p>Error loading data.</p>";
-        } finally {
-            loader.style.display = 'none';
-        }
+        } catch (error) { console.error(error); } 
+        finally { loader.style.display = 'none'; }
     };
 
-    // --- NAVIGATION ---
     window.openBooking = function(name, imgUrl) {
         window.selectedRestaurant = name;
         document.getElementById('selected-restaurant-title').innerText = name;
-        document.getElementById('selected-restaurant-img').src = imgUrl || 'https://via.placeholder.com/500x200';
         
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
@@ -261,7 +220,7 @@
         document.getElementById('home-page').classList.add('active-section');
     }
 
-    // --- LOGIN LOGIC ---
+    // --- LOGIN ---
     window.openLogin = () => document.getElementById('loginModal').style.display = 'block';
     window.closeLogin = () => document.getElementById('loginModal').style.display = 'none';
 
@@ -271,13 +230,10 @@
         const errorMsg = document.getElementById('login-error');
         
         try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-            // Replace with your Admin Email
-            if (email === "admin@tawelty.com") {
-                window.location.href = "admin.html";
-            } else {
-                const managerRef = doc(db, "managers", email);
-                const managerSnap = await getDoc(managerRef);
+            await signInWithEmailAndPassword(auth, email, pass);
+            if (email === "admin@tawelty.com") window.location.href = "admin.html";
+            else {
+                const managerSnap = await getDoc(doc(db, "managers", email));
                 if (managerSnap.exists()) window.location.href = "manager.html";
                 else throw new Error("Not authorized");
             }
@@ -287,7 +243,6 @@
         }
     };
 
-    // --- FORM UTILS ---
     window.switchFormStep = (hide, show) => {
         document.getElementById(hide).style.display = 'none';
         document.getElementById(show).style.display = 'block';
@@ -314,10 +269,8 @@
         switchFormStep('step1', 'step2');
     }
 
-    // --- SEND LOGIC ---
     window.sendEmail = async function() {
         document.getElementById('step2').style.display = 'none';
-        document.getElementById('loader').style.display = 'block';
         
         const bookingData = {
             restaurant: window.selectedRestaurant,
@@ -332,18 +285,9 @@
 
         try {
             await addDoc(collection(db, "reservations"), bookingData);
-            
-            // EmailJS (Optional)
-            const PUBLIC_KEY = '4p2u3G8LGQWTJBWGc'; 
-            const SERVICE_ID = 'service_09j0ci6';
-            const TEMPLATE_ID = 'template_xnsuy3p';
-            // emailjs.send(...) - You can uncomment if you want email too
-
-            document.getElementById('loader').style.display = 'none';
             document.getElementById('step3').style.display = 'block';
         } catch (e) {
             alert("Error: " + e.message);
-            document.getElementById('loader').style.display = 'none';
             document.getElementById('step2').style.display = 'block';
         }
     }
