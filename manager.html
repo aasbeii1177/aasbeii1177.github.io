@@ -55,12 +55,16 @@
         .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-left: 10px; background: rgba(0,0,0,0.05); font-weight: 800; }
 
         /* Action Buttons */
-        .actions { display: flex; gap: 10px; margin-top: 15px; }
+        .actions { display: flex; gap: 10px; margin-top: 15px; align-items: center; }
         @media (min-width: 600px) { .actions { margin-top: 0; } }
         
         .btn-accept { background: #27ae60; color: white; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.2); }
         .btn-decline { background: white; border: 1px solid #e74c3c; color: #e74c3c; }
         .btn-decline:hover { background: #e74c3c; color: white; }
+        
+        /* New Trash Button */
+        .btn-trash { background: none; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 18px; color: #999; }
+        .btn-trash:hover { background: #fee; color: #e74c3c; border-color: #e74c3c; }
 
         .hidden { display: none; }
         .error { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; }
@@ -93,10 +97,10 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    // NEW: Imported 'onSnapshot' for real-time updates
-    import { getFirestore, collection, doc, getDoc, updateDoc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // ADDED: 'deleteDoc' and 'onSnapshot'
+    import { getFirestore, collection, doc, getDoc, updateDoc, deleteDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- YOUR KEYS ARE PRE-FILLED HERE ---
+    // --- YOUR KEYS ---
     const firebaseConfig = {
       apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
       authDomain: "tawelty-realtime.firebaseapp.com",
@@ -125,7 +129,7 @@
     
     // --- LOGOUT LOGIC ---
     window.logout = () => {
-        if(unsubscribe) unsubscribe(); // Stop listening to database
+        if(unsubscribe) unsubscribe(); // Stop listening
         signOut(auth).then(() => {
             window.location.href = "index.html"; 
         });
@@ -159,19 +163,15 @@
         }
     });
 
-    // --- REAL-TIME LISTENER (THE MAGIC PART) ---
+    // --- REAL-TIME LISTENER ---
     function startRealtimeListener() {
         if(!currentRestaurant) return;
 
         const list = document.getElementById('bookings-list');
         const sound = document.getElementById('notif-sound');
         
-        // Query: Get bookings for this restaurant, Ordered by creation date (newest first)
-        // Note: You might need to create an Index in Firebase Console for 'orderBy'. 
-        // If it fails, remove 'orderBy' for now.
         const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant));
 
-        // onSnapshot: Runs every time the database changes
         let isFirstLoad = true;
 
         unsubscribe = onSnapshot(q, (snapshot) => {
@@ -181,11 +181,9 @@
             }
 
             // CHECK FOR NEW ADDITIONS -> PLAY SOUND
-            // We ignore the first load (so it doesn't beep 50 times when you login)
             if (!isFirstLoad) {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === "added") {
-                        // Play Sound
                         sound.currentTime = 0;
                         sound.play().catch(e => console.log("Audio play blocked until interaction"));
                     }
@@ -200,12 +198,20 @@
                 const id = docSnap.id;
                 
                 let buttons = '';
+                
+                // If Pending, Show Accept/Decline
                 if(b.status === 'Pending') {
                     buttons = `
                         <button class="btn-accept" onclick="handleDecision('${id}', '${b.phone}', '${b.name}', 'Accepted')">Accept & WhatsApp 🟢</button>
                         <button class="btn-decline" onclick="handleDecision('${id}', '${b.phone}', '${b.name}', 'Declined')">Decline & WhatsApp 🔴</button>
                     `;
+                } else {
+                    // If done, just show status
+                    buttons = `<span style="color:#999; font-size:12px; font-weight:bold; margin-right:10px;">Action Taken</span>`;
                 }
+
+                // ALWAYS show Trash Button at the end
+                buttons += `<button class="btn-trash" onclick="deleteBooking('${id}')" title="Delete Booking">🗑️</button>`;
 
                 html += `
                 <div class="booking-card status-${b.status}">
@@ -236,7 +242,14 @@
             : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant} for this time. ❌`;
 
         window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
-        // No need to call 'loadBookings()' because onSnapshot updates automatically!
+    };
+
+    // --- DELETE BOOKING ---
+    window.deleteBooking = async (id) => {
+        if(confirm("Are you sure you want to permanently delete this booking?")) {
+            await deleteDoc(doc(db, "reservations", id));
+            // No need to refresh, the page updates automatically
+        }
     };
 
 </script>
