@@ -8,15 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- THEME (Same as before) --- */
-        :root {
-            --primary-color: #5D4037;
-            --accent-color: #8D6E63;
-            --bg-color: #FDFBF7;
-            --card-bg: #FFFFFF;
-            --text-color: #3E2723;
-        }
-        body { font-family: 'Lato', sans-serif; background-color: var(--bg-color); margin: 0; color: var(--text-color); min-height: 100vh; }
+        /* --- THEME --- */
+        :root { --primary-color: #5D4037; --accent-color: #8D6E63; --bg-color: #FDFBF7; --card-bg: #FFFFFF; --text-color: #3E2723; }
+        body { font-family: 'Lato', sans-serif; background-color: var(--bg-color); margin: 0; color: var(--text-color); min-height: 100vh; position: relative;}
         h1, h2, h3 { font-family: 'Playfair Display', serif; }
         
         header { text-align: center; padding: 30px 20px; }
@@ -28,16 +22,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* CARD STYLES */
-        .restaurant-card {
-            background: var(--card-bg);
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(93, 64, 55, 0.08);
-            margin-bottom: 25px;
-            transition: transform 0.3s;
-            cursor: pointer;
-            border: 1px solid #efebe9;
-        }
+        .restaurant-card { background: var(--card-bg); border-radius: 15px; overflow: hidden; box-shadow: 0 10px 20px rgba(93, 64, 55, 0.08); margin-bottom: 25px; transition: transform 0.3s; cursor: pointer; border: 1px solid #efebe9; }
         .restaurant-card:hover { transform: translateY(-5px); }
         .card-img { height: 180px; background-color: #d7ccc8; background-size: cover; background-position: center; }
         .card-details { padding: 20px; }
@@ -56,6 +41,13 @@
         .hidden { display: none; }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 30px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* LOGIN MODAL STYLES */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fff; margin: 15% auto; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center; position: relative; }
+        .close-modal { position: absolute; right: 20px; top: 10px; font-size: 28px; cursor: pointer; color: #aaa; }
+        .footer-login { text-align: center; padding: 20px; margin-top: 50px; border-top: 1px solid #eee; }
+        .login-link { color: #ccc; text-decoration: none; font-size: 12px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -67,8 +59,8 @@
 
     <div id="home-page" class="page-section active-section">
         <h2 style="text-align:center; color: var(--primary-color); margin-bottom:30px;">Choose a Location</h2>
-        <div id="restaurant-list-container">
-            </div>
+        <div id="loader-main" class="loader"></div>
+        <div id="restaurant-list-container"></div>
     </div>
 
     <div id="booking-page" class="page-section">
@@ -105,101 +97,145 @@
         </div>
     </div>
 
-<script>
-    // --- 1. YOUR RESTAURANT LIST ---
-    // TO ADD A NEW BRANCH: Just add a new line inside this list!
-    const restaurants = [
-        {
-            name: "Askim",
-            location: "Fourseason Boulevard",
-            image: "https://github.com/aasbeii1177/aasbeii1177.github.io/blob/main/Askim.jpg?raw=true"
-        },
-        {
-            name: "Galliard",
-            location: "Avenue Mall",
-            image: "https://scontent-fra5-1.xx.fbcdn.net/v/t39.30808-6/325728873_875057340278352_7816358211126097587_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=3lc2MoyDRWkQ7kNvwFQSwZn&_nc_oc=AdkaXfLl3GfOvA4YHjXgsRd6oo6MoIc5r2NG21Y7oXjw3l_WljLZ0Cv9NQP_IoB-1ZQ&_nc_zt=23&_nc_ht=scontent-fra5-1.xx&_nc_gid=3D0wMQjS-USza3D3KcImJA&oh=00_AfoxldEML92yRLDioFfmUmlE_wbMYJyosHRq13Xphd5log&oe=69793383"
-        },
-        {
-            name: "La Capitale",
-            location: "Old City Damascus",
-            image: "https://lh3.googleusercontent.com/gps-cs-s/AG0ilSyON8zoeQ3u9508r9uvWF5KKuW16aJWomT7IewhiezWJR9YWK8KaVHlEO7NEkp_i53TRMeVwQN0qWSLEwaIVSqJ39tLFIY5QipCy0PvC9A5VKc4C0g08Tcy6MkNe3yG8aPfodaXGA=s1360-w1360-h1020-rw"
-        },
-        {
-            name: "Sah El Nom",
-            location: "Chamstone Damascus",
-            image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrgd841emM4CzvUpaEO_C0hardT8C9lQEyUA&s"
-        },
-        {
-            name: "View Lattakia", 
-            location: "Corniche", 
-            image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3NbTMzGkYU3HSULNM4dlYfxzXLnKSH03VGg&s" 
-        },
-        {
-            name: "Casper and Gambini", 
-            location: "Avenue Mall", 
-            image: "https://www.hospitalitynewsmag.com/wp-content/uploads/2021/03/Casper-Gambinis-Syria.jpg" 
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeLogin()">×</span>
+            <h2 style="color: var(--primary-color);">Staff Portal</h2>
+            <input type="email" id="login-email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
+            <input type="password" id="login-pass" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button class="action-btn" onclick="handleLogin()">Login</button>
+            <p id="login-error" style="color:red; display:none; margin-top:10px; font-size:14px;"></p>
+        </div>
+    </div>
+
+    <div class="footer-login">
+        <a class="login-link" onclick="openLogin()">Staff Login</a>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // --- PASTE YOUR FIREBASE KEYS HERE ---
+   const firebaseConfig = {
+  apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
+  authDomain: "tawelty-realtime.firebaseapp.com",
+  projectId: "tawelty-realtime",
+  storageBucket: "tawelty-realtime.firebasestorage.app",
+  messagingSenderId: "127610217841",
+  appId: "1:127610217841:web:9535aedf4a06c645c9c2d0"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // --- LOGIN LOGIC (The Smart Redirect) ---
+    window.openLogin = () => document.getElementById('loginModal').style.display = 'block';
+    window.closeLogin = () => document.getElementById('loginModal').style.display = 'none';
+
+    window.handleLogin = async () => {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-pass').value;
+        const errorMsg = document.getElementById('login-error');
+        errorMsg.style.display = 'none';
+
+        try {
+            // 1. Authenticate
+            const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+            const user = userCredential.user;
+
+            // 2. CHECK ROLE: Is this the Admin?
+            // (Replace 'admin@tawelty.com' with your actual admin email)
+            if (email === "admin@tawelty.com") {
+                window.location.href = "admin.html"; // Redirect to Admin Page
+                return;
+            }
+
+            // 3. CHECK ROLE: Is this a Manager?
+            // Check if they exist in the 'managers' database
+            const managerRef = doc(db, "managers", email);
+            const managerSnap = await getDoc(managerRef);
+
+            if (managerSnap.exists()) {
+                window.location.href = "manager.html"; // Redirect to Manager Page
+            } else {
+                // If they are logged in but not a manager or admin
+                errorMsg.innerText = "Access Denied: Account not authorized.";
+                errorMsg.style.display = 'block';
+            }
+
+        } catch (error) {
+            errorMsg.innerText = "Login Failed: " + error.message;
+            errorMsg.style.display = 'block';
         }
-        
-    ];
+    };
 
-    // --- 2. CONFIGURATION ---
-    const PUBLIC_KEY = '4p2u3G8LGQWTJBWGc'; 
-    const SERVICE_ID = 'service_09j0ci6';
-    const TEMPLATE_ID = 'template_xnsuy3p';
-    (function(){ emailjs.init(PUBLIC_KEY); })();
-
-    let selectedRestaurant = "";
-
-    // --- 3. INIT LOGIC ---
-    window.onload = function() {
-        renderRestaurants(); // Build the list automatically
+    // --- STANDARD APP LOGIC (Same as before) ---
+    window.onload = async function() {
         populateTime();
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').setAttribute('min', today);
+        
+        const container = document.getElementById('restaurant-list-container');
+        const loader = document.getElementById('loader-main');
+        let html = '';
+
+        try {
+            const querySnapshot = await getDocs(collection(db, "restaurants"));
+            if(querySnapshot.empty) {
+                container.innerHTML = "<p style='text-align:center'>No restaurants found yet.</p>";
+            } else {
+                querySnapshot.forEach((doc) => {
+                    const branch = doc.data();
+                    html += `
+                    <div class="restaurant-card" onclick="openBooking('${branch.name}')">
+                        <div class="card-img" style="background-image: url('${branch.image}');"></div>
+                        <div class="card-details">
+                            <h3 class="card-title">${branch.name}</h3>
+                            <span class="card-loc">${branch.location}</span>
+                            <span class="btn-book">Book Table</span>
+                        </div>
+                    </div>`;
+                });
+                container.innerHTML = html;
+            }
+        } catch (error) {
+            console.error("Error fetching restaurants: ", error);
+            container.innerHTML = "<p style='text-align:center; color:red;'>Error loading data.</p>";
+        } finally {
+            loader.style.display = 'none';
+        }
     };
 
-    // --- 4. RENDER FUNCTION (THE MAGIC) ---
-    function renderRestaurants() {
-        const container = document.getElementById('restaurant-list-container');
-        let html = '';
-        
-        // Loop through the list and create HTML for each one
-        restaurants.forEach(branch => {
-            html += `
-            <div class="restaurant-card" onclick="openBooking('${branch.name}')">
-                <div class="card-img" style="background-image: url('${branch.image}');"></div>
-                <div class="card-details">
-                    <h3 class="card-title">${branch.name}</h3>
-                    <span class="card-loc">${branch.location}</span>
-                    <span class="btn-book">Book Table</span>
-                </div>
-            </div>`;
-        });
-        
-        container.innerHTML = html;
-    }
-
-    // --- 5. NAVIGATION & FORMS ---
-    function openBooking(name) {
-        selectedRestaurant = name;
+    window.openBooking = function(name) {
+        window.selectedRestaurant = name;
         document.getElementById('selected-restaurant-title').innerText = "Book: " + name;
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
         switchFormStep('step2', 'step1');
         switchFormStep('step3', 'step1');
     }
+    
+    const PUBLIC_KEY = '4p2u3G8LGQWTJBWGc'; 
+    const SERVICE_ID = 'service_09j0ci6';
+    const TEMPLATE_ID = 'template_xnsuy3p';
+    (function(){ emailjs.init(PUBLIC_KEY); })();
+    
+    window.selectedRestaurant = "";
 
-    function goHome() {
+    window.goHome = function() {
         document.getElementById('booking-page').classList.remove('active-section');
         document.getElementById('home-page').classList.add('active-section');
     }
 
-    function switchFormStep(hide, show) {
+    window.switchFormStep = function(hide, show) {
         document.getElementById(hide).classList.add('hidden');
         document.getElementById(show).classList.remove('hidden');
     }
 
-    function populateTime() {
+    window.populateTime = function() {
         const timeSelect = document.getElementById('time');
         let options = '<option value="" disabled selected>Select Time</option>';
         for(let i=10; i<=22; i++) {
@@ -209,30 +245,20 @@
         timeSelect.innerHTML = options;
     }
 
-    function goToReview() {
+    window.goToReview = function() {
         const name = document.getElementById('name').value;
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
         const persons = document.getElementById('persons').value;
 
-        // 1. Check if empty
-        if(!name || !date || !time || !persons) { 
-            alert("Please fill in all fields"); 
-            return; 
-        }
-
-        // 2. SECURITY CHECK: Is the date in the past?
+        if(!name || !date || !time || !persons) { alert("Please fill in all fields"); return; }
+        
         const selectedDate = new Date(date);
         const today = new Date();
-        today.setHours(0,0,0,0); // Reset time to midnight so we compare dates only
+        today.setHours(0,0,0,0);
+        if(selectedDate < today) { alert("You cannot book a date in the past!"); return; }
 
-        if(selectedDate < today) {
-            alert("You cannot book a date in the past! Please choose a future date.");
-            return; // Stop everything
-        }
-        
-        // 3. If passed, show review
-        document.getElementById('rev-loc').innerText = selectedRestaurant;
+        document.getElementById('rev-loc').innerText = window.selectedRestaurant;
         document.getElementById('rev-name').innerText = name;
         document.getElementById('rev-date').innerText = date;
         document.getElementById('rev-time').innerText = time;
@@ -240,27 +266,46 @@
         switchFormStep('step1', 'step2');
     }
 
-    function sendEmail() {
+    window.sendEmail = async function() {
         document.getElementById('step2').classList.add('hidden');
         document.getElementById('loader').classList.remove('hidden');
-        const params = {
-            email_subject: "New Booking: " + selectedRestaurant,
-            restaurant_name: selectedRestaurant,
-            from_name: document.getElementById('name').value,
-            phone_number: document.getElementById('phone').value,
+        
+        const bookingData = {
+            restaurant: window.selectedRestaurant,
+            name: document.getElementById('name').value,
+            phone: document.getElementById('phone').value,
             date: document.getElementById('date').value,
             time: document.getElementById('time').value,
-            persons: document.getElementById('persons').value
+            persons: document.getElementById('persons').value,
+            status: "Pending", 
+            createdAt: new Date()
         };
-        emailjs.send(SERVICE_ID, TEMPLATE_ID, params).then(function() {
+
+        try {
+            await addDoc(collection(db, "reservations"), bookingData);
+
+            const params = {
+                email_subject: "New Request: " + window.selectedRestaurant,
+                restaurant_name: window.selectedRestaurant,
+                from_name: bookingData.name,
+                phone_number: bookingData.phone,
+                date: bookingData.date,
+                time: bookingData.time,
+                persons: bookingData.persons
+            };
+            
+            await emailjs.send(SERVICE_ID, TEMPLATE_ID, params);
+
             document.getElementById('loader').classList.add('hidden');
-            document.getElementById('final-loc').innerText = selectedRestaurant;
+            document.getElementById('final-loc').innerText = window.selectedRestaurant;
             document.getElementById('step3').classList.remove('hidden');
-        }, function(error) {
+
+        } catch (error) {
+            console.error("Error:", error);
             document.getElementById('loader').classList.add('hidden');
+            alert("Error: " + error.message); 
             document.getElementById('step2').classList.remove('hidden');
-            alert("Error sending. Check connection.");
-        });
+        }
     }
 </script>
 
