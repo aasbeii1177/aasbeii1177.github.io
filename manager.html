@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manager Portal - Tawelty</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Lato', sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { color: #5D4037; text-align: center; }
+        .booking-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
+        .booking-info h3 { margin: 0 0 5px; color: #5D4037; }
+        .booking-info p { margin: 2px 0; color: #666; font-size: 0.9rem; }
+        .badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .status-Pending { background: #FFF3CD; color: #856404; }
+        .status-Accepted { background: #D4EDDA; color: #155724; }
+        .status-Declined { background: #F8D7DA; color: #721C24; }
+        .actions button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 5px; }
+        .btn-accept { background: #28a745; color: white; }
+        .btn-decline { background: #dc3545; color: white; }
+        .hidden { display: none; }
+        .error { color: red; text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="login-view" class="container" style="max-width:400px; text-align:center;">
+        <h2>Manager Login</h2>
+        <input type="email" id="email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
+        <input type="password" id="password" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
+        <button onclick="login()" style="width:100%; padding:10px; background:#5D4037; color:white; border:none; cursor:pointer;">Login</button>
+        <p id="login-msg" class="error hidden"></p>
+    </div>
+
+    <div id="dashboard-view" class="container hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 id="manager-title">Loading...</h2>
+            <button onclick="logout()" style="background:#999; color:white; border:none; padding:5px 10px; cursor:pointer;">Logout</button>
+        </div>
+
+        <div id="bookings-list">
+            <p style="text-align:center;">Loading bookings...</p>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // --- PASTE KEYS HERE ---
+    const firebaseConfig = {
+  apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
+  authDomain: "tawelty-realtime.firebaseapp.com",
+  projectId: "tawelty-realtime",
+  storageBucket: "tawelty-realtime.firebasestorage.app",
+  messagingSenderId: "127610217841",
+  appId: "1:127610217841:web:9535aedf4a06c645c9c2d0"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentRestaurant = "";
+
+    // --- LOGIN LOGIC ---
+    window.login = () => {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        signInWithEmailAndPassword(auth, email, pass).catch(e => {
+            document.getElementById('login-msg').innerText = "Login Failed: " + e.message;
+            document.getElementById('login-msg').classList.remove('hidden');
+        });
+    };
+   window.logout = () => {
+    signOut(auth).then(() => {
+        window.location.href = "index.html"; // Go back to main site
+    });
+};
+
+    // --- MAIN LOGIC: CHECK WHO IS LOGGED IN ---
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            document.getElementById('login-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            
+            // 1. LOOK UP WHICH RESTAURANT THIS MANAGER OWNS
+            try {
+                // We check the 'managers' collection for a document with the user's email
+                const managerRef = doc(db, "managers", user.email);
+                const managerSnap = await getDoc(managerRef);
+
+                if (managerSnap.exists()) {
+                    // Success! We found their assignment
+                    currentRestaurant = managerSnap.data().restaurant;
+                    document.getElementById('manager-title').innerText = currentRestaurant + " Dashboard";
+                    loadBookings(); // Load data specifically for this restaurant
+                } else {
+                    // This user is logged in, but not in the 'managers' list
+                    document.getElementById('bookings-list').innerHTML = "<p style='color:red'>Access Denied. You are not linked to a restaurant.</p>";
+                    document.getElementById('manager-title').innerText = "Unknown User";
+                }
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+            }
+
+        } else {
+            document.getElementById('login-view').classList.remove('hidden');
+            document.getElementById('dashboard-view').classList.add('hidden');
+        }
+    });
+
+    // --- LOAD BOOKINGS (FILTERED BY MANAGER'S RESTAURANT) ---
+    window.loadBookings = async () => {
+        if(!currentRestaurant) return;
+
+        const list = document.getElementById('bookings-list');
+        list.innerHTML = "<p>Loading...</p>";
+
+        // Query: Get bookings ONLY where restaurant == currentRestaurant
+        const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant));
+        const snapshot = await getDocs(q);
+        
+        if(snapshot.empty) {
+            list.innerHTML = "<p>No bookings found for " + currentRestaurant + ".</p>";
+            return;
+        }
+
+        let html = '';
+        snapshot.forEach(docSnap => {
+            const b = docSnap.data();
+            const id = docSnap.id;
+            
+            let buttons = '';
+            if(b.status === 'Pending') {
+                buttons = `
+                    <button class="btn-accept" onclick="updateStatus('${id}', 'Accepted')">Accept</button>
+                    <button class="btn-decline" onclick="updateStatus('${id}', 'Declined')">Decline</button>
+                `;
+            }
+
+            html += `
+            <div class="booking-card">
+                <div class="booking-info">
+                    <h3>${b.name} <span class="badge status-${b.status}">${b.status}</span></h3>
+                    <p>📅 ${b.date} at ${b.time}</p>
+                    <p>👥 ${b.persons} Guests | 📞 ${b.phone}</p>
+                </div>
+                <div class="actions">
+                    ${buttons}
+                </div>
+            </div>`;
+        });
+        list.innerHTML = html;
+    };
+
+    window.updateStatus = async (id, newStatus) => {
+        const ref = doc(db, "reservations", id);
+        await updateDoc(ref, { status: newStatus });
+        loadBookings();
+    };
+
+</script>
+</body>
+</html>
