@@ -12,22 +12,31 @@
         
         h1, h2 { color: #2C3E50; font-weight: 700; margin-top: 0; }
         
+        /* HEADER & TOGGLE */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; }
+        #manager-title { border-left: 5px solid #D4AF37; padding-left: 15px; margin: 0; }
+
+        /* The Switch Box */
+        .status-control { display: flex; align-items: center; gap: 10px; }
+        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #27ae60; } /* Green when Open */
+        input:checked + .slider:before { transform: translateX(26px); }
+        .status-label { font-weight: bold; font-size: 14px; color: #666; }
+
         /* Input Fields */
-        input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; transition: 0.3s; }
+        input[type="email"], input[type="password"] { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; transition: 0.3s; }
         input:focus { border-color: #2C3E50; outline: none; background: #fafafa; }
         
         /* Buttons */
         button { padding: 12px 25px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; }
-        button:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-logout { background: #95A5A6; color: white; margin-left: 20px; }
 
         /* Login Box */
         #login-view { max-width: 400px; padding: 50px; text-align: center; margin: 10vh auto; }
         .btn-login { width: 100%; background: #2C3E50; color: white; font-size: 16px; padding: 15px; margin-top: 10px; }
-
-        /* Dashboard Header */
-        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; }
-        #manager-title { border-left: 5px solid #D4AF37; padding-left: 15px; margin: 0; }
-        .btn-logout { background: #95A5A6; color: white; }
 
         /* Booking Cards */
         .booking-card { 
@@ -35,37 +44,27 @@
             padding: 25px; margin-bottom: 20px; border-radius: 12px; 
             display: flex; flex-direction: column; 
             box-shadow: 0 5px 15px rgba(0,0,0,0.02); transition: 0.2s;
-            animation: slideIn 0.5s ease-out; /* Animation for new items */
+            animation: slideIn 0.5s ease-out; 
         }
         @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
-        @media (min-width: 600px) {
-            .booking-card { flex-direction: row; justify-content: space-between; align-items: center; }
-        }
-        .booking-card:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-
-        /* Status Styles */
+        @media (min-width: 600px) { .booking-card { flex-direction: row; justify-content: space-between; align-items: center; } }
+        
         .status-Pending { border-left-color: #F1C40F; background: #FFFCF2; } 
         .status-Accepted { border-left-color: #2ECC71; background: #ffffff; } 
         .status-Declined { border-left-color: #E74C3C; opacity: 0.7; } 
 
         .booking-info h3 { margin: 0 0 8px; font-size: 18px; color: #2C3E50; }
         .booking-info p { margin: 4px 0; color: #7f8c8d; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-        
         .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-left: 10px; background: rgba(0,0,0,0.05); font-weight: 800; }
 
-        /* Action Buttons */
+        /* Actions */
         .actions { display: flex; gap: 10px; margin-top: 15px; align-items: center; }
         @media (min-width: 600px) { .actions { margin-top: 0; } }
-        
-        .btn-accept { background: #27ae60; color: white; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.2); }
+        .btn-accept { background: #27ae60; color: white; }
         .btn-decline { background: white; border: 1px solid #e74c3c; color: #e74c3c; }
-        .btn-decline:hover { background: #e74c3c; color: white; }
-        
-        /* Archive Button */
         .btn-archive { background: none; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 18px; color: #999; }
-        .btn-archive:hover { background: #f0f0f0; color: #555; border-color: #999; }
-
+        
         .hidden { display: none; }
         .error { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; }
     </style>
@@ -74,7 +73,6 @@
 
     <div id="login-view" class="container">
         <h2>Manager Portal</h2>
-        <p style="color:#888; margin-bottom:20px;">Please sign in to manage reservations</p>
         <input type="email" id="email" placeholder="Email Address">
         <input type="password" id="password" placeholder="Password">
         <button class="btn-login" onclick="login()">Sign In</button>
@@ -83,7 +81,16 @@
 
     <div id="dashboard-view" class="container hidden">
         <div class="dashboard-header">
-            <h2 id="manager-title">Loading...</h2>
+            <div>
+                <h2 id="manager-title">Loading...</h2>
+                <div class="status-control">
+                    <label class="switch">
+                        <input type="checkbox" id="status-toggle" onchange="toggleStatus()">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="status-text" class="status-label">Checking Status...</span>
+                </div>
+            </div>
             <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
 
@@ -97,9 +104,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, updateDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, updateDoc, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- YOUR KEYS ---
     const firebaseConfig = {
       apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
       authDomain: "tawelty-realtime.firebaseapp.com",
@@ -114,9 +120,10 @@
     const db = getFirestore(app);
 
     let currentRestaurant = "";
+    let restaurantDocId = ""; // To store the exact ID of the restaurant doc
     let unsubscribe = null; 
 
-    // --- LOGIN LOGIC ---
+    // --- LOGIN ---
     window.login = () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
@@ -126,12 +133,9 @@
         });
     };
     
-    // --- LOGOUT LOGIC ---
     window.logout = () => {
         if(unsubscribe) unsubscribe();
-        signOut(auth).then(() => {
-            window.location.href = "index.html"; 
-        });
+        signOut(auth).then(() => { window.location.href = "index.html"; });
     };
 
     // --- AUTH MONITOR ---
@@ -141,20 +145,30 @@
             document.getElementById('dashboard-view').classList.remove('hidden');
             
             try {
+                // 1. Get Manager Info
                 const managerRef = doc(db, "managers", user.email);
                 const managerSnap = await getDoc(managerRef);
 
                 if (managerSnap.exists()) {
                     currentRestaurant = managerSnap.data().restaurant;
                     document.getElementById('manager-title').innerText = currentRestaurant;
+                    
+                    // 2. Find the Restaurant Document (To control 'isOpen' status)
+                    const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
+                    const resSnap = await getDocs(q);
+                    if(!resSnap.empty) {
+                        const resDoc = resSnap.docs[0];
+                        restaurantDocId = resDoc.id;
+                        // Set Toggle State
+                        const isOpen = resDoc.data().isOpen !== false; // Default to true if missing
+                        updateToggleUI(isOpen);
+                    }
+
                     startRealtimeListener(); 
                 } else {
-                    document.getElementById('bookings-list').innerHTML = "<p style='color:red; text-align:center;'>🚫 Access Denied<br>This account is not linked to a restaurant.</p>";
-                    document.getElementById('manager-title').innerText = "Guest";
+                    document.getElementById('bookings-list').innerHTML = "<p style='color:red;'>Access Denied</p>";
                 }
-            } catch (error) {
-                console.error("Error fetching profile:", error);
-            }
+            } catch (error) { console.error(error); }
 
         } else {
             document.getElementById('login-view').classList.remove('hidden');
@@ -162,112 +176,105 @@
         }
     });
 
-    // --- REAL-TIME LISTENER (FILTERED) ---
+    // --- STATUS TOGGLE LOGIC ---
+    window.toggleStatus = async () => {
+        if(!restaurantDocId) return;
+        
+        const toggle = document.getElementById('status-toggle');
+        const isNowOpen = toggle.checked;
+        
+        updateToggleUI(isNowOpen); // Update Text immediately
+        
+        // Update Firebase
+        const resRef = doc(db, "restaurants", restaurantDocId);
+        await updateDoc(resRef, { isOpen: isNowOpen });
+    };
+
+    function updateToggleUI(isOpen) {
+        const toggle = document.getElementById('status-toggle');
+        const label = document.getElementById('status-text');
+        
+        toggle.checked = isOpen;
+        if(isOpen) {
+            label.innerText = "🟢 Accepting Orders";
+            label.style.color = "#27ae60";
+        } else {
+            label.innerText = "🔴 Kitchen Busy (Closed)";
+            label.style.color = "#e74c3c";
+        }
+    }
+
+    // --- REAL-TIME BOOKINGS ---
     function startRealtimeListener() {
         if(!currentRestaurant) return;
-
         const list = document.getElementById('bookings-list');
         const sound = document.getElementById('notif-sound');
         
-        // Listen to ALL bookings for this restaurant
         const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant));
-
         let isFirstLoad = true;
 
         unsubscribe = onSnapshot(q, (snapshot) => {
-            if(snapshot.empty) {
-                list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings found.</p>";
-                return;
-            }
+            if(snapshot.empty) { list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings.</p>"; return; }
 
-            // CHECK FOR NEW ADDITIONS -> PLAY SOUND
             if (!isFirstLoad) {
                 snapshot.docChanges().forEach((change) => {
-                    if (change.type === "added") {
-                        // Only play sound if it's NOT archived
-                        const data = change.doc.data();
-                        if(!data.archived) {
-                            sound.currentTime = 0;
-                            sound.play().catch(e => console.log("Audio blocked"));
-                        }
+                    if (change.type === "added" && !change.doc.data().archived) {
+                        sound.currentTime = 0;
+                        sound.play().catch(e => console.log("Audio blocked"));
                     }
                 });
             }
             isFirstLoad = false;
 
-            // RENDER THE LIST (Filter out archived items manually)
             let html = '';
             let visibleCount = 0;
 
             snapshot.forEach(docSnap => {
                 const b = docSnap.data();
-                const id = docSnap.id;
-                
-                // --- THE FILTER: If archived is true, SKIP this card ---
                 if(b.archived === true) return; 
-
                 visibleCount++;
                 
                 let buttons = '';
                 if(b.status === 'Pending') {
                     buttons = `
-                        <button class="btn-accept" onclick="handleDecision('${id}', '${b.phone}', '${b.name}', 'Accepted')">Accept & WhatsApp 🟢</button>
-                        <button class="btn-decline" onclick="handleDecision('${id}', '${b.phone}', '${b.name}', 'Declined')">Decline & WhatsApp 🔴</button>
+                        <button class="btn-accept" onclick="handleDecision('${docSnap.id}', '${b.phone}', '${b.name}', 'Accepted')">Accept & WhatsApp 🟢</button>
+                        <button class="btn-decline" onclick="handleDecision('${docSnap.id}', '${b.phone}', '${b.name}', 'Declined')">Decline & WhatsApp 🔴</button>
                     `;
                 } else {
                     buttons = `<span style="color:#999; font-size:12px; font-weight:bold; margin-right:10px;">Action Taken</span>`;
                 }
-
-                // The Archive Button (Looks like Trash, Acts like Archive)
-                buttons += `<button class="btn-archive" onclick="archiveBooking('${id}')" title="Archive (Remove from view)">🗑️</button>`;
+                buttons += `<button class="btn-archive" onclick="archiveBooking('${docSnap.id}')" title="Archive">🗑️</button>`;
 
                 html += `
                 <div class="booking-card status-${b.status}">
                     <div class="booking-info">
                         <h3>${b.name} <span class="badge" style="background:${b.status=='Accepted'?'#2ECC71':(b.status=='Pending'?'#F1C40F':'#E74C3C')}; color:white;">${b.status}</span></h3>
-                        <p>📅 ${b.date} &nbsp; | &nbsp; ⏰ ${b.time}</p>
-                        <p>👥 ${b.persons} Guests &nbsp; | &nbsp; 📞 ${b.phone}</p>
+                        <p>📅 ${b.date} | ⏰ ${b.time}</p>
+                        <p>👥 ${b.persons} Guests | 📞 ${b.phone}</p>
                     </div>
-                    <div class="actions">
-                        ${buttons}
-                    </div>
+                    <div class="actions">${buttons}</div>
                 </div>`;
             });
 
-            if(visibleCount === 0) {
-                list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings found.</p>";
-            } else {
-                list.innerHTML = html;
-            }
+            if(visibleCount === 0) list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings.</p>";
+            else list.innerHTML = html;
         });
     }
 
-    // --- HANDLE DECISION ---
     window.handleDecision = async (id, phone, name, status) => {
         const ref = doc(db, "reservations", id);
         await updateDoc(ref, { status: status });
-
-        // WhatsApp Logic
         let cleanPhone = phone.replace(/\D/g, ''); 
-        if(cleanPhone.startsWith('0')) { cleanPhone = "963" + cleanPhone.substring(1); }
-        let message = status === "Accepted" 
-            ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅ We look forward to seeing you.`
-            : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant} for this time. ❌`;
-
+        if(cleanPhone.startsWith('0')) cleanPhone = "963" + cleanPhone.substring(1); 
+        let message = status === "Accepted" ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅` : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌`;
         window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
     };
 
-    // --- ARCHIVE BOOKING (Safe Delete) ---
     window.archiveBooking = async (id) => {
-        if(confirm("Remove this from your dashboard? (History will be saved)")) {
-            // We do NOT delete. We just update 'archived' to true.
-            const ref = doc(db, "reservations", id);
-            await updateDoc(ref, { archived: true });
-            
-            // The Real-Time Listener will see the change and remove it from the screen instantly.
+        if(confirm("Archive this booking?")) {
+            await updateDoc(doc(db, "reservations", id), { archived: true });
         }
     };
-
 </script>
 </body>
 </html>
