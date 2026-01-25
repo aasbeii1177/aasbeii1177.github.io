@@ -3,52 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <title>Manager Portal - Tawelty</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Lato', sans-serif; background: #f4f4f4; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { color: #5D4037; text-align: center; }
-        .booking-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff; display: flex; justify-content: space-between; align-items: center; }
-        .booking-info h3 { margin: 0 0 5px; color: #5D4037; }
-        .booking-info p { margin: 2px 0; color: #666; font-size: 0.9rem; }
-        .badge { padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
-        .status-Pending { background: #FFF3CD; color: #856404; }
-        .status-Accepted { background: #D4EDDA; color: #155724; }
-        .status-Declined { background: #F8D7DA; color: #721C24; }
-        .actions button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 5px; }
-        .btn-accept { background: #28a745; color: white; }
-        .btn-decline { background: #dc3545; color: white; }
+        /* --- MODERN DASHBOARD THEME --- */
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #EEF2F5; padding: 40px 20px; color: #333; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        
+        h1, h2 { color: #2C3E50; font-weight: 700; margin-top: 0; }
+        
+        /* Input Fields */
+        input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: #2C3E50; outline: none; background: #fafafa; }
+        
+        /* Buttons */
+        button { padding: 12px 25px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* Login Box */
+        #login-view { max-width: 400px; padding: 50px; text-align: center; margin: 10vh auto; }
+        .btn-login { width: 100%; background: #2C3E50; color: white; font-size: 16px; padding: 15px; margin-top: 10px; }
+
+        /* Dashboard Header */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; }
+        #manager-title { border-left: 5px solid #D4AF37; padding-left: 15px; margin: 0; }
+        .btn-logout { background: #95A5A6; color: white; }
+
+        /* Booking Cards */
+        .booking-card { 
+            background: #fff; border: 1px solid #eee; border-left: 5px solid transparent;
+            padding: 25px; margin-bottom: 20px; border-radius: 12px; 
+            display: flex; flex-direction: column; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02); transition: 0.2s;
+            animation: slideIn 0.5s ease-out; /* Animation for new items */
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (min-width: 600px) {
+            .booking-card { flex-direction: row; justify-content: space-between; align-items: center; }
+        }
+        .booking-card:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
+
+        /* Status Styles */
+        .status-Pending { border-left-color: #F1C40F; background: #FFFCF2; } 
+        .status-Accepted { border-left-color: #2ECC71; background: #ffffff; } 
+        .status-Declined { border-left-color: #E74C3C; opacity: 0.7; } 
+
+        .booking-info h3 { margin: 0 0 8px; font-size: 18px; color: #2C3E50; }
+        .booking-info p { margin: 4px 0; color: #7f8c8d; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-left: 10px; background: rgba(0,0,0,0.05); font-weight: 800; }
+
+        /* Action Buttons */
+        .actions { display: flex; gap: 10px; margin-top: 15px; }
+        @media (min-width: 600px) { .actions { margin-top: 0; } }
+        
+        .btn-accept { background: #27ae60; color: white; box-shadow: 0 4px 10px rgba(39, 174, 96, 0.2); }
+        .btn-decline { background: white; border: 1px solid #e74c3c; color: #e74c3c; }
+        .btn-decline:hover { background: #e74c3c; color: white; }
+
         .hidden { display: none; }
-        .error { color: red; text-align: center; margin-top: 10px; }
+        .error { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <div id="login-view" class="container" style="max-width:400px; text-align:center;">
-        <h2>Manager Login</h2>
-        <input type="email" id="email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
-        <input type="password" id="password" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
-        <button onclick="login()" style="width:100%; padding:10px; background:#5D4037; color:white; border:none; cursor:pointer;">Login</button>
+    <div id="login-view" class="container">
+        <h2>Manager Portal</h2>
+        <p style="color:#888; margin-bottom:20px;">Please sign in to manage reservations</p>
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="password" placeholder="Password">
+        <button class="btn-login" onclick="login()">Sign In</button>
         <p id="login-msg" class="error hidden"></p>
     </div>
 
     <div id="dashboard-view" class="container hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <div class="dashboard-header">
             <h2 id="manager-title">Loading...</h2>
-            <button onclick="logout()" style="background:#999; color:white; border:none; padding:5px 10px; cursor:pointer;">Logout</button>
+            <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
 
+        <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a" preload="auto"></audio>
+
         <div id="bookings-list">
-            <p style="text-align:center;">Loading bookings...</p>
+            <p style="text-align:center; color:#888;">Connecting to Live Database...</p>
         </div>
     </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    // NEW: Imported 'onSnapshot' for real-time updates
+    import { getFirestore, collection, doc, getDoc, updateDoc, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- YOUR KEYS ARE PRESERVED HERE ---
+    // --- YOUR KEYS ARE PRE-FILLED HERE ---
     const firebaseConfig = {
       apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
       authDomain: "tawelty-realtime.firebaseapp.com",
@@ -63,42 +111,43 @@
     const db = getFirestore(app);
 
     let currentRestaurant = "";
+    let unsubscribe = null; // To stop listening when logging out
 
     // --- LOGIN LOGIC ---
     window.login = () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
         signInWithEmailAndPassword(auth, email, pass).catch(e => {
-            document.getElementById('login-msg').innerText = "Login Failed: " + e.message;
+            document.getElementById('login-msg').innerText = "Access Failed: " + e.message;
             document.getElementById('login-msg').classList.remove('hidden');
         });
     };
     
-    // Updated Logout: Sends you back to the main homepage
+    // --- LOGOUT LOGIC ---
     window.logout = () => {
+        if(unsubscribe) unsubscribe(); // Stop listening to database
         signOut(auth).then(() => {
-            window.location.href = "/"; 
+            window.location.href = "index.html"; 
         });
     };
 
-    // --- MAIN LOGIC: CHECK WHO IS LOGGED IN ---
+    // --- AUTH MONITOR ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
             
-            // 1. LOOK UP WHICH RESTAURANT THIS MANAGER OWNS
             try {
                 const managerRef = doc(db, "managers", user.email);
                 const managerSnap = await getDoc(managerRef);
 
                 if (managerSnap.exists()) {
                     currentRestaurant = managerSnap.data().restaurant;
-                    document.getElementById('manager-title').innerText = currentRestaurant + " Dashboard";
-                    loadBookings(); 
+                    document.getElementById('manager-title').innerText = currentRestaurant;
+                    startRealtimeListener(); // START LISTENING
                 } else {
-                    document.getElementById('bookings-list').innerHTML = "<p style='color:red'>Access Denied. You are not linked to a restaurant.</p>";
-                    document.getElementById('manager-title').innerText = "Unknown User";
+                    document.getElementById('bookings-list').innerHTML = "<p style='color:red; text-align:center;'>🚫 Access Denied<br>This account is not linked to a restaurant.</p>";
+                    document.getElementById('manager-title').innerText = "Guest";
                 }
             } catch (error) {
                 console.error("Error fetching profile:", error);
@@ -110,77 +159,84 @@
         }
     });
 
-    // --- LOAD BOOKINGS (WITH WHATSAPP LOGIC) ---
-    window.loadBookings = async () => {
+    // --- REAL-TIME LISTENER (THE MAGIC PART) ---
+    function startRealtimeListener() {
         if(!currentRestaurant) return;
 
         const list = document.getElementById('bookings-list');
-        list.innerHTML = "<p>Loading...</p>";
-
-        const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant));
-        const snapshot = await getDocs(q);
+        const sound = document.getElementById('notif-sound');
         
-        if(snapshot.empty) {
-            list.innerHTML = "<p>No bookings found for " + currentRestaurant + ".</p>";
-            return;
-        }
+        // Query: Get bookings for this restaurant, Ordered by creation date (newest first)
+        // Note: You might need to create an Index in Firebase Console for 'orderBy'. 
+        // If it fails, remove 'orderBy' for now.
+        const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant));
 
-        let html = '';
-        snapshot.forEach(docSnap => {
-            const b = docSnap.data();
-            const id = docSnap.id;
-            
-            // Only show buttons if Pending
-            let buttons = '';
-            if(b.status === 'Pending') {
-                buttons = `
-                    <button class="btn-accept" onclick="handleDecision('${id}', '${b.phone}', '${b.name}', 'Accepted')">Accept & WhatsApp 🟢</button>
-                    <button class="btn-decline" onclick="handleDecision('${id}', '${b.phone}', '${b.name}', 'Declined')">Decline & WhatsApp 🔴</button>
-                `;
+        // onSnapshot: Runs every time the database changes
+        let isFirstLoad = true;
+
+        unsubscribe = onSnapshot(q, (snapshot) => {
+            if(snapshot.empty) {
+                list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings found.</p>";
+                return;
             }
 
-            html += `
-            <div class="booking-card">
-                <div class="booking-info">
-                    <h3>${b.name} <span class="badge status-${b.status}">${b.status}</span></h3>
-                    <p>📅 ${b.date} at ${b.time}</p>
-                    <p>👥 ${b.persons} Guests | 📞 ${b.phone}</p>
-                </div>
-                <div class="actions">
-                    ${buttons}
-                </div>
-            </div>`;
-        });
-        list.innerHTML = html;
-    };
+            // CHECK FOR NEW ADDITIONS -> PLAY SOUND
+            // We ignore the first load (so it doesn't beep 50 times when you login)
+            if (!isFirstLoad) {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        // Play Sound
+                        sound.currentTime = 0;
+                        sound.play().catch(e => console.log("Audio play blocked until interaction"));
+                    }
+                });
+            }
+            isFirstLoad = false;
 
-    // --- NEW: HANDLE DECISION (UPDATE DB + OPEN WHATSAPP) ---
+            // RENDER THE LIST
+            let html = '';
+            snapshot.forEach(docSnap => {
+                const b = docSnap.data();
+                const id = docSnap.id;
+                
+                let buttons = '';
+                if(b.status === 'Pending') {
+                    buttons = `
+                        <button class="btn-accept" onclick="handleDecision('${id}', '${b.phone}', '${b.name}', 'Accepted')">Accept & WhatsApp 🟢</button>
+                        <button class="btn-decline" onclick="handleDecision('${id}', '${b.phone}', '${b.name}', 'Declined')">Decline & WhatsApp 🔴</button>
+                    `;
+                }
+
+                html += `
+                <div class="booking-card status-${b.status}">
+                    <div class="booking-info">
+                        <h3>${b.name} <span class="badge" style="background:${b.status=='Accepted'?'#2ECC71':(b.status=='Pending'?'#F1C40F':'#E74C3C')}; color:white;">${b.status}</span></h3>
+                        <p>📅 ${b.date} &nbsp; | &nbsp; ⏰ ${b.time}</p>
+                        <p>👥 ${b.persons} Guests &nbsp; | &nbsp; 📞 ${b.phone}</p>
+                    </div>
+                    <div class="actions">
+                        ${buttons}
+                    </div>
+                </div>`;
+            });
+            list.innerHTML = html;
+        });
+    }
+
+    // --- HANDLE DECISION ---
     window.handleDecision = async (id, phone, name, status) => {
-        // 1. Update Firebase
         const ref = doc(db, "reservations", id);
         await updateDoc(ref, { status: status });
 
-        // 2. Prepare Phone Number (Syria Format)
-        // Removes spaces. Turns "09..." into "9639..."
+        // WhatsApp Logic
         let cleanPhone = phone.replace(/\D/g, ''); 
-        if(cleanPhone.startsWith('0')) {
-            cleanPhone = "963" + cleanPhone.substring(1);
-        }
+        if(cleanPhone.startsWith('0')) { cleanPhone = "963" + cleanPhone.substring(1); }
+        let message = status === "Accepted" 
+            ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅ We look forward to seeing you.`
+            : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant} for this time. ❌`;
 
-        // 3. Prepare Message
-        let message = "";
-        if (status === "Accepted") {
-            message = `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅ We look forward to seeing you.`;
-        } else {
-            message = `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant} for this time. ❌ We apologize for the inconvenience.`;
-        }
-
-        // 4. Open WhatsApp
-        const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
-
-        // 5. Refresh Screen
-        loadBookings();
+        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+        // No need to call 'loadBookings()' because onSnapshot updates automatically!
     };
 
 </script>
