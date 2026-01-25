@@ -8,7 +8,7 @@
     <style>
         /* --- PREMIUM ADMIN THEME --- */
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #EEF2F5; margin: 0; padding: 40px 20px; color: #333; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.08); }
 
         h1, h2, h3 { color: #1a1a1a; margin-top: 0; font-weight: 700; text-align: center; }
         
@@ -28,11 +28,19 @@
         /* LIST STYLES */
         .res-list { margin-top: 40px; border-top: 2px dashed #eee; padding-top: 20px; }
         .res-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f0f0f0; }
+        .res-info { flex-grow: 1; }
         .res-name { font-weight: 600; font-size: 16px; }
+        .res-email { font-size: 12px; color: #D4AF37; font-weight: 600; margin-top: 2px; }
         
         .btn-action { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-left: 5px; }
         .btn-delete { background: #fee; color: #e74c3c; }
         .btn-edit { background: #eef2f5; color: #2980b9; }
+        .btn-qr { background: #e8f6f3; color: #1abc9c; } /* QR Button Style */
+
+        /* QR MODAL */
+        #qr-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center; }
+        .qr-box { background:white; padding:30px; border-radius:15px; text-align:center; max-width:300px; }
+        .qr-img { width: 200px; height: 200px; margin-bottom: 15px; }
 
         .success-msg { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px; display: none; }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #D4AF37; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 10px; }
@@ -81,12 +89,19 @@
         <button class="btn-logout" onclick="logout()">Logout</button>
     </div>
 
+    <div id="qr-modal" onclick="closeQr()">
+        <div class="qr-box" onclick="event.stopPropagation()"> <h3 id="qr-title" style="margin-bottom:15px;"></h3>
+            <img id="qr-image" class="qr-img" src="">
+            <p style="font-size:12px; color:#999;">Right-click image to save</p>
+            <button onclick="closeQr()" style="margin-top:10px; padding:5px 15px; border:1px solid #ddd; background:white; border-radius:5px; cursor:pointer;">Close</button>
+        </div>
+    </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, doc, setDoc, getDocs, deleteDoc, updateDoc, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, setDoc, getDocs, deleteDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // --- YOUR KEYS ---
     const firebaseConfig = {
       apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
       authDomain: "tawelty-realtime.firebaseapp.com",
@@ -100,9 +115,8 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // --- STATE VARIABLES ---
-    let editingId = null;        // ID of restaurant being edited
-    let editingOldName = "";     // To check if name changed
+    let editingId = null;
+    let editingOldName = "";
 
     // --- LOGIN ---
     window.login = () => {
@@ -127,16 +141,13 @@
         }
     });
 
-    // --- MAIN SUBMIT HANDLER ---
+    // --- SUBMIT ---
     window.handleSubmit = async () => {
-        if (editingId) {
-            updateRestaurant(); // EDIT MODE
-        } else {
-            createRestaurant(); // CREATE MODE
-        }
+        if (editingId) updateRestaurant();
+        else createRestaurant();
     }
 
-    // --- 1. CREATE LOGIC ---
+    // --- CREATE ---
     async function createRestaurant() {
         const rName = document.getElementById('res-name').value;
         const rLoc = document.getElementById('res-location').value;
@@ -151,15 +162,12 @@
         btn.disabled = true;
 
         try {
-            // Add Venue
             await addDoc(collection(db, "restaurants"), { name: rName, location: rLoc, image: rImg || 'https://via.placeholder.com/400x300' });
             
-            // Create Manager
             const secondaryApp = initializeApp(firebaseConfig, "Secondary");
             const secondaryAuth = getAuth(secondaryApp);
             await createUserWithEmailAndPassword(secondaryAuth, mEmail, mPass);
             
-            // Link Manager
             await setDoc(doc(db, "managers", mEmail), { restaurant: rName, createdAt: new Date() });
 
             showSuccess("✨ Created Successfully!");
@@ -170,61 +178,114 @@
         finally { btn.innerHTML = '+ Create Everything'; btn.disabled = false; }
     }
 
-    // --- 2. UPDATE LOGIC (With Manager Sync) ---
+    // --- UPDATE ---
     async function updateRestaurant() {
         const rName = document.getElementById('res-name').value;
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const btn = document.getElementById('btn-submit');
 
-        if(!rName || !rLoc) return alert("Name and Location are required.");
+        if(!rName || !rLoc) return alert("Name/Location required.");
 
         btn.innerHTML = '<div class="loader"></div> Updating...';
         btn.disabled = true;
 
         try {
-            // Update the Venue Doc
             const resRef = doc(db, "restaurants", editingId);
             await updateDoc(resRef, { name: rName, location: rLoc, image: rImg });
 
-            // IF NAME CHANGED: Update Manager's Link too!
             if (rName !== editingOldName) {
-                // Find managers linked to the OLD name
                 const q = query(collection(db, "managers"), where("restaurant", "==", editingOldName));
                 const querySnapshot = await getDocs(q);
-                
-                // Update them to NEW name
                 querySnapshot.forEach(async (docSnap) => {
                     await updateDoc(doc(db, "managers", docSnap.id), { restaurant: rName });
                 });
             }
 
-            showSuccess("✏️ Updated Successfully!");
-            cancelEdit(); // Exit edit mode
+            showSuccess("✏️ Updated!");
+            cancelEdit();
             loadRestaurants();
 
         } catch (e) { alert("Error: " + e.message); } 
         finally { btn.disabled = false; }
     }
 
+    // --- LOAD WITH MANAGER LOOKUP ---
+    window.loadRestaurants = async () => {
+        const container = document.getElementById('restaurants-container');
+        container.innerHTML = '<div class="loader"></div>';
+        try {
+            // 1. Fetch Restaurants
+            const resSnap = await getDocs(collection(db, "restaurants"));
+            
+            // 2. Fetch All Managers (to map email to restaurant)
+            const mgrSnap = await getDocs(collection(db, "managers"));
+            let mgrMap = {}; 
+            mgrSnap.forEach(doc => {
+                // Key = Restaurant Name, Value = Manager Email
+                mgrMap[doc.data().restaurant] = doc.id; 
+            });
+
+            if(resSnap.empty) { container.innerHTML = '<p style="text-align:center;">No venues found.</p>'; return; }
+            
+            let html = '';
+            resSnap.forEach((doc) => {
+                const d = doc.data();
+                const safeName = d.name.replace(/'/g, "\\'"); 
+                const safeLoc = d.location.replace(/'/g, "\\'");
+                const safeImg = d.image ? d.image.replace(/'/g, "\\'") : '';
+                
+                // Lookup Email
+                const mgrEmail = mgrMap[d.name] || "No Manager Linked";
+
+                html += `
+                <div class="res-item">
+                    <div class="res-info">
+                        <div class="res-name">${d.name}</div>
+                        <div style="font-size:12px; color:#999;">${d.location}</div>
+                        <div class="res-email">👤 ${mgrEmail}</div>
+                    </div>
+                    <div>
+                        <button class="btn-action btn-qr" onclick="showQr('${safeName}')">📱</button>
+                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}')">✏️</button>
+                        <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}', '${safeName}')">🗑️</button>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        } catch(e) { console.error(e); }
+    }
+
+    // --- QR LOGIC ---
+    window.showQr = (name) => {
+        const modal = document.getElementById('qr-modal');
+        const img = document.getElementById('qr-image');
+        const title = document.getElementById('qr-title');
+        
+        // Pointing to main website. 
+        // Note: Currently points to homepage. We can add deep linking later if needed.
+        const websiteUrl = "https://taweltysy.com"; 
+        
+        // Generate QR Code using a public API
+        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(websiteUrl)}`;
+        
+        title.innerText = name + " QR";
+        modal.style.display = 'flex';
+    };
+    
+    window.closeQr = () => document.getElementById('qr-modal').style.display = 'none';
+
     // --- UI HELPERS ---
     window.startEdit = (id, name, loc, img) => {
-        // Switch to Edit Mode
         editingId = id;
         editingOldName = name;
-        
-        // Fill Inputs
         document.getElementById('res-name').value = name;
         document.getElementById('res-location').value = loc;
         document.getElementById('res-image').value = img;
-        
-        // UI Changes
         document.getElementById('form-title').innerText = "Edit Venue";
         document.getElementById('btn-submit').innerText = "Save Changes";
-        document.getElementById('manager-section').style.display = 'none'; // Hide manager creation
+        document.getElementById('manager-section').style.display = 'none'; 
         document.getElementById('btn-cancel').style.display = 'block';
-        
-        // Scroll to top
         window.scrollTo(0,0);
     }
 
@@ -232,12 +293,18 @@
         editingId = null;
         editingOldName = "";
         clearInputs();
-        
         document.getElementById('form-title').innerText = "Setup New Venue";
         document.getElementById('btn-submit').innerText = "+ Create Everything";
         document.getElementById('manager-section').style.display = 'block';
         document.getElementById('btn-cancel').style.display = 'none';
     }
+
+    window.deleteRestaurant = async (id, name) => {
+        if(confirm(`Delete ${name}?`)) {
+            await deleteDoc(doc(db, "restaurants", id));
+            loadRestaurants();
+        }
+    };
 
     function showSuccess(msgText) {
         const msg = document.getElementById('msg');
@@ -253,46 +320,6 @@
         document.getElementById('mgr-email').value = "";
         document.getElementById('mgr-pass').value = "";
     }
-
-    // --- LOAD & DELETE ---
-    window.loadRestaurants = async () => {
-        const container = document.getElementById('restaurants-container');
-        container.innerHTML = '<div class="loader"></div>';
-        try {
-            const snapshot = await getDocs(collection(db, "restaurants"));
-            if(snapshot.empty) { container.innerHTML = '<p style="text-align:center;">No venues found.</p>'; return; }
-            
-            let html = '';
-            snapshot.forEach((doc) => {
-                const d = doc.data();
-                // Escape quotes for safe function calls
-                const safeName = d.name.replace(/'/g, "\\'"); 
-                const safeLoc = d.location.replace(/'/g, "\\'");
-                const safeImg = d.image ? d.image.replace(/'/g, "\\'") : '';
-
-                html += `
-                <div class="res-item">
-                    <div>
-                        <div class="res-name">${d.name}</div>
-                        <div style="font-size:12px; color:#999;">${d.location}</div>
-                    </div>
-                    <div>
-                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}')">✏️ Edit</button>
-                        <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}', '${safeName}')">🗑️</button>
-                    </div>
-                </div>`;
-            });
-            container.innerHTML = html;
-        } catch(e) { console.error(e); }
-    }
-
-    window.deleteRestaurant = async (id, name) => {
-        if(confirm(`Delete ${name}?`)) {
-            await deleteDoc(doc(db, "restaurants", id));
-            loadRestaurants();
-        }
-    };
-
 </script>
 </body>
 </html>
