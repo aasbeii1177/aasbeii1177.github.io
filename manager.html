@@ -62,9 +62,9 @@
         .btn-decline { background: white; border: 1px solid #e74c3c; color: #e74c3c; }
         .btn-decline:hover { background: #e74c3c; color: white; }
         
-        /* New Trash Button */
-        .btn-trash { background: none; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 18px; color: #999; }
-        .btn-trash:hover { background: #fee; color: #e74c3c; border-color: #e74c3c; }
+        /* Archive Button */
+        .btn-archive { background: none; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 18px; color: #999; }
+        .btn-archive:hover { background: #f0f0f0; color: #555; border-color: #999; }
 
         .hidden { display: none; }
         .error { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; }
@@ -97,8 +97,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    // ADDED: 'deleteDoc' and 'onSnapshot'
-    import { getFirestore, collection, doc, getDoc, updateDoc, deleteDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, updateDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // --- YOUR KEYS ---
     const firebaseConfig = {
@@ -115,7 +114,7 @@
     const db = getFirestore(app);
 
     let currentRestaurant = "";
-    let unsubscribe = null; // To stop listening when logging out
+    let unsubscribe = null; 
 
     // --- LOGIN LOGIC ---
     window.login = () => {
@@ -129,7 +128,7 @@
     
     // --- LOGOUT LOGIC ---
     window.logout = () => {
-        if(unsubscribe) unsubscribe(); // Stop listening
+        if(unsubscribe) unsubscribe();
         signOut(auth).then(() => {
             window.location.href = "index.html"; 
         });
@@ -148,7 +147,7 @@
                 if (managerSnap.exists()) {
                     currentRestaurant = managerSnap.data().restaurant;
                     document.getElementById('manager-title').innerText = currentRestaurant;
-                    startRealtimeListener(); // START LISTENING
+                    startRealtimeListener(); 
                 } else {
                     document.getElementById('bookings-list').innerHTML = "<p style='color:red; text-align:center;'>🚫 Access Denied<br>This account is not linked to a restaurant.</p>";
                     document.getElementById('manager-title').innerText = "Guest";
@@ -163,13 +162,14 @@
         }
     });
 
-    // --- REAL-TIME LISTENER ---
+    // --- REAL-TIME LISTENER (FILTERED) ---
     function startRealtimeListener() {
         if(!currentRestaurant) return;
 
         const list = document.getElementById('bookings-list');
         const sound = document.getElementById('notif-sound');
         
+        // Listen to ALL bookings for this restaurant
         const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant));
 
         let isFirstLoad = true;
@@ -184,34 +184,42 @@
             if (!isFirstLoad) {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === "added") {
-                        sound.currentTime = 0;
-                        sound.play().catch(e => console.log("Audio play blocked until interaction"));
+                        // Only play sound if it's NOT archived
+                        const data = change.doc.data();
+                        if(!data.archived) {
+                            sound.currentTime = 0;
+                            sound.play().catch(e => console.log("Audio blocked"));
+                        }
                     }
                 });
             }
             isFirstLoad = false;
 
-            // RENDER THE LIST
+            // RENDER THE LIST (Filter out archived items manually)
             let html = '';
+            let visibleCount = 0;
+
             snapshot.forEach(docSnap => {
                 const b = docSnap.data();
                 const id = docSnap.id;
                 
-                let buttons = '';
+                // --- THE FILTER: If archived is true, SKIP this card ---
+                if(b.archived === true) return; 
+
+                visibleCount++;
                 
-                // If Pending, Show Accept/Decline
+                let buttons = '';
                 if(b.status === 'Pending') {
                     buttons = `
                         <button class="btn-accept" onclick="handleDecision('${id}', '${b.phone}', '${b.name}', 'Accepted')">Accept & WhatsApp 🟢</button>
                         <button class="btn-decline" onclick="handleDecision('${id}', '${b.phone}', '${b.name}', 'Declined')">Decline & WhatsApp 🔴</button>
                     `;
                 } else {
-                    // If done, just show status
                     buttons = `<span style="color:#999; font-size:12px; font-weight:bold; margin-right:10px;">Action Taken</span>`;
                 }
 
-                // ALWAYS show Trash Button at the end
-                buttons += `<button class="btn-trash" onclick="deleteBooking('${id}')" title="Delete Booking">🗑️</button>`;
+                // The Archive Button (Looks like Trash, Acts like Archive)
+                buttons += `<button class="btn-archive" onclick="archiveBooking('${id}')" title="Archive (Remove from view)">🗑️</button>`;
 
                 html += `
                 <div class="booking-card status-${b.status}">
@@ -225,7 +233,12 @@
                     </div>
                 </div>`;
             });
-            list.innerHTML = html;
+
+            if(visibleCount === 0) {
+                list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings found.</p>";
+            } else {
+                list.innerHTML = html;
+            }
         });
     }
 
@@ -244,11 +257,14 @@
         window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
     };
 
-    // --- DELETE BOOKING ---
-    window.deleteBooking = async (id) => {
-        if(confirm("Are you sure you want to permanently delete this booking?")) {
-            await deleteDoc(doc(db, "reservations", id));
-            // No need to refresh, the page updates automatically
+    // --- ARCHIVE BOOKING (Safe Delete) ---
+    window.archiveBooking = async (id) => {
+        if(confirm("Remove this from your dashboard? (History will be saved)")) {
+            // We do NOT delete. We just update 'archived' to true.
+            const ref = doc(db, "reservations", id);
+            await updateDoc(ref, { archived: true });
+            
+            // The Real-Time Listener will see the change and remove it from the screen instantly.
         }
     };
 
