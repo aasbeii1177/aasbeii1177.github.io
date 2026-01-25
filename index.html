@@ -5,111 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tawelty - Premium Dining</title>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     
     <style>
-        /* --- THEME --- */
-        :root { --primary-color: #5D4037; --accent-color: #8D6E63; --bg-color: #FDFBF7; --card-bg: #FFFFFF; --text-color: #3E2723; }
-        body { font-family: 'Lato', sans-serif; background-color: var(--bg-color); margin: 0; color: var(--text-color); min-height: 100vh; position: relative;}
-        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        /* --- LUXURY THEME --- */
+        :root {
+            --primary: #1a1a1a;       /* Deep Black/Charcoal */
+            --gold: #D4AF37;          /* Luxury Gold */
+            --bg: #FAFAFA;            /* Soft Cream */
+            --surface: #FFFFFF;       /* Pure White */
+            --text-main: #2C3E50;
+            --text-light: #95A5A6;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); margin: 0; color: var(--text-main); -webkit-font-smoothing: antialiased; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--primary); margin: 0; }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .hero h1 { color: white; font-size: 3.5rem; letter-spacing: 2px; margin-bottom: 10px; font-style: italic; }
+        .hero p { font-size: 1rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+
+        /* --- LAYOUT --- */
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
+
+        /* --- CARDS (The Restaurant List) --- */
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.03);
+            position: relative;
+        }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .card-img { height: 220px; background-size: cover; background-position: center; position: relative; }
+        .card-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 20px; box-sizing: border-box; opacity: 0; transition: 0.3s;
+        }
+        .card:hover .card-overlay { opacity: 1; }
+        .card-content { padding: 25px; }
+        .card-title { font-size: 1.5rem; margin-bottom: 8px; }
+        .card-loc { color: var(--text-light); font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
         
-        header { text-align: center; padding: 30px 20px; }
-        .logo-text { font-size: 42px; color: var(--primary-color); margin: 0; }
-        .tagline { color: var(--accent-color); font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
+        .btn-card {
+            display: block; width: 100%; padding: 12px; text-align: center;
+            background: white; border: 1px solid var(--primary); color: var(--primary);
+            border-radius: 8px; font-weight: 600; margin-top: 15px; transition: 0.2s;
+        }
+        .card:hover .btn-card { background: var(--primary); color: white; }
 
-        .page-section { max-width: 600px; margin: 0 auto; padding: 20px; display: none; animation: fadeIn 0.5s ease; }
+        /* --- BOOKING FORM (Modern) --- */
+        .page-section { display: none; animation: slideUp 0.4s ease-out; }
         .active-section { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* CARD STYLES */
-        .restaurant-card { background: var(--card-bg); border-radius: 15px; overflow: hidden; box-shadow: 0 10px 20px rgba(93, 64, 55, 0.08); margin-bottom: 25px; transition: transform 0.3s; cursor: pointer; border: 1px solid #efebe9; }
-        .restaurant-card:hover { transform: translateY(-5px); }
-        .card-img { height: 180px; background-color: #d7ccc8; background-size: cover; background-position: center; }
-        .card-details { padding: 20px; }
-        .card-title { margin: 0 0 5px; color: var(--primary-color); font-size: 22px; }
-        .card-loc { color: #888; font-size: 14px; margin-bottom: 15px; display: block;}
-        .btn-book { background-color: var(--primary-color); color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; display: inline-block; font-size: 14px; font-weight: bold; }
+        .form-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.08); max-width: 500px; margin: 0 auto; }
+        .banner-img { width: 100%; height: 180px; object-fit: cover; border-radius: 12px; margin-bottom: 25px; }
+        
+        .input-group { margin-bottom: 20px; position: relative; }
+        .input-group label { font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .input-field {
+            width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 10px;
+            font-family: inherit; font-size: 1rem; outline: none; transition: 0.2s; box-sizing: border-box;
+        }
+        .input-field:focus { border-color: var(--primary); background: #fffcf5; }
+        
+        .btn-primary {
+            width: 100%; padding: 16px; background: var(--primary); color: white;
+            border: none; border-radius: 10px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .btn-primary:hover { background: #000; transform: scale(1.02); }
 
-        /* FORM STYLES */
-        .form-container { background: var(--card-bg); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem; }
-        input, select { width: 100%; padding: 12px; border: 1px solid #d7ccc8; border-radius: 8px; box-sizing: border-box; font-family: 'Lato', sans-serif; background: #FAFAFA; }
-        button.action-btn { background-color: var(--primary-color); color: white; border: none; padding: 15px; font-size: 16px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 10px; }
-        .back-btn { background: none; border: none; color: #888; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; font-size: 14px; }
-        .summary-box { background: var(--bg-color); padding: 20px; border-radius: 10px; border: 1px dashed var(--accent-color); margin-bottom: 20px; }
-        .hidden { display: none; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 30px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .back-link { display: inline-block; margin-bottom: 20px; color: var(--text-light); cursor: pointer; font-weight: 500; text-decoration: none; transition: 0.2s; }
+        .back-link:hover { color: var(--primary); }
 
-        /* LOGIN MODAL STYLES */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 15% auto; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; text-align: center; position: relative; }
-        .close-modal { position: absolute; right: 20px; top: 10px; font-size: 28px; cursor: pointer; color: #aaa; }
-        .footer-login { text-align: center; padding: 20px; margin-top: 50px; border-top: 1px solid #eee; }
-        .login-link { color: #ccc; text-decoration: none; font-size: 12px; cursor: pointer; }
+        /* --- LOGIN PORTAL (Glass Style) --- */
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); }
+        .modal-content {
+            background: white; width: 90%; max-width: 350px; margin: 15vh auto;
+            padding: 40px; border-radius: 20px; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .footer { text-align: center; margin-top: 50px; padding: 20px; color: #ccc; font-size: 0.9rem; }
+        .footer a { color: var(--gold); text-decoration: none; font-weight: 600; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1 class="logo-text">Tawelty</h1>
-        <div class="tagline">Reservations</div>
-    </header>
-
-    <div id="home-page" class="page-section active-section">
-        <h2 style="text-align:center; color: var(--primary-color); margin-bottom:30px;">Choose a Location</h2>
-        <div id="loader-main" class="loader"></div>
-        <div id="restaurant-list-container"></div>
+    <div class="hero">
+        <h1>Tawelty</h1>
+        <p>Premium Reservations</p>
     </div>
 
-    <div id="booking-page" class="page-section">
-        <button class="back-btn" onclick="goHome()">← Back to Restaurants</button>
-        <div class="form-container">
-            <h2 id="selected-restaurant-title" style="margin-top:0;">Reserve Table</h2>
-            <div id="step1">
-                <div class="form-group"><label>Full Name</label><input type="text" id="name" placeholder="Your Name"></div>
-                <div class="form-group"><label>Phone Number</label><input type="tel" id="phone" placeholder="09xx xxx xxx"></div>
-                <div class="form-group"><label>Date</label><input type="date" id="date"></div>
-                <div class="form-group"><label>Time</label><select id="time"></select></div>
-                <div class="form-group"><label>Guests</label><input type="number" id="persons" min="1" max="20" placeholder="4"></div>
-                <button class="action-btn" onclick="goToReview()">Review Booking</button>
-            </div>
-            <div id="step2" class="hidden">
-                <h3>Confirm Details</h3>
-                <div class="summary-box">
-                    <p><strong>Restaurant:</strong> <span id="rev-loc"></span></p>
-                    <p><strong>Name:</strong> <span id="rev-name"></span></p>
-                    <p><strong>Date:</strong> <span id="rev-date"></span></p>
-                    <p><strong>Time:</strong> <span id="rev-time"></span></p>
-                    <p><strong>Guests:</strong> <span id="rev-guests"></span></p>
+    <div class="container">
+        <div id="home-page" class="page-section active-section">
+            <h2 style="margin-bottom: 25px;">Select a Venue</h2>
+            <div id="loader-main" style="text-align:center; padding:50px;">Loading exclusive venues...</div>
+            <div id="restaurant-list-container" class="grid"></div>
+        </div>
+
+        <div id="booking-page" class="page-section">
+            <div class="form-box">
+                <a class="back-link" onclick="goHome()">← Back to Venues</a>
+                <img id="selected-restaurant-img" class="banner-img" src="">
+                <h2 id="selected-restaurant-title" style="margin-bottom:20px;">Reserve Table</h2>
+                
+                <div id="step1">
+                    <div class="input-group"><label>Full Name</label><input type="text" class="input-field" id="name" placeholder="John Doe"></div>
+                    <div class="input-group"><label>Phone (WhatsApp)</label><input type="tel" class="input-field" id="phone" placeholder="09xx xxx xxx"></div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                        <div class="input-group"><label>Date</label><input type="date" class="input-field" id="date"></div>
+                        <div class="input-group"><label>Time</label><select id="time" class="input-field"></select></div>
+                    </div>
+                    <div class="input-group"><label>Guests</label><input type="number" class="input-field" id="persons" min="1" max="20" placeholder="4"></div>
+                    <button class="btn-primary" onclick="goToReview()">Continue</button>
                 </div>
-                <button class="action-btn" onclick="sendEmail()">Confirm Reservation</button>
-                <button class="back-btn" onclick="switchFormStep('step2', 'step1')" style="margin-top:10px; width:100%; text-align:center;">Edit Details</button>
+
+                <div id="step2" style="display:none;">
+                    <h3>Confirm Details</h3>
+                    <div style="background:#f8f8f8; padding:20px; border-radius:10px; margin:20px 0; border:1px dashed #ddd;">
+                        <p><strong>Venue:</strong> <span id="rev-loc"></span></p>
+                        <p><strong>Name:</strong> <span id="rev-name"></span></p>
+                        <p><strong>Time:</strong> <span id="rev-date"></span> at <span id="rev-time"></span></p>
+                        <p><strong>Guests:</strong> <span id="rev-guests"></span></p>
+                    </div>
+                    <button class="btn-primary" onclick="sendEmail()">Confirm Request</button>
+                    <button style="background:none; border:none; width:100%; padding:15px; cursor:pointer; color:#888;" onclick="switchFormStep('step2', 'step1')">Edit</button>
+                </div>
+
+                <div id="step3" style="display:none; text-align:center; padding:20px;">
+                    <div style="font-size:60px;">⏳</div>
+                    <h3 style="margin-top:10px;">Request Sent</h3>
+                    <p style="color:#666; line-height:1.6;">We have received your request.<br>Please wait for a <strong>WhatsApp confirmation</strong>.</p>
+                    <button class="btn-primary" onclick="goHome()" style="margin-top:20px;">Return Home</button>
+                </div>
+                <div id="loader" style="display:none; text-align:center; padding:20px;">Processing...</div>
             </div>
-            <div id="step3" class="hidden" style="text-align: center;">
-    <div style="font-size:50px; color: orange;">⏳</div> <h3>Request Sent!</h3>
-    <p>We have received your request for <strong id="final-loc"></strong>.</p>
-    <p>Please wait for a <strong>WhatsApp message</strong> confirming your reservation.</p>
-    <button class="action-btn" onclick="goHome()">Done</button>
-</div>
-            <div id="loader" class="loader hidden"></div>
         </div>
     </div>
 
     <div id="loginModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeLogin()">×</span>
-            <h2 style="color: var(--primary-color);">Staff Portal</h2>
-            <input type="email" id="login-email" placeholder="Email" style="width:100%; padding:10px; margin-bottom:10px;">
-            <input type="password" id="login-pass" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
-            <button class="action-btn" onclick="handleLogin()">Login</button>
-            <p id="login-error" style="color:red; display:none; margin-top:10px; font-size:14px;"></p>
+            <span onclick="closeLogin()" style="position:absolute; right:20px; top:15px; font-size:24px; cursor:pointer;">&times;</span>
+            <h2 style="margin-bottom:20px;">Staff Portal</h2>
+            <div class="input-group"><input type="email" id="login-email" class="input-field" placeholder="Email Address"></div>
+            <div class="input-group"><input type="password" id="login-pass" class="input-field" placeholder="Password"></div>
+            <button class="btn-primary" onclick="handleLogin()">Login</button>
+            <p id="login-error" style="color:red; display:none; margin-top:10px; font-size:0.8rem;"></p>
         </div>
     </div>
 
-    <div class="footer-login">
-        <a class="login-link" onclick="openLogin()">Staff Login</a>
+    <div class="footer">
+        © 2026 Tawelty. <a onclick="openLogin()">Staff Login</a>
     </div>
 
 <script type="module">
@@ -117,8 +186,8 @@
     import { getFirestore, collection, getDocs, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // --- PASTE YOUR FIREBASE KEYS HERE ---
-   const firebaseConfig = {
+    // --- PASTE YOUR FIREBASE CONFIG HERE ---
+    const firebaseConfig = {
   apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
   authDomain: "tawelty-realtime.firebaseapp.com",
   projectId: "tawelty-realtime",
@@ -131,48 +200,13 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // --- LOGIN LOGIC (The Smart Redirect) ---
-    window.openLogin = () => document.getElementById('loginModal').style.display = 'block';
-    window.closeLogin = () => document.getElementById('loginModal').style.display = 'none';
+    // --- CLEAN URL SCRIPT ---
+    if (window.location.pathname.endsWith('/index.html')) {
+        var newPath = window.location.pathname.replace('/index.html', '/');
+        window.history.replaceState(null, '', newPath);
+    }
 
-    window.handleLogin = async () => {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-pass').value;
-        const errorMsg = document.getElementById('login-error');
-        errorMsg.style.display = 'none';
-
-        try {
-            // 1. Authenticate
-            const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-            const user = userCredential.user;
-
-            // 2. CHECK ROLE: Is this the Admin?
-            // (Replace 'admin@tawelty.com' with your actual admin email)
-            if (email === "admin@tawelty.com") {
-                window.location.href = "admin.html"; // Redirect to Admin Page
-                return;
-            }
-
-            // 3. CHECK ROLE: Is this a Manager?
-            // Check if they exist in the 'managers' database
-            const managerRef = doc(db, "managers", email);
-            const managerSnap = await getDoc(managerRef);
-
-            if (managerSnap.exists()) {
-                window.location.href = "manager.html"; // Redirect to Manager Page
-            } else {
-                // If they are logged in but not a manager or admin
-                errorMsg.innerText = "Access Denied: Account not authorized.";
-                errorMsg.style.display = 'block';
-            }
-
-        } catch (error) {
-            errorMsg.innerText = "Login Failed: " + error.message;
-            errorMsg.style.display = 'block';
-        }
-    };
-
-    // --- STANDARD APP LOGIC (Same as before) ---
+    // --- MAIN LOGIC ---
     window.onload = async function() {
         populateTime();
         const today = new Date().toISOString().split('T')[0];
@@ -185,90 +219,105 @@
         try {
             const querySnapshot = await getDocs(collection(db, "restaurants"));
             if(querySnapshot.empty) {
-                container.innerHTML = "<p style='text-align:center'>No restaurants found yet.</p>";
+                container.innerHTML = "<p style='grid-column:1/-1; text-align:center'>No venues available.</p>";
             } else {
                 querySnapshot.forEach((doc) => {
                     const branch = doc.data();
                     html += `
-                    <div class="restaurant-card" onclick="openBooking('${branch.name}')">
+                    <div class="card" onclick="openBooking('${branch.name}', '${branch.image}')">
                         <div class="card-img" style="background-image: url('${branch.image}');"></div>
-                        <div class="card-details">
+                        <div class="card-content">
                             <h3 class="card-title">${branch.name}</h3>
-                            <span class="card-loc">${branch.location}</span>
-                            <span class="btn-book">Book Table</span>
+                            <span class="card-loc">📍 ${branch.location}</span>
+                            <span class="btn-card">Book Table</span>
                         </div>
                     </div>`;
                 });
                 container.innerHTML = html;
             }
         } catch (error) {
-            console.error("Error fetching restaurants: ", error);
-            container.innerHTML = "<p style='text-align:center; color:red;'>Error loading data.</p>";
+            console.error(error);
+            container.innerHTML = "<p>Error loading data.</p>";
         } finally {
             loader.style.display = 'none';
         }
     };
 
-    window.openBooking = function(name) {
+    // --- NAVIGATION ---
+    window.openBooking = function(name, imgUrl) {
         window.selectedRestaurant = name;
-        document.getElementById('selected-restaurant-title').innerText = "Book: " + name;
+        document.getElementById('selected-restaurant-title').innerText = name;
+        document.getElementById('selected-restaurant-img').src = imgUrl || 'https://via.placeholder.com/500x200';
+        
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
         switchFormStep('step2', 'step1');
         switchFormStep('step3', 'step1');
+        window.scrollTo(0,0);
     }
-    
-    const PUBLIC_KEY = '4p2u3G8LGQWTJBWGc'; 
-    const SERVICE_ID = 'service_09j0ci6';
-    const TEMPLATE_ID = 'template_xnsuy3p';
-    (function(){ emailjs.init(PUBLIC_KEY); })();
-    
-    window.selectedRestaurant = "";
 
     window.goHome = function() {
         document.getElementById('booking-page').classList.remove('active-section');
         document.getElementById('home-page').classList.add('active-section');
     }
 
-    window.switchFormStep = function(hide, show) {
-        document.getElementById(hide).classList.add('hidden');
-        document.getElementById(show).classList.remove('hidden');
+    // --- LOGIN LOGIC ---
+    window.openLogin = () => document.getElementById('loginModal').style.display = 'block';
+    window.closeLogin = () => document.getElementById('loginModal').style.display = 'none';
+
+    window.handleLogin = async () => {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-pass').value;
+        const errorMsg = document.getElementById('login-error');
+        
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+            // Replace with your Admin Email
+            if (email === "admin@tawelty.com") {
+                window.location.href = "admin.html";
+            } else {
+                const managerRef = doc(db, "managers", email);
+                const managerSnap = await getDoc(managerRef);
+                if (managerSnap.exists()) window.location.href = "manager.html";
+                else throw new Error("Not authorized");
+            }
+        } catch (error) {
+            errorMsg.innerText = "Error: " + error.message;
+            errorMsg.style.display = 'block';
+        }
+    };
+
+    // --- FORM UTILS ---
+    window.switchFormStep = (hide, show) => {
+        document.getElementById(hide).style.display = 'none';
+        document.getElementById(show).style.display = 'block';
     }
 
-    window.populateTime = function() {
+    window.populateTime = () => {
         const timeSelect = document.getElementById('time');
-        let options = '<option value="" disabled selected>Select Time</option>';
-        for(let i=10; i<=22; i++) {
-            let d = i > 12 ? (i-12) + ':00 PM' : i + ':00 ' + (i===12 ? 'PM' : 'AM');
-            options += `<option value="${i}:00">${d}</option>`;
-        }
+        let options = '';
+        for(let i=12; i<=23; i++) options += `<option value="${i}:00">${i}:00</option>`;
         timeSelect.innerHTML = options;
     }
 
-    window.goToReview = function() {
+    window.goToReview = () => {
         const name = document.getElementById('name').value;
         const date = document.getElementById('date').value;
-        const time = document.getElementById('time').value;
-        const persons = document.getElementById('persons').value;
-
-        if(!name || !date || !time || !persons) { alert("Please fill in all fields"); return; }
+        if(!name || !date) return alert("Please fill all fields");
         
-        const selectedDate = new Date(date);
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        if(selectedDate < today) { alert("You cannot book a date in the past!"); return; }
-
         document.getElementById('rev-loc').innerText = window.selectedRestaurant;
         document.getElementById('rev-name').innerText = name;
         document.getElementById('rev-date').innerText = date;
-        document.getElementById('rev-time').innerText = time;
-        document.getElementById('rev-guests').innerText = persons;
+        document.getElementById('rev-time').innerText = document.getElementById('time').value;
+        document.getElementById('rev-guests').innerText = document.getElementById('persons').value;
+        
         switchFormStep('step1', 'step2');
     }
 
+    // --- SEND LOGIC ---
     window.sendEmail = async function() {
-        document.getElementById('step2').classList.add('hidden');
-        document.getElementById('loader').classList.remove('hidden');
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
         
         const bookingData = {
             restaurant: window.selectedRestaurant,
@@ -283,31 +332,21 @@
 
         try {
             await addDoc(collection(db, "reservations"), bookingData);
-
-            const params = {
-                email_subject: "New Request: " + window.selectedRestaurant,
-                restaurant_name: window.selectedRestaurant,
-                from_name: bookingData.name,
-                phone_number: bookingData.phone,
-                date: bookingData.date,
-                time: bookingData.time,
-                persons: bookingData.persons
-            };
             
-            await emailjs.send(SERVICE_ID, TEMPLATE_ID, params);
+            // EmailJS (Optional)
+            const PUBLIC_KEY = '4p2u3G8LGQWTJBWGc'; 
+            const SERVICE_ID = 'service_09j0ci6';
+            const TEMPLATE_ID = 'template_xnsuy3p';
+            // emailjs.send(...) - You can uncomment if you want email too
 
-            document.getElementById('loader').classList.add('hidden');
-            document.getElementById('final-loc').innerText = window.selectedRestaurant;
-            document.getElementById('step3').classList.remove('hidden');
-
-        } catch (error) {
-            console.error("Error:", error);
-            document.getElementById('loader').classList.add('hidden');
-            alert("Error: " + error.message); 
-            document.getElementById('step2').classList.remove('hidden');
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('step3').style.display = 'block';
+        } catch (e) {
+            alert("Error: " + e.message);
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('step2').style.display = 'block';
         }
     }
 </script>
-
 </body>
 </html>
