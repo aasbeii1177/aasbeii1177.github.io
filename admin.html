@@ -81,8 +81,16 @@
             </div>
         </div>
 
-        <label>Max Guests Per Hour (Capacity)</label>
-        <input type="number" id="res-capacity" placeholder="e.g. 20">
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+                <label>Max Capacity (Guests/hr)</label>
+                <input type="number" id="res-capacity" placeholder="e.g. 20">
+            </div>
+            <div style="flex:1;">
+                <label>Avg. Duration (Hours)</label>
+                <input type="number" id="res-duration" placeholder="e.g. 3" min="1" max="5">
+            </div>
+        </div>
 
         <div id="manager-section">
             <div class="section-title">2. Manager Login</div>
@@ -167,8 +175,9 @@
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
-        const rCus = document.getElementById('res-cuisine').value || "General"; // NEW
-        const rPri = document.getElementById('res-price').value || "$$"; // NEW
+        const rDur = document.getElementById('res-duration').value || "3"; // NEW
+        const rCus = document.getElementById('res-cuisine').value || "General";
+        const rPri = document.getElementById('res-price').value || "$$";
         
         const mEmail = document.getElementById('mgr-email').value;
         const mPass = document.getElementById('mgr-pass').value;
@@ -185,8 +194,9 @@
                 location: rLoc, 
                 image: rImg || 'https://via.placeholder.com/400x300',
                 capacity: parseInt(rCap),
-                cuisine: rCus, // Save
-                price: rPri    // Save
+                duration: parseInt(rDur), // Save Duration
+                cuisine: rCus, 
+                price: rPri    
             });
             
             const secondaryApp = initializeApp(firebaseConfig, "Secondary");
@@ -206,11 +216,12 @@
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
-        const rCus = document.getElementById('res-cuisine').value; // NEW
-        const rPri = document.getElementById('res-price').value; // NEW
+        const rDur = document.getElementById('res-duration').value; // NEW
+        const rCus = document.getElementById('res-cuisine').value;
+        const rPri = document.getElementById('res-price').value;
         const btn = document.getElementById('btn-submit');
 
-        if(!rName || !rLoc || !rCap) return alert("All fields required.");
+        if(!rName || !rLoc || !rCap || !rDur) return alert("All fields required.");
 
         btn.innerHTML = '<div class="loader"></div> Updating...';
         btn.disabled = true;
@@ -222,8 +233,9 @@
                 location: rLoc, 
                 image: rImg,
                 capacity: parseInt(rCap),
-                cuisine: rCus, // Update
-                price: rPri    // Update
+                duration: parseInt(rDur), // Update
+                cuisine: rCus,
+                price: rPri
             });
 
             if (rName !== editingOldName) {
@@ -259,8 +271,9 @@
                 const safeLoc = d.location.replace(/'/g, "\\'");
                 const safeImg = d.image ? d.image.replace(/'/g, "\\'") : '';
                 const safeCap = d.capacity || 20; 
-                const safeCus = d.cuisine || "General"; // Default
-                const safePri = d.price || "$$"; // Default
+                const safeDur = d.duration || 3; // NEW Default
+                const safeCus = d.cuisine || "General"; 
+                const safePri = d.price || "$$"; 
 
                 const mgrEmail = mgrMap[d.name] || "No Manager Linked";
 
@@ -269,11 +282,11 @@
                     <div class="res-info">
                         <div class="res-name">${d.name}</div>
                         <div class="res-meta">${d.location} | ${safeCus} | ${safePri}</div>
-                        <div class="res-meta">👤 ${mgrEmail}</div>
+                        <div class="res-meta">Cap: ${safeCap} | Time: ${safeDur}h</div>
                     </div>
                     <div>
                         <button class="btn-action btn-qr" onclick="showQr('${safeName}')">📱</button>
-                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, '${safeCus}', '${safePri}')">✏️</button>
+                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, '${safeCus}', '${safePri}', ${safeDur})">✏️</button>
                         <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}', '${safeName}')">🗑️</button>
                     </div>
                 </div>`;
@@ -294,15 +307,16 @@
     
     window.closeQr = () => document.getElementById('qr-modal').style.display = 'none';
 
-    window.startEdit = (id, name, loc, img, cap, cus, pri) => {
+    window.startEdit = (id, name, loc, img, cap, cus, pri, dur) => {
         editingId = id;
         editingOldName = name;
         document.getElementById('res-name').value = name;
         document.getElementById('res-location').value = loc;
         document.getElementById('res-image').value = img;
         document.getElementById('res-capacity').value = cap;
-        document.getElementById('res-cuisine').value = cus; // Fill
-        document.getElementById('res-price').value = pri; // Fill
+        document.getElementById('res-duration').value = dur; // Fill Duration
+        document.getElementById('res-cuisine').value = cus;
+        document.getElementById('res-price').value = pri;
         
         document.getElementById('form-title').innerText = "Edit Venue";
         document.getElementById('btn-submit').innerText = "Save Changes";
@@ -340,6 +354,7 @@
         document.getElementById('res-location').value = "";
         document.getElementById('res-image').value = "";
         document.getElementById('res-capacity').value = "";
+        document.getElementById('res-duration').value = "";
         document.getElementById('res-cuisine').value = "";
         document.getElementById('res-price').value = "$$";
         document.getElementById('mgr-email').value = "";
