@@ -212,7 +212,6 @@
     let restaurantDocId = "";
     let maxGuests = 0;
     let maxTables = 0; 
-    // STORE HOURS GLOBALLY
     let openTime = 12;
     let closeTime = 22;
 
@@ -221,7 +220,6 @@
 
     // --- INIT ---
     window.onload = () => {
-        // Dropdown populates after fetch
         setInterval(recalculateDashboard, 10000);
     };
 
@@ -258,11 +256,12 @@
                         restaurantDocId = resSnap.docs[0].id;
                         maxGuests = d.capacity || 20;
                         maxTables = d.tables || 10;
-                        openTime = d.openTime !== undefined ? d.openTime : 12; // FETCH OPEN
-                        closeTime = d.closeTime !== undefined ? d.closeTime : 22; // FETCH CLOSE
+                        openTime = d.openTime !== undefined ? d.openTime : 12;
+                        closeTime = d.closeTime !== undefined ? d.closeTime : 22;
                         
                         document.getElementById('max-guests').innerText = "/ " + maxGuests;
                         document.getElementById('max-tables').innerText = "/ " + maxTables;
+                        
                         updateToggleUI(d.isOpen !== false);
                     }
                     startRealtimeListener(); 
@@ -437,6 +436,9 @@
 
     window.closeModal = () => document.getElementById('booking-modal').style.display = 'none';
 
+    // --- SAFE BOOKING LOGIC (PREVENTS ACCIDENTAL OVERBOOKING) ---
+    function getTablesNeeded(people) { return Math.ceil(people / 4); }
+
     window.saveBooking = async () => {
         const id = document.getElementById('edit-id').value;
         const name = document.getElementById('m-name').value || "Walk-in";
@@ -448,7 +450,7 @@
 
         if(!date || !time) return alert("Date and Time are required.");
 
-        // TIME TRAVEL CHECK
+        // 1. TIME TRAVEL CHECK
         const today = new Date();
         const selDate = new Date(date);
         const isToday = selDate.getDate() === today.getDate() && selDate.getMonth() === today.getMonth();
@@ -459,10 +461,59 @@
             return alert("Cannot book a past date!");
         }
         if (isToday && selHour < currHour) {
-            return alert("Cannot book a past time! It is already " + currHour + ":00");
+            return alert("Cannot book a past time!");
         }
 
+        // 2. CAPACITY CHECK (Is it full?)
+        const btn = document.querySelector('#booking-modal button:first-of-type');
+        btn.innerText = "Checking Capacity...";
+        
         try {
+            // Get all bookings for that day
+            const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant), where("date", "==", date));
+            const snapshot = await getDocs(q);
+            
+            // Calculate Occupancy for the selected time slot
+            let currentGuests = 0;
+            let currentTables = 0;
+            
+            snapshot.forEach(doc => {
+                // If editing, ignore self
+                if(id && doc.id === id) return;
+                
+                const d = doc.data();
+                if(!d.archived && d.status !== 'Declined') {
+                    const startH = parseInt(d.time.split(':')[0]);
+                    const endH = startH + (d.duration || 3);
+                    // Check Overlap
+                    // (New Start < Old End) AND (New End > Old Start)
+                    if (selHour < endH && (selHour + duration) > startH) {
+                        currentGuests += parseInt(d.persons);
+                        currentTables += Math.ceil(parseInt(d.persons) / 4);
+                    }
+                }
+            });
+
+            const newTables = getTablesNeeded(guests);
+            
+            // CHECK LIMITS
+            let warning = "";
+            if (currentGuests + guests > maxGuests) {
+                warning = `⚠️ GUEST LIMIT EXCEEDED! \nCurrent: ${currentGuests} + New: ${guests} = ${currentGuests+guests} (Max: ${maxGuests})`;
+            } else if (currentTables + newTables > maxTables) {
+                warning = `⚠️ TABLE LIMIT EXCEEDED! \nTables Used: ${currentTables} + New: ${newTables} = ${currentTables+newTables} (Max: ${maxTables})`;
+            }
+
+            // IF FULL -> ASK PERMISSION
+            if (warning) {
+                const force = confirm(warning + "\n\nDo you want to FORCE this booking anyway?");
+                if (!force) {
+                    btn.innerText = "Save";
+                    return; // Stop
+                }
+            }
+
+            // PROCEED (Safe or Forced)
             if (id) {
                 await updateDoc(doc(db, "reservations", id), { name, phone, date, time, persons: guests, duration: duration });
                 alert("Updated!");
@@ -472,6 +523,7 @@
             }
             closeModal();
         } catch (e) { alert("Error: " + e.message); }
+        finally { btn.innerText = "Save"; }
     };
 
     window.handleDecision = async (id, phone, name, status) => {
