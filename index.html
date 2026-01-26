@@ -17,10 +17,12 @@
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
 
+        /* FILTER BAR */
         .filter-bar { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 40px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
         .search-input { flex: 2; padding: 12px; border: 1px solid #eee; border-radius: 8px; font-size: 15px; }
         .filter-select { flex: 1; padding: 12px; border: 1px solid #eee; border-radius: 8px; font-size: 15px; background: white; min-width: 120px; }
         
+        /* CARD STYLES */
         .card { background: var(--surface); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: all 0.3s ease; cursor: pointer; border: 1px solid rgba(0,0,0,0.03); position: relative; }
         .card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         .card-img { height: 220px; background-size: cover; background-position: center; }
@@ -35,6 +37,7 @@
         .card:hover .btn-card { background: var(--primary); color: white; }
         .btn-busy { background: #eee !important; color: #999 !important; border-color: #ddd !important; cursor: not-allowed; }
         
+        /* FORM & SECTIONS */
         .page-section { display: none; animation: slideUp 0.4s ease-out; }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -192,7 +195,7 @@
         data.forEach((branch) => {
             const isOpen = branch.isOpen !== false; 
             const capacity = branch.capacity || 20; 
-            const tables = branch.tables || 10; // NEW: Get Table Limit
+            const tables = branch.tables || 10; 
             const duration = branch.duration || 3; 
             
             let buttonHtml = isOpen ? `<span class="btn-card">Book Table</span>` : `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
@@ -230,7 +233,7 @@
         window.selectedRestaurant = name;
         window.currentCapacity = capacity; 
         window.currentDuration = duration;
-        window.currentTablesLimit = tables || 10; // Store Table Limit
+        window.currentTablesLimit = tables || 10; 
         
         document.getElementById('selected-restaurant-title').innerText = name;
         document.getElementById('date').value = ""; 
@@ -242,13 +245,11 @@
         window.scrollTo(0,0);
     }
 
-    // --- NEW HELPER: ESTIMATE TABLES ---
     function getTablesNeeded(people) {
-        // Assume 1 table holds 4 people. 5 people = 2 tables.
+        // Assume 1 table = 4 seats
         return Math.ceil(people / 4);
     }
 
-    // --- CALCULATE TWO MAPS: GUESTS AND TABLES ---
     function calculateOccupancyMaps(snapshot) {
         let guestMap = new Array(24).fill(0);
         let tableMap = new Array(24).fill(0);
@@ -272,21 +273,19 @@
         return { guestMap, tableMap };
     }
 
-    // --- CHECK BOTH LIMITS ---
     function doesItFit(startHour, duration, maps, groupSize, guestLimit, tableLimit) {
         const tablesNeeded = getTablesNeeded(groupSize);
 
         for(let i=0; i<duration; i++) {
             if(startHour+i < 24) {
-                // Check 1: Guest Limit
                 if((maps.guestMap[startHour + i] + groupSize) > guestLimit) return false;
-                // Check 2: Table Limit
                 if((maps.tableMap[startHour + i] + tablesNeeded) > tableLimit) return false;
             }
         }
         return true;
     }
 
+    // --- PREVENT PAST BOOKINGS ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const timeSelect = document.getElementById('time');
@@ -302,6 +301,15 @@
 
         if(!dateInput) return;
 
+        // CHECK IF DATE IS TODAY
+        const today = new Date();
+        const selectedDate = new Date(dateInput);
+        const isToday = selectedDate.getDate() === today.getDate() && 
+                        selectedDate.getMonth() === today.getMonth() && 
+                        selectedDate.getFullYear() === today.getFullYear();
+        
+        const currentHour = today.getHours(); 
+
         timeSelect.innerHTML = "<option>Checking availability...</option>";
         
         const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
@@ -313,7 +321,13 @@
 
         openingHours.forEach(h => {
             const timeString = `${h}:00`;
-            // Check both limits!
+
+            // DISABLE PASSED HOURS
+            if (isToday && h <= currentHour) {
+                optionsHtml += `<option disabled style="color:#ccc;">${timeString} (Passed)</option>`;
+                return; 
+            }
+
             if (doesItFit(h, STANDARD_DUR, maps, groupSize, guestLimit, tableLimit)) {
                 optionsHtml += `<option value="${timeString}" data-dur="${STANDARD_DUR}">${timeString}</option>`;
             } else if (doesItFit(h, MIN_DUR, maps, groupSize, guestLimit, tableLimit) && MIN_DUR < STANDARD_DUR) {
@@ -337,6 +351,10 @@
         const tableLimit = window.currentTablesLimit || 10;
 
         const selectedOption = timeSelect.options[timeSelect.selectedIndex];
+        
+        // Safety: Prevent clicking "Passed" options
+        if (selectedOption.disabled) return alert("Please select a valid time.");
+
         const STANDARD_DUR = window.currentDuration || 3;
         const assignedDuration = parseInt(selectedOption.getAttribute('data-dur') || STANDARD_DUR);
         window.selectedDuration = assignedDuration; 
