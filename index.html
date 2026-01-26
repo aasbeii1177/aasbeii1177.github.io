@@ -88,6 +88,9 @@
         .btn-primary { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: 700; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); background: #000; }
         
+        /* DISABLED BUTTON */
+        .btn-primary:disabled { background: #ccc !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.7; }
+
         .page-section { display: none; animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
@@ -105,6 +108,7 @@
         .modal-content { background: white; width: 90%; max-width: 380px; margin: 15vh auto; padding: 40px; border-radius: 24px; text-align: center; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         
         .footer { text-align: center; margin-top: 60px; padding: 30px; color: #ccc; font-size: 0.85rem; border-top: 1px solid #eee; }
+        .policy-box { background: #f9f9f9; padding: 15px; border-radius: 10px; margin: 20px 0; font-size: 13px; color: #555; display: flex; align-items: flex-start; gap: 10px; }
     </style>
 </head>
 <body>
@@ -192,9 +196,14 @@
                         <p><strong>Phone:</strong> <span id="rev-phone-display"></span></p>
                         <p><strong>Time:</strong> <span id="rev-time-display"></span></p>
                         <p><strong>Guests:</strong> <span id="rev-guests"></span></p>
-                        <p><strong>Duration:</strong> <span id="rev-duration"></span></p>
                     </div>
-                    <button class="btn-primary" onclick="sendEmail()">Confirm Request</button>
+
+                    <div class="policy-box">
+                        <input type="checkbox" id="policy-check" onchange="toggleConfirmBtn()">
+                        <span>I understand that reservations are held for <strong>15 minutes only</strong>. Late arrivals may lose their table.</span>
+                    </div>
+
+                    <button id="btn-confirm-final" class="btn-primary" onclick="sendEmail()" disabled>Confirm Request</button>
                     <button style="background:none; border:none; width:100%; padding:15px; cursor:pointer; color:#888;" onclick="switchFormStep('step2', 'step1')">Edit</button>
                 </div>
 
@@ -364,6 +373,10 @@
         document.getElementById('selected-time-value').value = ""; 
         document.getElementById('persons').value = "2"; 
         
+        // Reset Checkbox
+        document.getElementById('policy-check').checked = false;
+        document.getElementById('btn-confirm-final').disabled = true;
+
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
         window.switchFormStep('step2', 'step1');
@@ -468,44 +481,38 @@
         window.selectedSlotDuration = duration;
     }
 
-    // --- "CONTINUE" BUTTON LOGIC ---
+    // --- BUTTONS AND NAVIGATION ---
     window.goToReview = async () => {
-        try {
-            const nameInp = document.getElementById('name');
-            const numInp = document.getElementById('phone');
-            const dateInp = document.getElementById('date');
-            const timeInp = document.getElementById('selected-time-value');
-            const persInp = document.getElementById('persons');
+        const nameInp = document.getElementById('name');
+        const numInp = document.getElementById('phone');
+        const dateInp = document.getElementById('date');
+        const timeInp = document.getElementById('selected-time-value');
+        const persInp = document.getElementById('persons');
 
-            if(!nameInp || !nameInp.value) return alert("Please enter your name.");
-            if(!numInp || !numInp.value) return alert("Please enter your phone number.");
-            if(!dateInp || !dateInp.value) return alert("Please select a date.");
-            if(!timeInp || !timeInp.value) return alert("Please select a time slot from the grid.");
-            
-            const name = nameInp.value;
-            const num = numInp.value;
-            const date = dateInp.value;
-            const time = timeInp.value;
-            const persons = persInp.value;
-            const code = document.getElementById('phone-code').value;
+        if(!nameInp.value) return alert("Please enter your name.");
+        if(!numInp.value) return alert("Please enter your phone number.");
+        if(!dateInp.value) return alert("Please select a date.");
+        if(!timeInp.value) return alert("Please select a time slot from the grid.");
+        
+        let cleanNum = numInp.value.replace(/^0+/, ''); 
+        const code = document.getElementById('phone-code').value;
+        window.selectedFullPhone = (code ? code : "") + cleanNum;
+        
+        if(!window.selectedSlotDuration) window.selectedSlotDuration = 3;
 
-            const todayStr = new Date().toISOString().split('T')[0];
-            if(date < todayStr) return alert("Cannot book a past date.");
+        document.getElementById('rev-loc').innerText = window.selectedRestaurant;
+        document.getElementById('rev-name').innerText = nameInp.value;
+        document.getElementById('rev-phone-display').innerText = "+" + window.selectedFullPhone;
+        document.getElementById('rev-time-display').innerText = `${timeInp.value} ${dateInp.value}`;
+        document.getElementById('rev-guests').innerText = persInp.value;
+        document.getElementById('rev-duration').innerText = window.selectedSlotDuration + " Hours";
+        
+        window.switchFormStep('step1', 'step2');
+    }
 
-            let cleanNum = num.replace(/^0+/, ''); 
-            window.selectedFullPhone = (code ? code : "") + cleanNum;
-            window.selectedDuration = window.selectedSlotDuration || 3; 
-
-            document.getElementById('rev-loc').innerText = window.selectedRestaurant || "Restaurant";
-            document.getElementById('rev-name').innerText = name;
-            document.getElementById('rev-phone-display').innerText = "+" + window.selectedFullPhone;
-            document.getElementById('rev-time-display').innerText = `${time} ${date}`;
-            document.getElementById('rev-guests').innerText = persons;
-            
-            const durText = window.selectedDuration + " Hours";
-            document.getElementById('rev-duration').innerText = durText;
-            window.switchFormStep('step1', 'step2');
-        } catch(e) { console.error(e); alert("System Error: " + e.message); }
+    window.toggleConfirmBtn = () => {
+        const check = document.getElementById('policy-check');
+        document.getElementById('btn-confirm-final').disabled = !check.checked;
     }
 
     window.switchFormStep = (hide, show) => { 
@@ -604,3 +611,5 @@
         }
     }
 </script>
+</body>
+</html>
