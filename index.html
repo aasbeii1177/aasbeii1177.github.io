@@ -235,6 +235,9 @@
                 window.allRestaurants.push(data);
             });
 
+            // ⚡ SORT A-Z
+            window.allRestaurants.sort((a, b) => a.name.localeCompare(b.name));
+
             const cuisineSelect = document.getElementById('filter-cuisine');
             cuisines.forEach(c => {
                 const opt = document.createElement('option');
@@ -259,9 +262,11 @@
             const capacity = branch.capacity || 20; 
             const tables = branch.tables || 10; 
             const duration = branch.duration || 3; 
+            const openTime = branch.openTime !== undefined ? branch.openTime : 12; // NEW
+            const closeTime = branch.closeTime !== undefined ? branch.closeTime : 22; // NEW
             
             let buttonHtml = isOpen ? `<span class="btn-card">Book Table</span>` : `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
-            let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity}, ${duration}, ${tables})"` : `style="cursor:not-allowed; opacity:0.8;"`;
+            let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity}, ${duration}, ${tables}, ${openTime}, ${closeTime})"` : `style="cursor:not-allowed; opacity:0.8;"`;
             
             html += `
             <div class="card" ${clickAction}>
@@ -293,11 +298,13 @@
     }
 
     // --- NAVIGATION ---
-    window.openBooking = function(name, imgUrl, capacity, duration, tables) {
+    window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity; 
         window.currentDuration = duration;
         window.currentTablesLimit = tables || 10; 
+        window.currentOpen = open; // Save Start
+        window.currentClose = close; // Save End
         
         document.getElementById('selected-restaurant-title').innerText = name;
         document.getElementById('date').value = ""; 
@@ -348,7 +355,7 @@
         return true;
     }
 
-    // --- TIME SLOTS & PAST CHECK ---
+    // --- TIME SLOTS (DYNAMIC HOURS) ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const timeSelect = document.getElementById('time');
@@ -358,6 +365,8 @@
         
         const guestLimit = window.currentCapacity || 20; 
         const tableLimit = window.currentTablesLimit || 10; 
+        const startHour = window.currentOpen !== undefined ? window.currentOpen : 12;
+        const endHour = window.currentClose !== undefined ? window.currentClose : 22;
 
         const STANDARD_DUR = window.currentDuration || 3;
         const MIN_DUR = Math.max(1, STANDARD_DUR - 1);
@@ -370,7 +379,6 @@
         const isToday = selectedDate.getDate() === today.getDate() && 
                         selectedDate.getMonth() === today.getMonth() && 
                         selectedDate.getFullYear() === today.getFullYear();
-        
         const currentHour = today.getHours();
 
         timeSelect.innerHTML = "<option>Checking availability...</option>";
@@ -380,15 +388,15 @@
         const maps = calculateOccupancyMaps(snapshot);
 
         let optionsHtml = '<option value="">Select Time</option>';
-        const openingHours = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
 
-        openingHours.forEach(h => {
+        // DYNAMIC LOOP
+        for (let h = startHour; h <= endHour; h++) {
             const timeString = `${h}:00`;
 
             // DISABLE PASSED HOURS
             if (isToday && h <= currentHour) {
                 optionsHtml += `<option disabled style="color:#ccc;">${timeString} (Passed)</option>`;
-                return; 
+                continue; 
             }
 
             if (doesItFit(h, STANDARD_DUR, maps, groupSize, guestLimit, tableLimit)) {
@@ -398,7 +406,7 @@
             } else {
                 optionsHtml += `<option disabled style="color:#e74c3c;">${timeString} (Full 🔴)</option>`;
             }
-        });
+        }
         timeSelect.innerHTML = optionsHtml;
     };
 
