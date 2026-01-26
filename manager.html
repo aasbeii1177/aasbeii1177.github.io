@@ -13,9 +13,20 @@
         h1, h2 { color: #2C3E50; font-weight: 700; margin-top: 0; }
         
         /* HEADER */
-        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; flex-wrap: wrap; gap: 15px; }
         #manager-title { border-left: 5px solid #D4AF37; padding-left: 15px; margin: 0; }
         .controls-right { display: flex; gap: 15px; align-items: center; }
+
+        /* LIVE STATS BOX (NEW) */
+        .live-stats {
+            background: #1a1a1a; color: white; padding: 15px 20px; border-radius: 12px;
+            display: flex; gap: 20px; align-items: center; margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .stat-item { text-align: center; }
+        .stat-label { font-size: 11px; text-transform: uppercase; color: #aaa; letter-spacing: 1px; }
+        .stat-val { font-size: 20px; font-weight: 700; color: #D4AF37; }
+        .stat-limit { font-size: 14px; color: #666; font-weight: 400; color: #bbb; }
 
         /* STATUS TOGGLE */
         .status-control { display: flex; align-items: center; gap: 10px; }
@@ -104,6 +115,22 @@
             </div>
         </div>
 
+        <div class="live-stats">
+            <div style="flex:1;">
+                <div style="font-size:14px; font-weight:bold; color:#D4AF37; margin-bottom:5px;">Currently Live</div>
+                <div style="font-size:11px; color:#888;" id="current-hour-display">--:--</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Guests</div>
+                <div><span id="live-guests" class="stat-val">0</span> <span id="max-guests" class="stat-limit">/ 0</span></div>
+            </div>
+            <div style="width:1px; height:30px; background:#333;"></div>
+            <div class="stat-item">
+                <div class="stat-label">Tables</div>
+                <div><span id="live-tables" class="stat-val">0</span> <span id="max-tables" class="stat-limit">/ 0</span></div>
+            </div>
+        </div>
+
         <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a" preload="auto"></audio>
 
         <div id="bookings-list">
@@ -115,7 +142,9 @@
         <div class="modal-content">
             <h3 id="modal-title" style="margin-top:0;">Add Booking</h3>
             
-            <input type="hidden" id="edit-id"> <div class="input-group">
+            <input type="hidden" id="edit-id"> 
+
+            <div class="input-group">
                 <label>Guest Name</label>
                 <input type="text" id="m-name" class="modal-input" placeholder="Name">
             </div>
@@ -168,7 +197,9 @@
     const db = getFirestore(app);
 
     let currentRestaurant = "";
-    let restaurantDocId = ""; 
+    let restaurantDocId = "";
+    let maxGuests = 0;
+    let maxTables = 0; 
     let unsubscribe = null; 
 
     // --- INIT ---
@@ -208,12 +239,19 @@
                     currentRestaurant = managerSnap.data().restaurant;
                     document.getElementById('manager-title').innerText = currentRestaurant;
                     
+                    // GET RESTAURANT LIMITS
                     const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
                     const resSnap = await getDocs(q);
                     if(!resSnap.empty) {
-                        const resDoc = resSnap.docs[0];
-                        restaurantDocId = resDoc.id;
-                        updateToggleUI(resDoc.data().isOpen !== false);
+                        const d = resSnap.docs[0].data();
+                        restaurantDocId = resSnap.docs[0].id;
+                        maxGuests = d.capacity || 20;
+                        maxTables = d.tables || 10;
+                        
+                        document.getElementById('max-guests').innerText = "/ " + maxGuests;
+                        document.getElementById('max-tables').innerText = "/ " + maxTables;
+                        
+                        updateToggleUI(d.isOpen !== false);
                     }
                     startRealtimeListener(); 
                 } else {
@@ -271,7 +309,7 @@
                 await updateDoc(doc(db, "reservations", id), {
                     name, phone, date, time, persons: guests, duration: duration
                 });
-                alert("Booking Updated! Capacity recalculated.");
+                alert("Booking Updated! Dashboard calculating...");
             } else {
                 // CREATE NEW
                 await addDoc(collection(db, "reservations"), {
@@ -289,6 +327,42 @@
         } catch (e) { alert("Error: " + e.message); }
     };
 
+    // --- LIVE STATS CALCULATOR ---
+    function updateLiveStats(snapshot) {
+        const now = new Date();
+        const currentHour = now.getHours(); // e.g. 14 for 2:00 PM
+        const todayStr = now.toISOString().split('T')[0];
+
+        document.getElementById('current-hour-display').innerText = `Time: ${currentHour}:00 (${todayStr})`;
+
+        let liveGuests = 0;
+        let liveTables = 0;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            // Filter: Must be TODAY and ACTIVE (Accepted/Pending/Arrived) and NOT Archived
+            if (data.date === todayStr && !data.archived && data.status !== 'Declined') {
+                const startHour = parseInt(data.time.split(':')[0]);
+                const endHour = startHour + (data.duration || 3);
+
+                // IS IT HAPPENING NOW?
+                if (currentHour >= startHour && currentHour < endHour) {
+                    liveGuests += parseInt(data.persons);
+                    liveTables += Math.ceil(parseInt(data.persons) / 4);
+                }
+            }
+        });
+
+        document.getElementById('live-guests').innerText = liveGuests;
+        document.getElementById('live-tables').innerText = liveTables;
+        
+        // COLOR WARNINGS
+        const gEl = document.getElementById('live-guests');
+        if(liveGuests >= maxGuests) gEl.style.color = "#e74c3c"; // Red
+        else if (liveGuests >= maxGuests * 0.8) gEl.style.color = "#F1C40F"; // Orange
+        else gEl.style.color = "#2ECC71"; // Green
+    }
+
     // --- REAL-TIME LISTENER ---
     function startRealtimeListener() {
         if(!currentRestaurant) return;
@@ -299,6 +373,10 @@
         let isFirstLoad = true;
 
         unsubscribe = onSnapshot(q, (snapshot) => {
+            // 1. UPDATE LIVE DASHBOARD
+            updateLiveStats(snapshot);
+
+            // 2. UPDATE LIST
             if(snapshot.empty) { list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings.</p>"; return; }
 
             if (!isFirstLoad) {
@@ -313,7 +391,8 @@
             isFirstLoad = false;
 
             let html = '';
-            snapshot.forEach(docSnap => {
+            // Sort by Date then Time? For now just simple render
+            snapshot.docs.forEach(docSnap => {
                 const b = docSnap.data();
                 if(b.archived === true) return; 
                 
@@ -327,12 +406,10 @@
                     buttons = `<span style="color:#999; font-size:12px; font-weight:bold; margin-right:10px;">${b.status}</span>`;
                 }
                 
-                // ESCAPE STRINGS FOR JS CALLS
                 const safeName = b.name.replace(/'/g, "\\'");
                 const safePhone = (b.phone || "").replace(/'/g, "\\'");
                 const dur = b.duration || 3;
 
-                // NEW: Edit Button + Archive Button
                 buttons += `
                     <button class="btn-icon" title="Edit / Extend" onclick="openModal('edit', '${docSnap.id}', '${safeName}', '${safePhone}', '${b.date}', '${b.time}', ${b.persons}, ${dur})">✏️</button>
                     <button class="btn-icon" title="Finished / Archive" onclick="archiveBooking('${docSnap.id}')">🗑️</button>
