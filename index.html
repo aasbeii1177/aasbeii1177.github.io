@@ -10,26 +10,46 @@
         :root { --primary: #1a1a1a; --gold: #D4AF37; --bg: #FAFAFA; --surface: #FFFFFF; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); margin: 0; color: --primary; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--primary); margin: 0; }
-        .hero { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; margin-bottom: 40px; }
+        .hero { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; margin-bottom: 20px; }
         .hero h1 { color: white; font-size: 3.5rem; letter-spacing: 2px; margin-bottom: 10px; font-style: italic; }
         .hero p { font-size: 1rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+        
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
+
+        /* FILTER BAR */
+        .filter-bar {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 40px;
+            display: flex; gap: 15px; flex-wrap: wrap; align-items: center;
+        }
+        .search-input { flex: 2; padding: 12px; border: 1px solid #eee; border-radius: 8px; font-size: 15px; }
+        .filter-select { flex: 1; padding: 12px; border: 1px solid #eee; border-radius: 8px; font-size: 15px; background: white; min-width: 120px; }
+        
+        /* CARD STYLES */
         .card { background: var(--surface); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: all 0.3s ease; cursor: pointer; border: 1px solid rgba(0,0,0,0.03); position: relative; }
         .card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         .card-img { height: 220px; background-size: cover; background-position: center; }
         .card-content { padding: 25px; }
+        .card-tags { display: flex; gap: 10px; margin-bottom: 10px; }
+        .tag { font-size: 11px; text-transform: uppercase; font-weight: 700; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.5px; }
+        .tag-cuisine { background: #f0f0f0; color: #666; }
+        .tag-price { background: #fff8e1; color: #f39c12; }
+
         .card-title { font-size: 1.5rem; margin-bottom: 8px; }
         .card-loc { color: #95A5A6; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
         .btn-card { display: block; width: 100%; padding: 12px; text-align: center; background: white; border: 1px solid var(--primary); color: var(--primary); border-radius: 8px; font-weight: 600; margin-top: 15px; transition: 0.2s; }
         .card:hover .btn-card { background: var(--primary); color: white; }
         .btn-busy { background: #eee !important; color: #999 !important; border-color: #ddd !important; cursor: not-allowed; }
+        
+        /* FORM & SECTIONS */
         .page-section { display: none; animation: slideUp 0.4s ease-out; }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .form-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.08); max-width: 500px; margin: 0 auto; }
         .input-field { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; }
         .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; }
+        
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); }
         .modal-content { background: white; width: 90%; max-width: 350px; margin: 15vh auto; padding: 40px; border-radius: 20px; text-align: center; position: relative; }
         .footer { text-align: center; margin-top: 50px; padding: 20px; color: #ccc; font-size: 0.9rem; }
@@ -45,7 +65,20 @@
 
     <div class="container">
         <div id="home-page" class="page-section active-section">
-            <h2 style="margin-bottom: 25px;">Select a Venue</h2>
+            
+            <div class="filter-bar">
+                <input type="text" id="search-input" class="search-input" placeholder="🔍 Search venues..." onkeyup="applyFilters()">
+                <select id="filter-cuisine" class="filter-select" onchange="applyFilters()">
+                    <option value="All">All Cuisines</option>
+                    </select>
+                <select id="filter-price" class="filter-select" onchange="applyFilters()">
+                    <option value="All">Any Price</option>
+                    <option value="$">$ (Low)</option>
+                    <option value="$$">$$ (Medium)</option>
+                    <option value="$$$">$$$ (High)</option>
+                </select>
+            </div>
+
             <div id="loader-main" style="text-align:center; padding:50px;">Loading exclusive venues...</div>
             <div id="restaurant-list-container" class="grid"></div>
         </div>
@@ -58,15 +91,10 @@
                 <div id="step1">
                     <input type="text" class="input-field" id="name" placeholder="Full Name">
                     <input type="tel" class="input-field" id="phone" placeholder="Phone (WhatsApp)">
-                    
                     <label style="font-size:12px; font-weight:bold; color:#888;">Select Date:</label>
                     <input type="date" class="input-field" id="date" onchange="updateTimeSlots()">
-                    
                     <label style="font-size:12px; font-weight:bold; color:#888;">Select Time:</label>
-                    <select id="time" class="input-field">
-                        <option>Please select a date first</option>
-                    </select>
-
+                    <select id="time" class="input-field"><option>Please select a date first</option></select>
                     <input type="number" class="input-field" id="persons" min="1" max="20" placeholder="Number of Guests" onchange="updateTimeSlots()">
                     <button class="btn-primary" onclick="goToReview()">Continue</button>
                 </div>
@@ -126,38 +154,102 @@
     const auth = getAuth(app);
 
     const DEFAULT_DURATION = 3; 
-    const MIN_DURATION = 2; // We will offer a 2-hour slot if 3 is full
+    const MIN_DURATION = 2; 
 
     if (window.location.pathname.endsWith('/index.html')) {
         var newPath = window.location.pathname.replace('/index.html', '/');
         window.history.replaceState(null, '', newPath);
     }
 
-    // --- LOADING ---
+    // --- MAIN LOADING LOGIC ---
     window.onload = async function() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').setAttribute('min', today);
-        const container = document.getElementById('restaurant-list-container');
         const loader = document.getElementById('loader-main');
-        let html = '';
+
         try {
             const querySnapshot = await getDocs(collection(db, "restaurants"));
-            if(querySnapshot.empty) {
-                container.innerHTML = "<p style='grid-column:1/-1; text-align:center'>No venues available.</p>";
-            } else {
-                querySnapshot.forEach((doc) => {
-                    const branch = doc.data();
-                    const isOpen = branch.isOpen !== false; 
-                    const capacity = branch.capacity || 20; 
-                    let buttonHtml = isOpen ? `<span class="btn-card">Book Table</span>` : `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
-                    let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity})"` : `style="cursor:not-allowed; opacity:0.8;"`;
-                    html += `<div class="card" ${clickAction}><div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div><div class="card-content"><h3 class="card-title">${branch.name}</h3><span class="card-loc">📍 ${branch.location}</span>${buttonHtml}</div></div>`;
-                });
-                container.innerHTML = html;
-            }
-        } catch (error) { console.error(error); } finally { loader.style.display = 'none'; }
+            window.allRestaurants = []; // STORE DATA GLOBALLY FOR FILTERING
+            let cuisines = new Set();
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                data.id = doc.id;
+                // Defaults for compatibility with old data
+                if(!data.cuisine) data.cuisine = "General";
+                if(!data.price) data.price = "$$";
+                
+                cuisines.add(data.cuisine);
+                window.allRestaurants.push(data);
+            });
+
+            // Populate Cuisine Dropdown
+            const cuisineSelect = document.getElementById('filter-cuisine');
+            cuisines.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.innerText = c;
+                cuisineSelect.appendChild(opt);
+            });
+
+            renderList(window.allRestaurants);
+
+        } catch (error) { console.error(error); } 
+        finally { loader.style.display = 'none'; }
     };
 
+    // --- RENDER FUNCTION ---
+    window.renderList = (data) => {
+        const container = document.getElementById('restaurant-list-container');
+        
+        if(data.length === 0) {
+            container.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#999;'>No venues match your search.</p>";
+            return;
+        }
+
+        let html = '';
+        data.forEach((branch) => {
+            const isOpen = branch.isOpen !== false; 
+            const capacity = branch.capacity || 20; 
+            
+            let buttonHtml = isOpen ? `<span class="btn-card">Book Table</span>` : `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
+            let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity})"` : `style="cursor:not-allowed; opacity:0.8;"`;
+            
+            html += `
+            <div class="card" ${clickAction}>
+                <div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div>
+                <div class="card-content">
+                    <div class="card-tags">
+                        <span class="tag tag-cuisine">${branch.cuisine}</span>
+                        <span class="tag tag-price">${branch.price}</span>
+                    </div>
+                    <h3 class="card-title">${branch.name}</h3>
+                    <span class="card-loc">📍 ${branch.location}</span>
+                    ${buttonHtml}
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // --- FILTER LOGIC ---
+    window.applyFilters = () => {
+        const search = document.getElementById('search-input').value.toLowerCase();
+        const cuisine = document.getElementById('filter-cuisine').value;
+        const price = document.getElementById('filter-price').value;
+
+        const filtered = window.allRestaurants.filter(r => {
+            const matchesName = r.name.toLowerCase().includes(search) || r.location.toLowerCase().includes(search);
+            const matchesCuisine = cuisine === "All" || r.cuisine === cuisine;
+            const matchesPrice = price === "All" || r.price === price;
+            
+            return matchesName && matchesCuisine && matchesPrice;
+        });
+
+        renderList(filtered);
+    }
+
+    // --- NAVIGATION ---
     window.openBooking = function(name, imgUrl, capacity) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity; 
@@ -171,7 +263,7 @@
         window.scrollTo(0,0);
     }
 
-    // --- HELPER: CALCULATE OCCUPANCY ---
+    // --- (KEEPING EXISTING LOGIC FOR TIME/BOOKING) ---
     function calculateOccupancyMap(snapshot) {
         let occupancy = new Array(24).fill(0);
         snapshot.forEach(doc => {
@@ -179,32 +271,24 @@
             if(data.status !== 'Declined' && !data.archived) {
                 const arrivalHour = parseInt(data.time.split(':')[0]); 
                 const guests = parseInt(data.persons) || 0;
-                // Use the booking's ACTUAL duration (saved in DB), or default to 3
                 const thisDuration = data.duration || DEFAULT_DURATION;
-
                 for(let i=0; i<thisDuration; i++) {
-                    if (arrivalHour + i < 24) {
-                        occupancy[arrivalHour + i] += guests;
-                    }
+                    if (arrivalHour + i < 24) occupancy[arrivalHour + i] += guests;
                 }
             }
         });
         return occupancy;
     }
 
-    // --- CHECK IF A SPECIFIC DURATION FITS ---
     function doesItFit(startHour, duration, occupancyMap, groupSize, limit) {
         for(let i=0; i<duration; i++) {
             if(startHour+i < 24) {
-                if((occupancyMap[startHour + i] + groupSize) > limit) {
-                    return false; // Collision detected
-                }
+                if((occupancyMap[startHour + i] + groupSize) > limit) return false;
             }
         }
-        return true; // Safe
+        return true;
     }
 
-    // --- SMART TIME SLOT DISPLAY (GAP FILLER) ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const timeSelect = document.getElementById('time');
@@ -226,27 +310,17 @@
 
         openingHours.forEach(h => {
             const timeString = `${h}:00`;
-            
-            // 1. Try Standard 3 Hours
             if (doesItFit(h, DEFAULT_DURATION, occupancyMap, groupSize, limit)) {
-                // FITS PERFECTLY
                 optionsHtml += `<option value="${timeString}" data-dur="${DEFAULT_DURATION}">${timeString}</option>`;
-            } 
-            // 2. Try Short 2 Hours (Gap Filler)
-            else if (doesItFit(h, MIN_DURATION, occupancyMap, groupSize, limit)) {
-                // FITS WITH LIMIT
+            } else if (doesItFit(h, MIN_DURATION, occupancyMap, groupSize, limit)) {
                 optionsHtml += `<option value="${timeString}" data-dur="${MIN_DURATION}" style="color:#D4AF37; font-weight:bold;">${timeString} (Limit: 2 hrs)</option>`;
-            } 
-            else {
-                // FULL
+            } else {
                 optionsHtml += `<option disabled style="color:#e74c3c;">${timeString} (Full 🔴)</option>`;
             }
         });
-
         timeSelect.innerHTML = optionsHtml;
     };
 
-    // --- DOUBLE CHECK ON CLICK ---
     window.goToReview = async () => {
         const name = document.getElementById('name').value;
         const date = document.getElementById('date').value;
@@ -255,11 +329,9 @@
         const persons = parseInt(document.getElementById('persons').value || 0);
         const resName = window.selectedRestaurant;
         const limit = window.currentCapacity || 20;
-
-        // GET SELECTED DURATION
         const selectedOption = timeSelect.options[timeSelect.selectedIndex];
         const assignedDuration = parseInt(selectedOption.getAttribute('data-dur') || DEFAULT_DURATION);
-        window.selectedDuration = assignedDuration; // Store for sending
+        window.selectedDuration = assignedDuration; 
 
         if(!name || !date || !time || !persons) return alert("Please fill all fields");
 
@@ -272,10 +344,8 @@
             const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", date));
             const snapshot = await getDocs(q);
             const occupancyMap = calculateOccupancyMap(snapshot);
-            
             const arrivalHour = parseInt(time.split(':')[0]);
             
-            // Final Verification using the assigned duration
             if (!doesItFit(arrivalHour, assignedDuration, occupancyMap, persons, limit)) {
                 alert(`⚠️ Sorry! That table was just taken.`);
                 updateTimeSlots();
@@ -286,11 +356,8 @@
             document.getElementById('rev-name').innerText = name;
             document.getElementById('rev-time-display').innerText = `${time} ${date}`;
             document.getElementById('rev-guests').innerText = persons;
-            
-            // Show duration warning if short
             const durText = assignedDuration < DEFAULT_DURATION ? `⚠️ ${assignedDuration} Hours Only (Busy)` : `${assignedDuration} Hours (Standard)`;
             document.getElementById('rev-duration').innerText = durText;
-            
             switchFormStep('step1', 'step2');
 
         } catch(e) { console.error(e); alert("Connection error."); } 
@@ -318,17 +385,7 @@
 
     window.sendEmail = async function() {
         document.getElementById('step2').style.display = 'none';
-        const bookingData = { 
-            restaurant: window.selectedRestaurant, 
-            name: document.getElementById('name').value, 
-            phone: document.getElementById('phone').value, 
-            date: document.getElementById('date').value, 
-            time: document.getElementById('time').value, 
-            persons: document.getElementById('persons').value, 
-            status: "Pending", 
-            duration: window.selectedDuration, // SAVE DURATION
-            createdAt: new Date() 
-        };
+        const bookingData = { restaurant: window.selectedRestaurant, name: document.getElementById('name').value, phone: document.getElementById('phone').value, date: document.getElementById('date').value, time: document.getElementById('time').value, persons: document.getElementById('persons').value, status: "Pending", duration: window.selectedDuration, createdAt: new Date() };
         try {
             await addDoc(collection(db, "reservations"), bookingData);
             document.getElementById('step3').style.display = 'block';
