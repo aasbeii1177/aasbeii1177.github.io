@@ -83,8 +83,12 @@
 
         <div style="display:flex; gap:10px;">
             <div style="flex:1;">
-                <label>Max Capacity (Guests/hr)</label>
-                <input type="number" id="res-capacity" placeholder="e.g. 20">
+                <label>Max Guests (Capacity)</label>
+                <input type="number" id="res-capacity" placeholder="e.g. 40">
+            </div>
+            <div style="flex:1;">
+                <label>Total Tables</label>
+                <input type="number" id="res-tables" placeholder="e.g. 10">
             </div>
             <div style="flex:1;">
                 <label>Avg. Duration (Hours)</label>
@@ -175,7 +179,8 @@
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
-        const rDur = document.getElementById('res-duration').value || "3"; // NEW
+        const rTabs = document.getElementById('res-tables').value || "10"; // NEW
+        const rDur = document.getElementById('res-duration').value || "3";
         const rCus = document.getElementById('res-cuisine').value || "General";
         const rPri = document.getElementById('res-price').value || "$$";
         
@@ -194,7 +199,8 @@
                 location: rLoc, 
                 image: rImg || 'https://via.placeholder.com/400x300',
                 capacity: parseInt(rCap),
-                duration: parseInt(rDur), // Save Duration
+                tables: parseInt(rTabs), // Save Tables
+                duration: parseInt(rDur),
                 cuisine: rCus, 
                 price: rPri    
             });
@@ -216,12 +222,13 @@
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
-        const rDur = document.getElementById('res-duration').value; // NEW
+        const rTabs = document.getElementById('res-tables').value; // NEW
+        const rDur = document.getElementById('res-duration').value;
         const rCus = document.getElementById('res-cuisine').value;
         const rPri = document.getElementById('res-price').value;
         const btn = document.getElementById('btn-submit');
 
-        if(!rName || !rLoc || !rCap || !rDur) return alert("All fields required.");
+        if(!rName || !rLoc || !rCap || !rDur || !rTabs) return alert("All fields required.");
 
         btn.innerHTML = '<div class="loader"></div> Updating...';
         btn.disabled = true;
@@ -233,7 +240,8 @@
                 location: rLoc, 
                 image: rImg,
                 capacity: parseInt(rCap),
-                duration: parseInt(rDur), // Update
+                tables: parseInt(rTabs), // Update Tables
+                duration: parseInt(rDur),
                 cuisine: rCus,
                 price: rPri
             });
@@ -271,7 +279,8 @@
                 const safeLoc = d.location.replace(/'/g, "\\'");
                 const safeImg = d.image ? d.image.replace(/'/g, "\\'") : '';
                 const safeCap = d.capacity || 20; 
-                const safeDur = d.duration || 3; // NEW Default
+                const safeTabs = d.tables || 10; // Get Tables
+                const safeDur = d.duration || 3;
                 const safeCus = d.cuisine || "General"; 
                 const safePri = d.price || "$$"; 
 
@@ -282,11 +291,11 @@
                     <div class="res-info">
                         <div class="res-name">${d.name}</div>
                         <div class="res-meta">${d.location} | ${safeCus} | ${safePri}</div>
-                        <div class="res-meta">Cap: ${safeCap} | Time: ${safeDur}h</div>
+                        <div class="res-meta">Cap: ${safeCap} | Tables: ${safeTabs} | Time: ${safeDur}h</div>
                     </div>
                     <div>
                         <button class="btn-action btn-qr" onclick="showQr('${safeName}')">📱</button>
-                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, '${safeCus}', '${safePri}', ${safeDur})">✏️</button>
+                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, ${safeTabs}, '${safeCus}', '${safePri}', ${safeDur})">✏️</button>
                         <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}', '${safeName}')">🗑️</button>
                     </div>
                 </div>`;
@@ -307,14 +316,15 @@
     
     window.closeQr = () => document.getElementById('qr-modal').style.display = 'none';
 
-    window.startEdit = (id, name, loc, img, cap, cus, pri, dur) => {
+    window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur) => {
         editingId = id;
         editingOldName = name;
         document.getElementById('res-name').value = name;
         document.getElementById('res-location').value = loc;
         document.getElementById('res-image').value = img;
         document.getElementById('res-capacity').value = cap;
-        document.getElementById('res-duration').value = dur; // Fill Duration
+        document.getElementById('res-tables').value = tabs; // Fill Tables
+        document.getElementById('res-duration').value = dur;
         document.getElementById('res-cuisine').value = cus;
         document.getElementById('res-price').value = pri;
         
@@ -354,6 +364,7 @@
         document.getElementById('res-location').value = "";
         document.getElementById('res-image').value = "";
         document.getElementById('res-capacity').value = "";
+        document.getElementById('res-tables').value = "";
         document.getElementById('res-duration').value = "";
         document.getElementById('res-cuisine').value = "";
         document.getElementById('res-price').value = "$$";
