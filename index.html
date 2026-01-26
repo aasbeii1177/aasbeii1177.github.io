@@ -87,8 +87,6 @@
         
         .btn-primary { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: 700; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); background: #000; }
-        
-        /* DISABLED BUTTON */
         .btn-primary:disabled { background: #ccc !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.7; }
 
         .page-section { display: none; animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -196,11 +194,12 @@
                         <p><strong>Phone:</strong> <span id="rev-phone-display"></span></p>
                         <p><strong>Time:</strong> <span id="rev-time-display"></span></p>
                         <p><strong>Guests:</strong> <span id="rev-guests"></span></p>
+                        <p><strong>Duration:</strong> <span id="rev-duration"></span></p>
                     </div>
 
                     <div class="policy-box">
                         <input type="checkbox" id="policy-check" onchange="toggleConfirmBtn()">
-                        <span>I understand that reservations are held for <strong>15 minutes only</strong>. Late arrivals may lose their table.</span>
+                        <span>I understand that reservations are held for <strong>15 minutes only</strong>.</span>
                     </div>
 
                     <button id="btn-confirm-final" class="btn-primary" onclick="sendEmail()" disabled>Confirm Request</button>
@@ -220,21 +219,15 @@
             <div class="form-box">
                 <a onclick="goHome()" style="cursor:pointer; color:#999; display:block; margin-bottom:20px;">← Back Home</a>
                 <h2>My Reservations</h2>
-                <p style="color:#666; font-size:14px; margin-bottom:20px;">Enter your full phone number (with code) to see your bookings.</p>
-                
                 <div class="phone-group">
                     <select id="manage-code" class="code-select">
                         <option value="963" selected>🇸🇾 +963</option>
                         <option value="961">🇱🇧 +961</option>
-                        <option value="971">🇦🇪 +971</option>
-                        <option value="966">🇸🇦 +966</option>
                         <option value="">Other</option>
                     </select>
                     <input type="tel" id="manage-phone" class="input-field" placeholder="Number" style="margin-bottom:0;">
                 </div>
-                
                 <button class="btn-primary" onclick="findBookings()">Find Bookings</button>
-
                 <div id="user-bookings-list" style="margin-top:30px;"></div>
             </div>
         </div>
@@ -277,6 +270,7 @@
     window.selectedSlotDuration = 3;
     window.selectedFullPhone = "";
 
+    // 1. SETUP
     window.onload = async function() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').setAttribute('min', today);
@@ -359,6 +353,7 @@
         renderList(filtered);
     }
 
+    // 2. NAV
     window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity; 
@@ -373,7 +368,6 @@
         document.getElementById('selected-time-value').value = ""; 
         document.getElementById('persons').value = "2"; 
         
-        // Reset Checkbox
         document.getElementById('policy-check').checked = false;
         document.getElementById('btn-confirm-final').disabled = true;
 
@@ -384,6 +378,7 @@
         window.scrollTo(0,0);
     }
 
+    // 3. TIME SLOTS
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const grid = document.getElementById('time-grid');
@@ -481,7 +476,7 @@
         window.selectedSlotDuration = duration;
     }
 
-    // --- BUTTONS AND NAVIGATION ---
+    // 4. CONTINUE & SUBMIT
     window.goToReview = async () => {
         const nameInp = document.getElementById('name');
         const numInp = document.getElementById('phone');
@@ -489,10 +484,10 @@
         const timeInp = document.getElementById('selected-time-value');
         const persInp = document.getElementById('persons');
 
-        if(!nameInp.value) return alert("Please enter your name.");
-        if(!numInp.value) return alert("Please enter your phone number.");
-        if(!dateInp.value) return alert("Please select a date.");
-        if(!timeInp.value) return alert("Please select a time slot from the grid.");
+        if(!nameInp || !nameInp.value) return alert("Please enter your name.");
+        if(!numInp || !numInp.value) return alert("Please enter your phone number.");
+        if(!dateInp || !dateInp.value) return alert("Please select a date.");
+        if(!timeInp || !timeInp.value) return alert("Please click a Time Slot.");
         
         let cleanNum = numInp.value.replace(/^0+/, ''); 
         const code = document.getElementById('phone-code').value;
@@ -520,6 +515,7 @@
         document.getElementById(show).style.display = 'block'; 
     }
     
+    // 5. UTILS
     window.goHome = function() { 
         document.getElementById('booking-page').classList.remove('active-section'); 
         document.getElementById('manage-page').classList.remove('active-section');
@@ -557,7 +553,7 @@
             time: document.getElementById('selected-time-value').value, 
             persons: document.getElementById('persons').value, 
             status: "Pending", 
-            duration: window.selectedDuration, 
+            duration: window.selectedSlotDuration, 
             createdAt: new Date() 
         };
         try {
