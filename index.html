@@ -5,66 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tawelty - Premium Dining</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    
     <style>
         /* --- LUXURY THEME --- */
-        :root {
-            --primary: #1a1a1a; --gold: #D4AF37; --bg: #FAFAFA; --surface: #FFFFFF;
-        }
-
+        :root { --primary: #1a1a1a; --gold: #D4AF37; --bg: #FAFAFA; --surface: #FFFFFF; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); margin: 0; color: --primary; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--primary); margin: 0; }
-
-        .hero {
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover; background-position: center; height: 300px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; margin-bottom: 40px;
-        }
+        .hero { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; margin-bottom: 40px; }
         .hero h1 { color: white; font-size: 3.5rem; letter-spacing: 2px; margin-bottom: 10px; font-style: italic; }
         .hero p { font-size: 1rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 600; }
-
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
-
-        /* CARDS */
-        .card {
-            background: var(--surface); border-radius: 16px; overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: all 0.3s ease;
-            cursor: pointer; border: 1px solid rgba(0,0,0,0.03); position: relative;
-        }
+        .card { background: var(--surface); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: all 0.3s ease; cursor: pointer; border: 1px solid rgba(0,0,0,0.03); position: relative; }
         .card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         .card-img { height: 220px; background-size: cover; background-position: center; }
         .card-content { padding: 25px; }
         .card-title { font-size: 1.5rem; margin-bottom: 8px; }
         .card-loc { color: #95A5A6; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
-        
-        /* BUTTONS */
-        .btn-card {
-            display: block; width: 100%; padding: 12px; text-align: center;
-            background: white; border: 1px solid var(--primary); color: var(--primary);
-            border-radius: 8px; font-weight: 600; margin-top: 15px; transition: 0.2s;
-        }
+        .btn-card { display: block; width: 100%; padding: 12px; text-align: center; background: white; border: 1px solid var(--primary); color: var(--primary); border-radius: 8px; font-weight: 600; margin-top: 15px; transition: 0.2s; }
         .card:hover .btn-card { background: var(--primary); color: white; }
-
-        /* BUSY STATE STYLE */
-        .btn-busy {
-            background: #eee !important; color: #999 !important; border-color: #ddd !important;
-            cursor: not-allowed;
-        }
-
-        /* FORMS */
+        .btn-busy { background: #eee !important; color: #999 !important; border-color: #ddd !important; cursor: not-allowed; }
         .page-section { display: none; animation: slideUp 0.4s ease-out; }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
         .form-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.08); max-width: 500px; margin: 0 auto; }
         .input-field { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; }
         .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; }
-        
-        /* LOGIN MODAL */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); }
         .modal-content { background: white; width: 90%; max-width: 350px; margin: 15vh auto; padding: 40px; border-radius: 20px; text-align: center; position: relative; }
-        
         .footer { text-align: center; margin-top: 50px; padding: 20px; color: #ccc; font-size: 0.9rem; }
         .footer a { color: var(--gold); text-decoration: none; font-weight: 600; cursor: pointer; }
     </style>
@@ -91,8 +58,15 @@
                 <div id="step1">
                     <input type="text" class="input-field" id="name" placeholder="Full Name">
                     <input type="tel" class="input-field" id="phone" placeholder="Phone (WhatsApp)">
-                    <input type="date" class="input-field" id="date">
-                    <select id="time" class="input-field"></select>
+                    
+                    <label style="font-size:12px; font-weight:bold; color:#888;">Select Date:</label>
+                    <input type="date" class="input-field" id="date" onchange="updateTimeSlots()">
+                    
+                    <label style="font-size:12px; font-weight:bold; color:#888;">Select Time:</label>
+                    <select id="time" class="input-field">
+                        <option>Please select a date first</option>
+                    </select>
+
                     <input type="number" class="input-field" id="persons" min="1" max="20" placeholder="Number of Guests">
                     <button class="btn-primary" onclick="goToReview()">Continue</button>
                 </div>
@@ -134,7 +108,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -157,7 +131,6 @@
 
     // --- MAIN LOADING LOGIC ---
     window.onload = async function() {
-        populateTime();
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').setAttribute('min', today);
         
@@ -172,20 +145,20 @@
             } else {
                 querySnapshot.forEach((doc) => {
                     const branch = doc.data();
-                    
-                    // --- NEW: CHECK IF OPEN ---
-                    // Default to true if field is missing
                     const isOpen = branch.isOpen !== false; 
-                    
+                    // SAFE CAPACITY: Default to 20 if missing
+                    const capacity = branch.capacity || 20; 
+
                     let buttonHtml = '';
                     let clickAction = '';
                     
                     if(isOpen) {
                         buttonHtml = `<span class="btn-card">Book Table</span>`;
-                        clickAction = `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}')"`;
+                        // PASS CAPACITY TO THE OPEN FUNCTION
+                        clickAction = `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity})"`;
                     } else {
                         buttonHtml = `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
-                        clickAction = `style="cursor:not-allowed; opacity:0.8;"`; // No click action
+                        clickAction = `style="cursor:not-allowed; opacity:0.8;"`;
                     }
 
                     html += `
@@ -204,15 +177,79 @@
         finally { loader.style.display = 'none'; }
     };
 
-    window.openBooking = function(name, imgUrl) {
+    // --- NAVIGATION WITH CAPACITY TRACKING ---
+    window.openBooking = function(name, imgUrl, capacity) {
         window.selectedRestaurant = name;
+        window.currentCapacity = capacity; // Store it!
+        
         document.getElementById('selected-restaurant-title').innerText = name;
+        document.getElementById('date').value = ""; // Reset date
+        document.getElementById('time').innerHTML = "<option>Please select a date first</option>";
         
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
         switchFormStep('step2', 'step1');
         switchFormStep('step3', 'step1');
         window.scrollTo(0,0);
+    }
+
+    // --- SMART TIME SLOT CALCULATOR ---
+    window.updateTimeSlots = async () => {
+        const dateInput = document.getElementById('date').value;
+        const timeSelect = document.getElementById('time');
+        const resName = window.selectedRestaurant;
+        const limit = window.currentCapacity || 20; // Use specific limit
+
+        if(!dateInput) return;
+
+        timeSelect.innerHTML = "<option>Checking availability...</option>";
+        
+        // 1. Get ALL reservations for this Restaurant on this Date
+        const q = query(
+            collection(db, "reservations"), 
+            where("restaurant", "==", resName), 
+            where("date", "==", dateInput)
+        );
+        const snapshot = await getDocs(q);
+
+        // 2. Calculate Traffic
+        let traffic = {}; 
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            // Count guests if booking is Active (Not declined, Not archived)
+            if(data.status !== 'Declined' && !data.archived) {
+                const hour = data.time;
+                const guests = parseInt(data.persons) || 0;
+                if(!traffic[hour]) traffic[hour] = 0;
+                traffic[hour] += guests;
+            }
+        });
+
+        // 3. Build Dropdown
+        let optionsHtml = '<option value="">Select Time</option>';
+        const openingHours = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+
+        openingHours.forEach(h => {
+            const timeString = `${h}:00`;
+            const currentCount = traffic[timeString] || 0;
+            
+            if (currentCount >= limit) {
+                // DISABLE FULL HOURS
+                optionsHtml += `<option disabled style="color:#e74c3c;">${timeString} (Full 🔴)</option>`;
+            } else {
+                // SHOW AVAILABLE
+                optionsHtml += `<option value="${timeString}">${timeString} (${limit - currentCount} seats left)</option>`;
+            }
+        });
+
+        timeSelect.innerHTML = optionsHtml;
+    };
+
+    // --- HELPERS ---
+    window.switchFormStep = (hide, show) => {
+        document.getElementById(hide).style.display = 'none';
+        document.getElementById(show).style.display = 'block';
     }
 
     window.goHome = function() {
@@ -243,27 +280,16 @@
         }
     };
 
-    window.switchFormStep = (hide, show) => {
-        document.getElementById(hide).style.display = 'none';
-        document.getElementById(show).style.display = 'block';
-    }
-
-    window.populateTime = () => {
-        const timeSelect = document.getElementById('time');
-        let options = '';
-        for(let i=12; i<=23; i++) options += `<option value="${i}:00">${i}:00</option>`;
-        timeSelect.innerHTML = options;
-    }
-
     window.goToReview = () => {
         const name = document.getElementById('name').value;
         const date = document.getElementById('date').value;
-        if(!name || !date) return alert("Please fill all fields");
+        const time = document.getElementById('time').value;
+        if(!name || !date || !time) return alert("Please fill all fields");
         
         document.getElementById('rev-loc').innerText = window.selectedRestaurant;
         document.getElementById('rev-name').innerText = name;
         document.getElementById('rev-date').innerText = date;
-        document.getElementById('rev-time').innerText = document.getElementById('time').value;
+        document.getElementById('rev-time').innerText = time;
         document.getElementById('rev-guests').innerText = document.getElementById('persons').value;
         
         switchFormStep('step1', 'step2');
