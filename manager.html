@@ -28,6 +28,18 @@
         .stat-val { font-size: 20px; font-weight: 700; color: #D4AF37; }
         .stat-limit { font-size: 14px; color: #666; font-weight: 400; color: #bbb; }
 
+        /* NEW: DATE DIVIDER */
+        .date-header {
+            margin: 40px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            color: #D4AF37;
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         /* STATUS TOGGLE */
         .status-control { display: flex; align-items: center; gap: 10px; }
         .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
@@ -300,7 +312,7 @@
         else gEl.style.color = "#2ECC71"; // Green
     }
 
-    // --- REAL-TIME LISTENER (SORTED) ---
+    // --- REAL-TIME LISTENER (GROUPED BY DATE) ---
     function startRealtimeListener() {
         if(!currentRestaurant) return;
         const list = document.getElementById('bookings-list');
@@ -326,21 +338,31 @@
             }
             isFirstLoad = false;
 
-            // --- SORTING LOGIC ---
+            // --- SORTING ---
             const allDocs = [];
             snapshot.forEach(doc => {
                 if(!doc.data().archived) allDocs.push({ id: doc.id, ...doc.data() });
             });
 
-            // Sort: Earliest Date First, then Earliest Time
             allDocs.sort((a, b) => {
                 if (a.date !== b.date) return a.date.localeCompare(b.date);
-                // Compare times (e.g. "19:00" vs "20:00")
                 return parseInt(a.time) - parseInt(b.time);
             });
 
+            // --- RENDERING WITH DATE HEADERS ---
             let html = '';
+            let lastDate = null;
+
             allDocs.forEach(b => {
+                // INSERT HEADER IF NEW DATE
+                if (b.date !== lastDate) {
+                    const dateObj = new Date(b.date);
+                    // Formatting: "Monday, 26 January"
+                    const dateStr = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+                    html += `<div class="date-header">${dateStr}</div>`;
+                    lastDate = b.date;
+                }
+
                 let buttons = '';
                 if(b.status === 'Pending') {
                     buttons = `
@@ -376,13 +398,13 @@
         });
     }
 
-    // --- ACTIONS & VALIDATION ---
+    // --- ACTIONS ---
     window.openModal = (mode, id, name, phone, date, time, guests, duration) => {
         const modal = document.getElementById('booking-modal');
         const title = document.getElementById('modal-title');
         const dateInput = document.getElementById('m-date');
         
-        // PREVENT PAST DATES
+        // Prevent past dates
         const today = new Date().toISOString().split('T')[0];
         dateInput.min = today; 
 
@@ -420,7 +442,7 @@
 
         if(!date || !time) return alert("Date and Time are required.");
 
-        // TIME TRAVEL CHECK
+        // TIME TRAVEL CHECK (MANAGER)
         const today = new Date();
         const selDate = new Date(date);
         const isToday = selDate.getDate() === today.getDate() && selDate.getMonth() === today.getMonth();
