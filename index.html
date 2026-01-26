@@ -48,7 +48,6 @@
 
         /* FILTER BAR */
         .filter-bar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); margin-bottom: 40px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border: 1px solid rgba(255,255,255,0.5); }
-        
         .search-input, .filter-select, .input-field, .code-select { background: var(--input-bg); border: 2px solid transparent; padding: 16px; border-radius: 12px; font-size: 15px; outline: none; transition: 0.3s; font-family: 'Plus Jakarta Sans', sans-serif; }
         .search-input { flex: 2; }
         .filter-select { flex: 1; min-width: 120px; cursor: pointer; }
@@ -193,6 +192,7 @@
                         <p><strong>Phone:</strong> <span id="rev-phone-display"></span></p>
                         <p><strong>Time:</strong> <span id="rev-time-display"></span></p>
                         <p><strong>Guests:</strong> <span id="rev-guests"></span></p>
+                        <p><strong>Duration:</strong> <span id="rev-duration"></span></p>
                     </div>
                     <button class="btn-primary" onclick="sendEmail()">Confirm Request</button>
                     <button style="background:none; border:none; width:100%; padding:15px; cursor:pointer; color:#888;" onclick="switchFormStep('step2', 'step1')">Edit</button>
@@ -262,7 +262,7 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Global State
+    // Global Vars
     window.allRestaurants = [];
     window.selectedRestaurant = "";
     window.selectedSlotDuration = 3;
@@ -468,32 +468,44 @@
         window.selectedSlotDuration = duration;
     }
 
+    // --- "CONTINUE" BUTTON LOGIC ---
     window.goToReview = async () => {
-        const name = document.getElementById('name').value.trim();
-        const num = document.getElementById('phone').value.trim();
-        const code = document.getElementById('phone-code').value;
-        const date = document.getElementById('date').value;
-        const time = document.getElementById('selected-time-value').value; 
-        const persons = document.getElementById('persons').value;
+        try {
+            const nameInp = document.getElementById('name');
+            const numInp = document.getElementById('phone');
+            const dateInp = document.getElementById('date');
+            const timeInp = document.getElementById('selected-time-value');
+            const persInp = document.getElementById('persons');
 
-        if(!name) return alert("Please enter your Name.");
-        if(!num) return alert("Please enter your Phone Number.");
-        if(!date) return alert("Please select a Date.");
-        if(!time) return alert("Please select a Time Slot from the grid.");
-        
-        let cleanNum = num.replace(/^0+/, ''); 
-        window.selectedFullPhone = (code ? code : "") + cleanNum;
-        
-        if(!window.selectedSlotDuration) window.selectedSlotDuration = 3;
+            if(!nameInp || !nameInp.value) return alert("Please enter your name.");
+            if(!numInp || !numInp.value) return alert("Please enter your phone number.");
+            if(!dateInp || !dateInp.value) return alert("Please select a date.");
+            if(!timeInp || !timeInp.value) return alert("Please select a time slot from the grid.");
+            
+            const name = nameInp.value;
+            const num = numInp.value;
+            const date = dateInp.value;
+            const time = timeInp.value;
+            const persons = persInp.value;
+            const code = document.getElementById('phone-code').value;
 
-        document.getElementById('rev-loc').innerText = window.selectedRestaurant;
-        document.getElementById('rev-name').innerText = name;
-        document.getElementById('rev-phone-display').innerText = "+" + window.selectedFullPhone;
-        document.getElementById('rev-time-display').innerText = `${time} ${date}`;
-        document.getElementById('rev-guests').innerText = persons;
-        document.getElementById('rev-duration').innerText = window.selectedSlotDuration + " Hours";
-        
-        window.switchFormStep('step1', 'step2');
+            const todayStr = new Date().toISOString().split('T')[0];
+            if(date < todayStr) return alert("Cannot book a past date.");
+
+            let cleanNum = num.replace(/^0+/, ''); 
+            window.selectedFullPhone = (code ? code : "") + cleanNum;
+            window.selectedDuration = window.selectedSlotDuration || 3; 
+
+            document.getElementById('rev-loc').innerText = window.selectedRestaurant || "Restaurant";
+            document.getElementById('rev-name').innerText = name;
+            document.getElementById('rev-phone-display').innerText = "+" + window.selectedFullPhone;
+            document.getElementById('rev-time-display').innerText = `${time} ${date}`;
+            document.getElementById('rev-guests').innerText = persons;
+            
+            const durText = window.selectedDuration + " Hours";
+            document.getElementById('rev-duration').innerText = durText;
+            window.switchFormStep('step1', 'step2');
+        } catch(e) { console.error(e); alert("System Error: " + e.message); }
     }
 
     window.switchFormStep = (hide, show) => { 
@@ -538,7 +550,7 @@
             time: document.getElementById('selected-time-value').value, 
             persons: document.getElementById('persons').value, 
             status: "Pending", 
-            duration: window.selectedSlotDuration, 
+            duration: window.selectedDuration, 
             createdAt: new Date() 
         };
         try {
@@ -547,7 +559,6 @@
         } catch (e) { alert("Error: " + e.message); document.getElementById('step2').style.display = 'block'; }
     }
     
-    // Manage Bookings
     window.findBookings = async () => {
         const code = document.getElementById('manage-code').value;
         const num = document.getElementById('manage-phone').value;
