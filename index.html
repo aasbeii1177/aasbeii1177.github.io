@@ -17,16 +17,10 @@
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
 
-        /* FILTER BAR */
-        .filter-bar {
-            background: white; padding: 20px; border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 40px;
-            display: flex; gap: 15px; flex-wrap: wrap; align-items: center;
-        }
+        .filter-bar { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 40px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
         .search-input { flex: 2; padding: 12px; border: 1px solid #eee; border-radius: 8px; font-size: 15px; }
         .filter-select { flex: 1; padding: 12px; border: 1px solid #eee; border-radius: 8px; font-size: 15px; background: white; min-width: 120px; }
         
-        /* CARD STYLES */
         .card { background: var(--surface); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: all 0.3s ease; cursor: pointer; border: 1px solid rgba(0,0,0,0.03); position: relative; }
         .card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         .card-img { height: 220px; background-size: cover; background-position: center; }
@@ -35,14 +29,12 @@
         .tag { font-size: 11px; text-transform: uppercase; font-weight: 700; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.5px; }
         .tag-cuisine { background: #f0f0f0; color: #666; }
         .tag-price { background: #fff8e1; color: #f39c12; }
-
         .card-title { font-size: 1.5rem; margin-bottom: 8px; }
         .card-loc { color: #95A5A6; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
         .btn-card { display: block; width: 100%; padding: 12px; text-align: center; background: white; border: 1px solid var(--primary); color: var(--primary); border-radius: 8px; font-weight: 600; margin-top: 15px; transition: 0.2s; }
         .card:hover .btn-card { background: var(--primary); color: white; }
         .btn-busy { background: #eee !important; color: #999 !important; border-color: #ddd !important; cursor: not-allowed; }
         
-        /* FORM & SECTIONS */
         .page-section { display: none; animation: slideUp 0.4s ease-out; }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -65,7 +57,6 @@
 
     <div class="container">
         <div id="home-page" class="page-section active-section">
-            
             <div class="filter-bar">
                 <input type="text" id="search-input" class="search-input" placeholder="🔍 Search venues..." onkeyup="applyFilters()">
                 <select id="filter-cuisine" class="filter-select" onchange="applyFilters()">
@@ -78,7 +69,6 @@
                     <option value="$$$">$$$ (High)</option>
                 </select>
             </div>
-
             <div id="loader-main" style="text-align:center; padding:50px;">Loading exclusive venues...</div>
             <div id="restaurant-list-container" class="grid"></div>
         </div>
@@ -158,7 +148,7 @@
         window.history.replaceState(null, '', newPath);
     }
 
-    // --- MAIN LOADING LOGIC ---
+    // --- MAIN LOADING ---
     window.onload = async function() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').setAttribute('min', today);
@@ -180,7 +170,6 @@
                 window.allRestaurants.push(data);
             });
 
-            // Populate Filter
             const cuisineSelect = document.getElementById('filter-cuisine');
             cuisines.forEach(c => {
                 const opt = document.createElement('option');
@@ -195,33 +184,25 @@
         finally { loader.style.display = 'none'; }
     };
 
-    // --- RENDER FUNCTION ---
     window.renderList = (data) => {
         const container = document.getElementById('restaurant-list-container');
+        if(data.length === 0) { container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>No venues match.</p>"; return; }
         
-        if(data.length === 0) {
-            container.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#999;'>No venues match your search.</p>";
-            return;
-        }
-
         let html = '';
         data.forEach((branch) => {
             const isOpen = branch.isOpen !== false; 
             const capacity = branch.capacity || 20; 
-            const duration = branch.duration || 3; // Get Duration
+            const tables = branch.tables || 10; // NEW: Get Table Limit
+            const duration = branch.duration || 3; 
             
             let buttonHtml = isOpen ? `<span class="btn-card">Book Table</span>` : `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
-            // Pass duration to openBooking
-            let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity}, ${duration})"` : `style="cursor:not-allowed; opacity:0.8;"`;
+            let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity}, ${duration}, ${tables})"` : `style="cursor:not-allowed; opacity:0.8;"`;
             
             html += `
             <div class="card" ${clickAction}>
                 <div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div>
                 <div class="card-content">
-                    <div class="card-tags">
-                        <span class="tag tag-cuisine">${branch.cuisine}</span>
-                        <span class="tag tag-price">${branch.price}</span>
-                    </div>
+                    <div class="card-tags"><span class="tag tag-cuisine">${branch.cuisine}</span><span class="tag tag-price">${branch.price}</span></div>
                     <h3 class="card-title">${branch.name}</h3>
                     <span class="card-loc">📍 ${branch.location}</span>
                     ${buttonHtml}
@@ -231,27 +212,25 @@
         container.innerHTML = html;
     }
 
-    // --- FILTER LOGIC ---
     window.applyFilters = () => {
         const search = document.getElementById('search-input').value.toLowerCase();
         const cuisine = document.getElementById('filter-cuisine').value;
         const price = document.getElementById('filter-price').value;
-
         const filtered = window.allRestaurants.filter(r => {
             const matchesName = r.name.toLowerCase().includes(search) || r.location.toLowerCase().includes(search);
             const matchesCuisine = cuisine === "All" || r.cuisine === cuisine;
             const matchesPrice = price === "All" || r.price === price;
             return matchesName && matchesCuisine && matchesPrice;
         });
-
         renderList(filtered);
     }
 
-    // --- NAVIGATION (UPDATED) ---
-    window.openBooking = function(name, imgUrl, capacity, duration) {
+    // --- NAVIGATION ---
+    window.openBooking = function(name, imgUrl, capacity, duration, tables) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity; 
-        window.currentDuration = duration; // Store this restaurant's specific duration
+        window.currentDuration = duration;
+        window.currentTablesLimit = tables || 10; // Store Table Limit
         
         document.getElementById('selected-restaurant-title').innerText = name;
         document.getElementById('date').value = ""; 
@@ -263,44 +242,63 @@
         window.scrollTo(0,0);
     }
 
-    function calculateOccupancyMap(snapshot) {
-        let occupancy = new Array(24).fill(0);
+    // --- NEW HELPER: ESTIMATE TABLES ---
+    function getTablesNeeded(people) {
+        // Assume 1 table holds 4 people. 5 people = 2 tables.
+        return Math.ceil(people / 4);
+    }
+
+    // --- CALCULATE TWO MAPS: GUESTS AND TABLES ---
+    function calculateOccupancyMaps(snapshot) {
+        let guestMap = new Array(24).fill(0);
+        let tableMap = new Array(24).fill(0);
+
         snapshot.forEach(doc => {
             const data = doc.data();
             if(data.status !== 'Declined' && !data.archived) {
                 const arrivalHour = parseInt(data.time.split(':')[0]); 
                 const guests = parseInt(data.persons) || 0;
-                // Use Saved Duration OR fallback to 3
+                const tablesUsed = getTablesNeeded(guests);
                 const thisDuration = data.duration || 3;
+
                 for(let i=0; i<thisDuration; i++) {
-                    if (arrivalHour + i < 24) occupancy[arrivalHour + i] += guests;
+                    if (arrivalHour + i < 24) {
+                        guestMap[arrivalHour + i] += guests;
+                        tableMap[arrivalHour + i] += tablesUsed;
+                    }
                 }
             }
         });
-        return occupancy;
+        return { guestMap, tableMap };
     }
 
-    function doesItFit(startHour, duration, occupancyMap, groupSize, limit) {
+    // --- CHECK BOTH LIMITS ---
+    function doesItFit(startHour, duration, maps, groupSize, guestLimit, tableLimit) {
+        const tablesNeeded = getTablesNeeded(groupSize);
+
         for(let i=0; i<duration; i++) {
             if(startHour+i < 24) {
-                if((occupancyMap[startHour + i] + groupSize) > limit) return false;
+                // Check 1: Guest Limit
+                if((maps.guestMap[startHour + i] + groupSize) > guestLimit) return false;
+                // Check 2: Table Limit
+                if((maps.tableMap[startHour + i] + tablesNeeded) > tableLimit) return false;
             }
         }
         return true;
     }
 
-    // --- TIME SLOTS (DYNAMIC DURATION) ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const timeSelect = document.getElementById('time');
         const personsInput = document.getElementById('persons').value || 0; 
         const groupSize = parseInt(personsInput) || 2; 
         const resName = window.selectedRestaurant;
-        const limit = window.currentCapacity || 20; 
         
-        // DYNAMIC DURATIONS
+        const guestLimit = window.currentCapacity || 20; 
+        const tableLimit = window.currentTablesLimit || 10; 
+
         const STANDARD_DUR = window.currentDuration || 3;
-        const MIN_DUR = Math.max(1, STANDARD_DUR - 1); // 1 hour less, but at least 1
+        const MIN_DUR = Math.max(1, STANDARD_DUR - 1);
 
         if(!dateInput) return;
 
@@ -308,16 +306,17 @@
         
         const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
         const snapshot = await getDocs(q);
-        const occupancyMap = calculateOccupancyMap(snapshot);
+        const maps = calculateOccupancyMaps(snapshot);
 
         let optionsHtml = '<option value="">Select Time</option>';
         const openingHours = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
 
         openingHours.forEach(h => {
             const timeString = `${h}:00`;
-            if (doesItFit(h, STANDARD_DUR, occupancyMap, groupSize, limit)) {
+            // Check both limits!
+            if (doesItFit(h, STANDARD_DUR, maps, groupSize, guestLimit, tableLimit)) {
                 optionsHtml += `<option value="${timeString}" data-dur="${STANDARD_DUR}">${timeString}</option>`;
-            } else if (doesItFit(h, MIN_DUR, occupancyMap, groupSize, limit) && MIN_DUR < STANDARD_DUR) {
+            } else if (doesItFit(h, MIN_DUR, maps, groupSize, guestLimit, tableLimit) && MIN_DUR < STANDARD_DUR) {
                 optionsHtml += `<option value="${timeString}" data-dur="${MIN_DUR}" style="color:#D4AF37; font-weight:bold;">${timeString} (Limit: ${MIN_DUR} hrs)</option>`;
             } else {
                 optionsHtml += `<option disabled style="color:#e74c3c;">${timeString} (Full 🔴)</option>`;
@@ -332,11 +331,12 @@
         const timeSelect = document.getElementById('time');
         const time = timeSelect.value;
         const persons = parseInt(document.getElementById('persons').value || 0);
-        const resName = window.selectedRestaurant;
-        const limit = window.currentCapacity || 20;
         
+        const resName = window.selectedRestaurant;
+        const guestLimit = window.currentCapacity || 20;
+        const tableLimit = window.currentTablesLimit || 10;
+
         const selectedOption = timeSelect.options[timeSelect.selectedIndex];
-        // FALLBACK
         const STANDARD_DUR = window.currentDuration || 3;
         const assignedDuration = parseInt(selectedOption.getAttribute('data-dur') || STANDARD_DUR);
         window.selectedDuration = assignedDuration; 
@@ -351,10 +351,10 @@
         try {
             const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", date));
             const snapshot = await getDocs(q);
-            const occupancyMap = calculateOccupancyMap(snapshot);
+            const maps = calculateOccupancyMaps(snapshot);
             const arrivalHour = parseInt(time.split(':')[0]);
             
-            if (!doesItFit(arrivalHour, assignedDuration, occupancyMap, persons, limit)) {
+            if (!doesItFit(arrivalHour, assignedDuration, maps, persons, guestLimit, tableLimit)) {
                 alert(`⚠️ Sorry! That table was just taken.`);
                 updateTimeSlots();
                 return;
@@ -364,8 +364,6 @@
             document.getElementById('rev-name').innerText = name;
             document.getElementById('rev-time-display').innerText = `${time} ${date}`;
             document.getElementById('rev-guests').innerText = persons;
-            
-            // Show duration warning only if shorter than standard
             const durText = assignedDuration < STANDARD_DUR ? `⚠️ ${assignedDuration} Hours Only (Busy)` : `${assignedDuration} Hours (Standard)`;
             document.getElementById('rev-duration').innerText = durText;
             switchFormStep('step1', 'step2');
