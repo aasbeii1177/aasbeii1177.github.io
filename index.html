@@ -70,7 +70,7 @@
                 <input type="text" id="search-input" class="search-input" placeholder="🔍 Search venues..." onkeyup="applyFilters()">
                 <select id="filter-cuisine" class="filter-select" onchange="applyFilters()">
                     <option value="All">All Cuisines</option>
-                    </select>
+                </select>
                 <select id="filter-price" class="filter-select" onchange="applyFilters()">
                     <option value="All">Any Price</option>
                     <option value="$">$ (Low)</option>
@@ -153,9 +153,6 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    const DEFAULT_DURATION = 3; 
-    const MIN_DURATION = 2; 
-
     if (window.location.pathname.endsWith('/index.html')) {
         var newPath = window.location.pathname.replace('/index.html', '/');
         window.history.replaceState(null, '', newPath);
@@ -169,13 +166,13 @@
 
         try {
             const querySnapshot = await getDocs(collection(db, "restaurants"));
-            window.allRestaurants = []; // STORE DATA GLOBALLY FOR FILTERING
+            window.allRestaurants = []; 
             let cuisines = new Set();
 
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 data.id = doc.id;
-                // Defaults for compatibility with old data
+                // Defaults
                 if(!data.cuisine) data.cuisine = "General";
                 if(!data.price) data.price = "$$";
                 
@@ -183,7 +180,7 @@
                 window.allRestaurants.push(data);
             });
 
-            // Populate Cuisine Dropdown
+            // Populate Filter
             const cuisineSelect = document.getElementById('filter-cuisine');
             cuisines.forEach(c => {
                 const opt = document.createElement('option');
@@ -211,9 +208,11 @@
         data.forEach((branch) => {
             const isOpen = branch.isOpen !== false; 
             const capacity = branch.capacity || 20; 
+            const duration = branch.duration || 3; // Get Duration
             
             let buttonHtml = isOpen ? `<span class="btn-card">Book Table</span>` : `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
-            let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity})"` : `style="cursor:not-allowed; opacity:0.8;"`;
+            // Pass duration to openBooking
+            let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity}, ${duration})"` : `style="cursor:not-allowed; opacity:0.8;"`;
             
             html += `
             <div class="card" ${clickAction}>
@@ -242,17 +241,18 @@
             const matchesName = r.name.toLowerCase().includes(search) || r.location.toLowerCase().includes(search);
             const matchesCuisine = cuisine === "All" || r.cuisine === cuisine;
             const matchesPrice = price === "All" || r.price === price;
-            
             return matchesName && matchesCuisine && matchesPrice;
         });
 
         renderList(filtered);
     }
 
-    // --- NAVIGATION ---
-    window.openBooking = function(name, imgUrl, capacity) {
+    // --- NAVIGATION (UPDATED) ---
+    window.openBooking = function(name, imgUrl, capacity, duration) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity; 
+        window.currentDuration = duration; // Store this restaurant's specific duration
+        
         document.getElementById('selected-restaurant-title').innerText = name;
         document.getElementById('date').value = ""; 
         document.getElementById('time').innerHTML = "<option>Please select a date first</option>";
@@ -263,7 +263,6 @@
         window.scrollTo(0,0);
     }
 
-    // --- (KEEPING EXISTING LOGIC FOR TIME/BOOKING) ---
     function calculateOccupancyMap(snapshot) {
         let occupancy = new Array(24).fill(0);
         snapshot.forEach(doc => {
@@ -271,7 +270,8 @@
             if(data.status !== 'Declined' && !data.archived) {
                 const arrivalHour = parseInt(data.time.split(':')[0]); 
                 const guests = parseInt(data.persons) || 0;
-                const thisDuration = data.duration || DEFAULT_DURATION;
+                // Use Saved Duration OR fallback to 3
+                const thisDuration = data.duration || 3;
                 for(let i=0; i<thisDuration; i++) {
                     if (arrivalHour + i < 24) occupancy[arrivalHour + i] += guests;
                 }
@@ -289,6 +289,7 @@
         return true;
     }
 
+    // --- TIME SLOTS (DYNAMIC DURATION) ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const timeSelect = document.getElementById('time');
@@ -296,6 +297,10 @@
         const groupSize = parseInt(personsInput) || 2; 
         const resName = window.selectedRestaurant;
         const limit = window.currentCapacity || 20; 
+        
+        // DYNAMIC DURATIONS
+        const STANDARD_DUR = window.currentDuration || 3;
+        const MIN_DUR = Math.max(1, STANDARD_DUR - 1); // 1 hour less, but at least 1
 
         if(!dateInput) return;
 
@@ -310,10 +315,10 @@
 
         openingHours.forEach(h => {
             const timeString = `${h}:00`;
-            if (doesItFit(h, DEFAULT_DURATION, occupancyMap, groupSize, limit)) {
-                optionsHtml += `<option value="${timeString}" data-dur="${DEFAULT_DURATION}">${timeString}</option>`;
-            } else if (doesItFit(h, MIN_DURATION, occupancyMap, groupSize, limit)) {
-                optionsHtml += `<option value="${timeString}" data-dur="${MIN_DURATION}" style="color:#D4AF37; font-weight:bold;">${timeString} (Limit: 2 hrs)</option>`;
+            if (doesItFit(h, STANDARD_DUR, occupancyMap, groupSize, limit)) {
+                optionsHtml += `<option value="${timeString}" data-dur="${STANDARD_DUR}">${timeString}</option>`;
+            } else if (doesItFit(h, MIN_DUR, occupancyMap, groupSize, limit) && MIN_DUR < STANDARD_DUR) {
+                optionsHtml += `<option value="${timeString}" data-dur="${MIN_DUR}" style="color:#D4AF37; font-weight:bold;">${timeString} (Limit: ${MIN_DUR} hrs)</option>`;
             } else {
                 optionsHtml += `<option disabled style="color:#e74c3c;">${timeString} (Full 🔴)</option>`;
             }
@@ -329,8 +334,11 @@
         const persons = parseInt(document.getElementById('persons').value || 0);
         const resName = window.selectedRestaurant;
         const limit = window.currentCapacity || 20;
+        
         const selectedOption = timeSelect.options[timeSelect.selectedIndex];
-        const assignedDuration = parseInt(selectedOption.getAttribute('data-dur') || DEFAULT_DURATION);
+        // FALLBACK
+        const STANDARD_DUR = window.currentDuration || 3;
+        const assignedDuration = parseInt(selectedOption.getAttribute('data-dur') || STANDARD_DUR);
         window.selectedDuration = assignedDuration; 
 
         if(!name || !date || !time || !persons) return alert("Please fill all fields");
@@ -356,7 +364,9 @@
             document.getElementById('rev-name').innerText = name;
             document.getElementById('rev-time-display').innerText = `${time} ${date}`;
             document.getElementById('rev-guests').innerText = persons;
-            const durText = assignedDuration < DEFAULT_DURATION ? `⚠️ ${assignedDuration} Hours Only (Busy)` : `${assignedDuration} Hours (Standard)`;
+            
+            // Show duration warning only if shorter than standard
+            const durText = assignedDuration < STANDARD_DUR ? `⚠️ ${assignedDuration} Hours Only (Busy)` : `${assignedDuration} Hours (Standard)`;
             document.getElementById('rev-duration').innerText = durText;
             switchFormStep('step1', 'step2');
 
