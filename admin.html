@@ -15,14 +15,13 @@
         .section-title { font-size: 14px; font-weight: 800; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; margin-top: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 15px; }
 
         label { font-size: 12px; font-weight: 700; color: #95A5A6; display: block; margin-bottom: 5px; margin-top: 15px; }
-        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: 0.3s; }
-        input:focus { border-color: #D4AF37; outline: none; background: #fafafa; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: 0.3s; background:white; }
+        input:focus, select:focus { border-color: #D4AF37; outline: none; background: #fafafa; }
         
         .btn-primary { width: 100%; padding: 16px; background: #1a1a1a; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 30px; transition: 0.2s; }
         .btn-primary:hover { background: #D4AF37; transform: translateY(-2px); }
 
         .btn-cancel { width: 100%; padding: 10px; background: #fff; border: 1px solid #ccc; color: #666; border-radius: 10px; cursor: pointer; margin-top: 10px; display: none; }
-        
         .btn-logout { background: none; border: none; color: #95A5A6; font-size: 14px; cursor: pointer; text-decoration: underline; margin-top: 20px; width: 100%; }
 
         /* LIST STYLES */
@@ -67,6 +66,21 @@
         <label>Location</label><input type="text" id="res-location" placeholder="e.g. Old Damascus">
         <label>Image Link</label><input type="text" id="res-image" placeholder="https://...">
         
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+                <label>Cuisine</label>
+                <input type="text" id="res-cuisine" placeholder="e.g. Syrian">
+            </div>
+            <div style="flex:1;">
+                <label>Price Range</label>
+                <select id="res-price">
+                    <option value="$">Low ($)</option>
+                    <option value="$$" selected>Medium ($$)</option>
+                    <option value="$$$">High ($$$)</option>
+                </select>
+            </div>
+        </div>
+
         <label>Max Guests Per Hour (Capacity)</label>
         <input type="number" id="res-capacity" placeholder="e.g. 20">
 
@@ -152,7 +166,10 @@
         const rName = document.getElementById('res-name').value;
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
-        const rCap = document.getElementById('res-capacity').value; // NEW
+        const rCap = document.getElementById('res-capacity').value;
+        const rCus = document.getElementById('res-cuisine').value || "General"; // NEW
+        const rPri = document.getElementById('res-price').value || "$$"; // NEW
+        
         const mEmail = document.getElementById('mgr-email').value;
         const mPass = document.getElementById('mgr-pass').value;
         const btn = document.getElementById('btn-submit');
@@ -167,7 +184,9 @@
                 name: rName, 
                 location: rLoc, 
                 image: rImg || 'https://via.placeholder.com/400x300',
-                capacity: parseInt(rCap) // Save Capacity
+                capacity: parseInt(rCap),
+                cuisine: rCus, // Save
+                price: rPri    // Save
             });
             
             const secondaryApp = initializeApp(firebaseConfig, "Secondary");
@@ -186,7 +205,9 @@
         const rName = document.getElementById('res-name').value;
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
-        const rCap = document.getElementById('res-capacity').value; // NEW
+        const rCap = document.getElementById('res-capacity').value;
+        const rCus = document.getElementById('res-cuisine').value; // NEW
+        const rPri = document.getElementById('res-price').value; // NEW
         const btn = document.getElementById('btn-submit');
 
         if(!rName || !rLoc || !rCap) return alert("All fields required.");
@@ -200,7 +221,9 @@
                 name: rName, 
                 location: rLoc, 
                 image: rImg,
-                capacity: parseInt(rCap) // Update Capacity
+                capacity: parseInt(rCap),
+                cuisine: rCus, // Update
+                price: rPri    // Update
             });
 
             if (rName !== editingOldName) {
@@ -235,7 +258,9 @@
                 const safeName = d.name.replace(/'/g, "\\'"); 
                 const safeLoc = d.location.replace(/'/g, "\\'");
                 const safeImg = d.image ? d.image.replace(/'/g, "\\'") : '';
-                const safeCap = d.capacity || 20; // Default capacity
+                const safeCap = d.capacity || 20; 
+                const safeCus = d.cuisine || "General"; // Default
+                const safePri = d.price || "$$"; // Default
 
                 const mgrEmail = mgrMap[d.name] || "No Manager Linked";
 
@@ -243,12 +268,12 @@
                 <div class="res-item">
                     <div class="res-info">
                         <div class="res-name">${d.name}</div>
-                        <div class="res-meta">${d.location} | Capacity: ${safeCap}/hr</div>
+                        <div class="res-meta">${d.location} | ${safeCus} | ${safePri}</div>
                         <div class="res-meta">👤 ${mgrEmail}</div>
                     </div>
                     <div>
                         <button class="btn-action btn-qr" onclick="showQr('${safeName}')">📱</button>
-                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap})">✏️</button>
+                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, '${safeCus}', '${safePri}')">✏️</button>
                         <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}', '${safeName}')">🗑️</button>
                     </div>
                 </div>`;
@@ -269,13 +294,16 @@
     
     window.closeQr = () => document.getElementById('qr-modal').style.display = 'none';
 
-    window.startEdit = (id, name, loc, img, cap) => {
+    window.startEdit = (id, name, loc, img, cap, cus, pri) => {
         editingId = id;
         editingOldName = name;
         document.getElementById('res-name').value = name;
         document.getElementById('res-location').value = loc;
         document.getElementById('res-image').value = img;
-        document.getElementById('res-capacity').value = cap; // Fill Capacity
+        document.getElementById('res-capacity').value = cap;
+        document.getElementById('res-cuisine').value = cus; // Fill
+        document.getElementById('res-price').value = pri; // Fill
+        
         document.getElementById('form-title').innerText = "Edit Venue";
         document.getElementById('btn-submit').innerText = "Save Changes";
         document.getElementById('manager-section').style.display = 'none'; 
@@ -312,6 +340,8 @@
         document.getElementById('res-location').value = "";
         document.getElementById('res-image').value = "";
         document.getElementById('res-capacity').value = "";
+        document.getElementById('res-cuisine').value = "";
+        document.getElementById('res-price').value = "$$";
         document.getElementById('mgr-email').value = "";
         document.getElementById('mgr-pass').value = "";
     }
