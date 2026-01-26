@@ -6,49 +6,111 @@
     <title>Tawelty - Premium Dining</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* --- LUXURY THEME --- */
-        :root { --primary: #1a1a1a; --gold: #D4AF37; --bg: #FAFAFA; --surface: #FFFFFF; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); margin: 0; color: --primary; }
-        h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--primary); margin: 0; }
-        .hero { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; height: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; margin-bottom: 20px; }
-        .hero h1 { color: white; font-size: 3.5rem; letter-spacing: 2px; margin-bottom: 10px; font-style: italic; }
-        .hero p { font-size: 1rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+        /* --- TAWELTY V2: MODERN LUXURY THEME --- */
+        :root { 
+            --primary: #111111; 
+            --gold: #D4AF37; 
+            --gold-light: #f4eeb1;
+            --bg: #F8F9FA; 
+            --surface: #FFFFFF; 
+            --input-bg: #F0F2F5;
+            --radius: 16px;
+        }
         
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); margin: 0; color: var(--primary); -webkit-font-smoothing: antialiased; }
+        
+        /* TYPOGRAPHY */
+        h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--primary); margin: 0; font-weight: 600; }
+        
+        /* HERO SECTION */
+        .hero { 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=2874&auto=format&fit=crop'); 
+            background-size: cover; background-position: center; background-attachment: fixed;
+            height: 380px; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; 
+            margin-bottom: -40px; padding-bottom: 40px; /* Overlap effect */
+        }
+        .hero h1 { color: white; font-size: 4rem; letter-spacing: -1px; margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .hero p { font-size: 0.9rem; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
 
-        /* FILTER BAR */
-        .filter-bar { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); margin-bottom: 40px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
-        .search-input { flex: 2; padding: 12px; border: 1px solid #eee; border-radius: 8px; font-size: 15px; }
-        .filter-select { flex: 1; padding: 12px; border: 1px solid #eee; border-radius: 8px; font-size: 15px; background: white; min-width: 120px; }
+        /* FILTER BAR (Floating Glass) */
+        .filter-bar {
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            padding: 20px; border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08); margin-bottom: 40px;
+            display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border: 1px solid rgba(255,255,255,0.5);
+        }
         
-        /* CARD STYLES */
-        .card { background: var(--surface); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: all 0.3s ease; cursor: pointer; border: 1px solid rgba(0,0,0,0.03); position: relative; }
-        .card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        .card-img { height: 220px; background-size: cover; background-position: center; }
-        .card-content { padding: 25px; }
-        .card-tags { display: flex; gap: 10px; margin-bottom: 10px; }
-        .tag { font-size: 11px; text-transform: uppercase; font-weight: 700; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.5px; }
-        .tag-cuisine { background: #f0f0f0; color: #666; }
-        .tag-price { background: #fff8e1; color: #f39c12; }
-        .card-title { font-size: 1.5rem; margin-bottom: 8px; }
-        .card-loc { color: #95A5A6; font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
-        .btn-card { display: block; width: 100%; padding: 12px; text-align: center; background: white; border: 1px solid var(--primary); color: var(--primary); border-radius: 8px; font-weight: 600; margin-top: 15px; transition: 0.2s; }
-        .card:hover .btn-card { background: var(--primary); color: white; }
-        .btn-busy { background: #eee !important; color: #999 !important; border-color: #ddd !important; cursor: not-allowed; }
+        /* MODERN INPUTS (No Borders) */
+        .search-input, .filter-select, .input-field { 
+            background: var(--input-bg); border: 2px solid transparent; 
+            padding: 16px; border-radius: 12px; font-size: 15px; outline: none; transition: 0.3s; 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .search-input { flex: 2; }
+        .filter-select { flex: 1; min-width: 120px; cursor: pointer; }
+        .search-input:focus, .filter-select:focus, .input-field:focus { background: white; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1); }
         
-        /* FORM & SECTIONS */
-        .page-section { display: none; animation: slideUp 0.4s ease-out; }
+        .input-field { width: 100%; margin-bottom: 20px; box-sizing: border-box; }
+
+        /* RESTAURANT CARD (Zoom Effect) */
+        .card { 
+            background: var(--surface); border-radius: var(--radius); overflow: hidden; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            cursor: pointer; border: 1px solid rgba(0,0,0,0.02); 
+        }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px rgba(0,0,0,0.12); }
+        
+        .card-img-wrapper { overflow: hidden; height: 220px; position: relative; }
+        .card-img { 
+            width: 100%; height: 100%; background-size: cover; background-position: center; 
+            transition: transform 0.6s ease; 
+        }
+        .card:hover .card-img { transform: scale(1.08); } /* ZOOM ON HOVER */
+        
+        .card-content { padding: 25px; position: relative; }
+        .card-tags { display: flex; gap: 8px; margin-bottom: 12px; }
+        .tag { font-size: 10px; text-transform: uppercase; font-weight: 800; padding: 6px 10px; border-radius: 6px; letter-spacing: 0.5px; }
+        .tag-cuisine { background: #F2F2F2; color: #555; }
+        .tag-price { background: #FFF9E6; color: #BFA15F; }
+
+        .card-title { font-size: 1.4rem; margin-bottom: 6px; }
+        .card-loc { color: #999; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+        
+        .btn-card { 
+            display: block; width: 100%; padding: 14px; text-align: center; 
+            background: white; border: 1px solid #eee; color: var(--primary); 
+            border-radius: 12px; font-weight: 700; margin-top: 20px; transition: 0.3s; 
+        }
+        .card:hover .btn-card { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-busy { background: #f5f5f5 !important; color: #aaa !important; border-color: transparent !important; cursor: not-allowed; }
+        
+        /* BUTTONS */
+        .btn-primary { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: 700; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); background: #000; }
+        
+        /* FORM SECTIONS */
+        .page-section { display: none; animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .active-section { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .form-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.08); max-width: 500px; margin: 0 auto; }
-        .input-field { width: 100%; padding: 14px; border: 2px solid #eee; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; }
-        .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); }
-        .modal-content { background: white; width: 90%; max-width: 350px; margin: 15vh auto; padding: 40px; border-radius: 20px; text-align: center; position: relative; }
-        .footer { text-align: center; margin-top: 50px; padding: 20px; color: #ccc; font-size: 0.9rem; }
-        .footer a { color: var(--gold); text-decoration: none; font-weight: 600; cursor: pointer; }
+        .form-box { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); max-width: 480px; margin: 0 auto; border: 1px solid rgba(0,0,0,0.02); }
+
+        /* CHECKMARK ANIMATION */
+        .success-animation { width: 80px; height: 80px; border-radius: 50%; background: #2ECC71; color: white; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; font-size: 40px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
+        .modal-content { background: white; width: 90%; max-width: 380px; margin: 15vh auto; padding: 40px; border-radius: 24px; text-align: center; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
+        
+        .footer { text-align: center; margin-top: 60px; padding: 30px; color: #ccc; font-size: 0.85rem; border-top: 1px solid #eee; }
+        .footer a { color: var(--gold); text-decoration: none; font-weight: 600; cursor: pointer; transition:0.2s; }
+        .footer a:hover { color: var(--primary); }
     </style>
 </head>
 <body>
@@ -105,11 +167,11 @@
                     <button style="background:none; border:none; width:100%; padding:15px; cursor:pointer; color:#888;" onclick="switchFormStep('step2', 'step1')">Edit</button>
                 </div>
 
-                <div id="step3" style="display:none; text-align:center; padding:20px;">
-                    <div style="font-size:60px;">⏳</div>
-                    <h3 style="margin-top:10px;">Request Sent</h3>
-                    <p style="color:#666;">We have received your request.<br>Please wait for a <strong>WhatsApp confirmation</strong>.</p>
-                    <button class="btn-primary" onclick="goHome()" style="margin-top:20px;">Return Home</button>
+                <div id="step3" style="display:none; text-align:center; padding:30px 20px;">
+                    <div class="success-animation">✓</div>
+                    <h3 style="margin-top:10px; font-size:1.8rem;">Request Sent</h3>
+                    <p style="color:#888; margin-bottom:30px; line-height:1.6;">We have received your request.<br>Please wait for a <strong>WhatsApp confirmation</strong>.</p>
+                    <button class="btn-primary" onclick="goHome()">Return to Venues</button>
                 </div>
             </div>
         </div>
@@ -203,7 +265,9 @@
             
             html += `
             <div class="card" ${clickAction}>
-                <div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div>
+                <div class="card-img-wrapper">
+                    <div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div>
+                </div>
                 <div class="card-content">
                     <div class="card-tags"><span class="tag tag-cuisine">${branch.cuisine}</span><span class="tag tag-price">${branch.price}</span></div>
                     <h3 class="card-title">${branch.name}</h3>
@@ -246,7 +310,6 @@
     }
 
     function getTablesNeeded(people) {
-        // Assume 1 table = 4 seats
         return Math.ceil(people / 4);
     }
 
@@ -285,7 +348,7 @@
         return true;
     }
 
-    // --- PREVENT PAST BOOKINGS ---
+    // --- TIME SLOTS & PAST CHECK ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const timeSelect = document.getElementById('time');
@@ -301,14 +364,14 @@
 
         if(!dateInput) return;
 
-        // CHECK IF DATE IS TODAY
+        // TIME CHECK
         const today = new Date();
         const selectedDate = new Date(dateInput);
         const isToday = selectedDate.getDate() === today.getDate() && 
                         selectedDate.getMonth() === today.getMonth() && 
                         selectedDate.getFullYear() === today.getFullYear();
         
-        const currentHour = today.getHours(); 
+        const currentHour = today.getHours();
 
         timeSelect.innerHTML = "<option>Checking availability...</option>";
         
@@ -352,7 +415,6 @@
 
         const selectedOption = timeSelect.options[timeSelect.selectedIndex];
         
-        // Safety: Prevent clicking "Passed" options
         if (selectedOption.disabled) return alert("Please select a valid time.");
 
         const STANDARD_DUR = window.currentDuration || 3;
