@@ -28,7 +28,7 @@
             background-size: cover; background-position: center; background-attachment: fixed;
             height: 380px; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; 
-            margin-bottom: -40px; padding-bottom: 40px; /* Overlap effect */
+            margin-bottom: -40px; padding-bottom: 40px; 
         }
         .hero h1 { color: white; font-size: 4rem; letter-spacing: -1px; margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,0,0,0.3); }
         .hero p { font-size: 0.9rem; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
@@ -36,7 +36,7 @@
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
 
-        /* FILTER BAR (Floating Glass) */
+        /* FILTER BAR */
         .filter-bar {
             background: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(10px);
@@ -45,7 +45,7 @@
             display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border: 1px solid rgba(255,255,255,0.5);
         }
         
-        /* MODERN INPUTS (No Borders) */
+        /* MODERN INPUTS */
         .search-input, .filter-select, .input-field { 
             background: var(--input-bg); border: 2px solid transparent; 
             padding: 16px; border-radius: 12px; font-size: 15px; outline: none; transition: 0.3s; 
@@ -58,7 +58,34 @@
         .input-field { width: 100%; margin-bottom: 20px; box-sizing: border-box; }
         label { font-size: 12px; font-weight: 700; color: #999; margin-bottom: 5px; display:block; }
 
-        /* RESTAURANT CARD (Zoom Effect) */
+        /* NEW: TIME SLOT GRID */
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 Columns */
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        .time-slot {
+            padding: 12px;
+            text-align: center;
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .time-slot:hover { border-color: var(--primary); }
+        
+        /* Selected State */
+        .time-slot.selected { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        
+        /* Disabled/Full State */
+        .time-slot.disabled { background: #f5f5f5; color: #ccc; border-color: transparent; cursor: not-allowed; text-decoration: line-through; }
+        .time-slot.warning { border-color: #F1C40F; color: #F39C12; }
+
+        /* CARD STYLES */
         .card { 
             background: var(--surface); border-radius: var(--radius); overflow: hidden; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
@@ -71,7 +98,7 @@
             width: 100%; height: 100%; background-size: cover; background-position: center; 
             transition: transform 0.6s ease; 
         }
-        .card:hover .card-img { transform: scale(1.08); } /* ZOOM ON HOVER */
+        .card:hover .card-img { transform: scale(1.08); } 
         
         .card-content { padding: 25px; position: relative; }
         .card-tags { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -94,18 +121,15 @@
         .btn-primary { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: 700; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); background: #000; }
         
-        /* FORM SECTIONS */
         .page-section { display: none; animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         
         .form-box { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); max-width: 480px; margin: 0 auto; border: 1px solid rgba(0,0,0,0.02); }
 
-        /* CHECKMARK ANIMATION */
         .success-animation { width: 80px; height: 80px; border-radius: 50%; background: #2ECC71; color: white; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; font-size: 40px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
-        /* MODAL */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 90%; max-width: 380px; margin: 15vh auto; padding: 40px; border-radius: 24px; text-align: center; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         
@@ -163,7 +187,10 @@
                     </div>
 
                     <label>Available Time Slots</label>
-                    <select id="time" class="input-field"><option>Select Date & Guests first</option></select>
+                    <div id="time-grid" class="time-grid">
+                        <div style="grid-column:1/-1; text-align:center; color:#ccc; padding:20px;">Select Date & Guests first</div>
+                    </div>
+                    <input type="hidden" id="selected-time-value">
                     
                     <button class="btn-primary" onclick="goToReview()">Continue</button>
                 </div>
@@ -241,15 +268,12 @@
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 data.id = doc.id;
-                // Defaults
                 if(!data.cuisine) data.cuisine = "General";
                 if(!data.price) data.price = "$$";
-                
                 cuisines.add(data.cuisine);
                 window.allRestaurants.push(data);
             });
 
-            // SORT A-Z
             window.allRestaurants.sort((a, b) => a.name.localeCompare(b.name));
 
             const cuisineSelect = document.getElementById('filter-cuisine');
@@ -322,8 +346,9 @@
         
         document.getElementById('selected-restaurant-title').innerText = name;
         document.getElementById('date').value = ""; 
-        document.getElementById('time').innerHTML = "<option>Please select date & guests</option>";
-        document.getElementById('persons').value = "2"; // Default
+        document.getElementById('time-grid').innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#ccc; padding:20px;'>Select Date & Guests first</div>";
+        document.getElementById('selected-time-value').value = ""; // Clear selection
+        document.getElementById('persons').value = "2"; 
         
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
@@ -332,14 +357,11 @@
         window.scrollTo(0,0);
     }
 
-    function getTablesNeeded(people) {
-        return Math.ceil(people / 4);
-    }
+    function getTablesNeeded(people) { return Math.ceil(people / 4); }
 
     function calculateOccupancyMaps(snapshot) {
         let guestMap = new Array(24).fill(0);
         let tableMap = new Array(24).fill(0);
-
         snapshot.forEach(doc => {
             const data = doc.data();
             if(data.status !== 'Declined' && !data.archived) {
@@ -347,7 +369,6 @@
                 const guests = parseInt(data.persons) || 0;
                 const tablesUsed = getTablesNeeded(guests);
                 const thisDuration = data.duration || 3;
-
                 for(let i=0; i<thisDuration; i++) {
                     if (arrivalHour + i < 24) {
                         guestMap[arrivalHour + i] += guests;
@@ -361,7 +382,6 @@
 
     function doesItFit(startHour, duration, maps, groupSize, guestLimit, tableLimit) {
         const tablesNeeded = getTablesNeeded(groupSize);
-
         for(let i=0; i<duration; i++) {
             if(startHour+i < 24) {
                 if((maps.guestMap[startHour + i] + groupSize) > guestLimit) return false;
@@ -371,10 +391,10 @@
         return true;
     }
 
-    // --- TIME SLOTS (DYNAMIC) ---
+    // --- TIME GRID GENERATION ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
-        const timeSelect = document.getElementById('time');
+        const grid = document.getElementById('time-grid');
         const personsInput = document.getElementById('persons').value || 0; 
         const groupSize = parseInt(personsInput) || 2; 
         const resName = window.selectedRestaurant;
@@ -387,7 +407,15 @@
         const STANDARD_DUR = window.currentDuration || 3;
         const MIN_DUR = Math.max(1, STANDARD_DUR - 1);
 
-        if(!dateInput) return;
+        // Clear hidden input on date change
+        document.getElementById('selected-time-value').value = "";
+
+        if(!dateInput) {
+            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#ccc; padding:20px;'>Select Date & Guests first</div>";
+            return;
+        }
+
+        grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#ccc;'><div class='loader'></div> Checking...</div>";
 
         // TIME CHECK
         const today = new Date();
@@ -397,83 +425,72 @@
                         selectedDate.getFullYear() === today.getFullYear();
         const currentHour = today.getHours();
 
-        timeSelect.innerHTML = "<option>Checking availability...</option>";
-        
         const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
         const snapshot = await getDocs(q);
         const maps = calculateOccupancyMaps(snapshot);
 
-        let optionsHtml = '<option value="">Select Time</option>';
+        let html = '';
 
-        // DYNAMIC LOOP
         for (let h = startHour; h <= endHour; h++) {
             const timeString = `${h}:00`;
+            let divClass = "time-slot";
+            let action = `onclick="selectSlot(this, '${timeString}', ${STANDARD_DUR})"`;
+            let displayText = timeString;
 
-            // DISABLE PASSED HOURS
+            // PAST CHECK
             if (isToday && h <= currentHour) {
-                optionsHtml += `<option disabled style="color:#ccc;">${timeString} (Passed)</option>`;
+                html += `<div class="time-slot disabled">${timeString}</div>`;
                 continue; 
             }
 
             if (doesItFit(h, STANDARD_DUR, maps, groupSize, guestLimit, tableLimit)) {
-                optionsHtml += `<option value="${timeString}" data-dur="${STANDARD_DUR}">${timeString}</option>`;
+                // FITS STANDARD DURATION
+                html += `<div class="${divClass}" ${action}>${displayText}</div>`;
             } else if (doesItFit(h, MIN_DUR, maps, groupSize, guestLimit, tableLimit) && MIN_DUR < STANDARD_DUR) {
-                optionsHtml += `<option value="${timeString}" data-dur="${MIN_DUR}" style="color:#D4AF37; font-weight:bold;">${timeString} (Limit: ${MIN_DUR} hrs)</option>`;
+                // FITS SHORT DURATION ONLY
+                action = `onclick="selectSlot(this, '${timeString}', ${MIN_DUR})"`;
+                html += `<div class="${divClass} warning" ${action}>${timeString}</div>`;
             } else {
-                optionsHtml += `<option disabled style="color:#e74c3c;">${timeString} (Full 🔴)</option>`;
+                // FULL
+                html += `<div class="time-slot disabled">Full</div>`;
             }
         }
-        timeSelect.innerHTML = optionsHtml;
+        grid.innerHTML = html;
     };
+
+    // --- NEW SELECTION LOGIC ---
+    window.selectSlot = function(el, time, duration) {
+        // Remove active class from all
+        document.querySelectorAll('.time-slot').forEach(div => div.classList.remove('selected'));
+        // Add to clicked
+        el.classList.add('selected');
+        // Set Hidden Value
+        document.getElementById('selected-time-value').value = time;
+        // Store assigned duration for this specific slot
+        window.selectedSlotDuration = duration;
+    }
 
     window.goToReview = async () => {
         const name = document.getElementById('name').value;
         const date = document.getElementById('date').value;
-        const timeSelect = document.getElementById('time');
-        const time = timeSelect.value;
+        const time = document.getElementById('selected-time-value').value; // READ HIDDEN INPUT
         const persons = parseInt(document.getElementById('persons').value || 0);
-        
         const resName = window.selectedRestaurant;
-        const guestLimit = window.currentCapacity || 20;
-        const tableLimit = window.currentTablesLimit || 10;
-
-        const selectedOption = timeSelect.options[timeSelect.selectedIndex];
         
-        if (selectedOption.disabled) return alert("Please select a valid time.");
+        if(!name || !date || !time || !persons) return alert("Please select a valid date and time slot.");
 
+        // We already validated limits during generation, but logic requires storing duration
+        window.selectedDuration = window.selectedSlotDuration; 
+
+        document.getElementById('rev-loc').innerText = resName;
+        document.getElementById('rev-name').innerText = name;
+        document.getElementById('rev-time-display').innerText = `${time} ${date}`;
+        document.getElementById('rev-guests').innerText = persons;
+        
         const STANDARD_DUR = window.currentDuration || 3;
-        const assignedDuration = parseInt(selectedOption.getAttribute('data-dur') || STANDARD_DUR);
-        window.selectedDuration = assignedDuration; 
-
-        if(!name || !date || !time || !persons) return alert("Please fill all fields");
-
-        const btn = document.querySelector('#step1 .btn-primary');
-        const originalText = btn.innerText;
-        btn.innerText = "Checking availability...";
-        btn.disabled = true;
-
-        try {
-            const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", date));
-            const snapshot = await getDocs(q);
-            const maps = calculateOccupancyMaps(snapshot);
-            const arrivalHour = parseInt(time.split(':')[0]);
-            
-            if (!doesItFit(arrivalHour, assignedDuration, maps, persons, guestLimit, tableLimit)) {
-                alert(`⚠️ Sorry! That table was just taken.`);
-                updateTimeSlots();
-                return;
-            }
-
-            document.getElementById('rev-loc').innerText = resName;
-            document.getElementById('rev-name').innerText = name;
-            document.getElementById('rev-time-display').innerText = `${time} ${date}`;
-            document.getElementById('rev-guests').innerText = persons;
-            const durText = assignedDuration < STANDARD_DUR ? `⚠️ ${assignedDuration} Hours Only (Busy)` : `${assignedDuration} Hours (Standard)`;
-            document.getElementById('rev-duration').innerText = durText;
-            switchFormStep('step1', 'step2');
-
-        } catch(e) { console.error(e); alert("Connection error."); } 
-        finally { btn.innerText = originalText; btn.disabled = false; }
+        const durText = window.selectedDuration < STANDARD_DUR ? `⚠️ ${window.selectedDuration} Hours Only (Busy)` : `${window.selectedDuration} Hours (Standard)`;
+        document.getElementById('rev-duration').innerText = durText;
+        switchFormStep('step1', 'step2');
     }
 
     window.switchFormStep = (hide, show) => { document.getElementById(hide).style.display = 'none'; document.getElementById(show).style.display = 'block'; }
@@ -497,7 +514,7 @@
 
     window.sendEmail = async function() {
         document.getElementById('step2').style.display = 'none';
-        const bookingData = { restaurant: window.selectedRestaurant, name: document.getElementById('name').value, phone: document.getElementById('phone').value, date: document.getElementById('date').value, time: document.getElementById('time').value, persons: document.getElementById('persons').value, status: "Pending", duration: window.selectedDuration, createdAt: new Date() };
+        const bookingData = { restaurant: window.selectedRestaurant, name: document.getElementById('name').value, phone: document.getElementById('phone').value, date: document.getElementById('date').value, time: document.getElementById('selected-time-value').value, persons: document.getElementById('persons').value, status: "Pending", duration: window.selectedDuration, createdAt: new Date() };
         try {
             await addDoc(collection(db, "reservations"), bookingData);
             document.getElementById('step3').style.display = 'block';
