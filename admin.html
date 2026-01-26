@@ -96,6 +96,17 @@
             </div>
         </div>
 
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1;">
+                <label>Opens At (24h)</label>
+                <input type="number" id="res-open" placeholder="e.g. 12" min="0" max="23">
+            </div>
+            <div style="flex:1;">
+                <label>Last Seating (24h)</label>
+                <input type="number" id="res-close" placeholder="e.g. 22" min="0" max="23">
+            </div>
+        </div>
+
         <div id="manager-section">
             <div class="section-title">2. Manager Login</div>
             <label>Manager Email</label><input type="email" id="mgr-email" placeholder="manager@naranj.com">
@@ -179,8 +190,10 @@
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
-        const rTabs = document.getElementById('res-tables').value || "10"; // NEW
+        const rTabs = document.getElementById('res-tables').value || "10";
         const rDur = document.getElementById('res-duration').value || "3";
+        const rOpen = document.getElementById('res-open').value || "12"; // Default 12pm
+        const rClose = document.getElementById('res-close').value || "22"; // Default 10pm
         const rCus = document.getElementById('res-cuisine').value || "General";
         const rPri = document.getElementById('res-price').value || "$$";
         
@@ -199,8 +212,10 @@
                 location: rLoc, 
                 image: rImg || 'https://via.placeholder.com/400x300',
                 capacity: parseInt(rCap),
-                tables: parseInt(rTabs), // Save Tables
+                tables: parseInt(rTabs),
                 duration: parseInt(rDur),
+                openTime: parseInt(rOpen), // Save Open
+                closeTime: parseInt(rClose), // Save Close
                 cuisine: rCus, 
                 price: rPri    
             });
@@ -222,8 +237,10 @@
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
-        const rTabs = document.getElementById('res-tables').value; // NEW
+        const rTabs = document.getElementById('res-tables').value;
         const rDur = document.getElementById('res-duration').value;
+        const rOpen = document.getElementById('res-open').value;
+        const rClose = document.getElementById('res-close').value;
         const rCus = document.getElementById('res-cuisine').value;
         const rPri = document.getElementById('res-price').value;
         const btn = document.getElementById('btn-submit');
@@ -240,8 +257,10 @@
                 location: rLoc, 
                 image: rImg,
                 capacity: parseInt(rCap),
-                tables: parseInt(rTabs), // Update Tables
+                tables: parseInt(rTabs),
                 duration: parseInt(rDur),
+                openTime: parseInt(rOpen), // Update
+                closeTime: parseInt(rClose), // Update
                 cuisine: rCus,
                 price: rPri
             });
@@ -279,8 +298,10 @@
                 const safeLoc = d.location.replace(/'/g, "\\'");
                 const safeImg = d.image ? d.image.replace(/'/g, "\\'") : '';
                 const safeCap = d.capacity || 20; 
-                const safeTabs = d.tables || 10; // Get Tables
+                const safeTabs = d.tables || 10;
                 const safeDur = d.duration || 3;
+                const safeOpen = d.openTime !== undefined ? d.openTime : 12; // Check
+                const safeClose = d.closeTime !== undefined ? d.closeTime : 22; // Check
                 const safeCus = d.cuisine || "General"; 
                 const safePri = d.price || "$$"; 
 
@@ -291,11 +312,11 @@
                     <div class="res-info">
                         <div class="res-name">${d.name}</div>
                         <div class="res-meta">${d.location} | ${safeCus} | ${safePri}</div>
-                        <div class="res-meta">Cap: ${safeCap} | Tables: ${safeTabs} | Time: ${safeDur}h</div>
+                        <div class="res-meta">Hours: ${safeOpen}:00 - ${safeClose}:00 | Time: ${safeDur}h</div>
                     </div>
                     <div>
                         <button class="btn-action btn-qr" onclick="showQr('${safeName}')">📱</button>
-                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, ${safeTabs}, '${safeCus}', '${safePri}', ${safeDur})">✏️</button>
+                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, ${safeTabs}, '${safeCus}', '${safePri}', ${safeDur}, ${safeOpen}, ${safeClose})">✏️</button>
                         <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}', '${safeName}')">🗑️</button>
                     </div>
                 </div>`;
@@ -316,15 +337,17 @@
     
     window.closeQr = () => document.getElementById('qr-modal').style.display = 'none';
 
-    window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur) => {
+    window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur, open, close) => {
         editingId = id;
         editingOldName = name;
         document.getElementById('res-name').value = name;
         document.getElementById('res-location').value = loc;
         document.getElementById('res-image').value = img;
         document.getElementById('res-capacity').value = cap;
-        document.getElementById('res-tables').value = tabs; // Fill Tables
+        document.getElementById('res-tables').value = tabs;
         document.getElementById('res-duration').value = dur;
+        document.getElementById('res-open').value = open; // Fill
+        document.getElementById('res-close').value = close; // Fill
         document.getElementById('res-cuisine').value = cus;
         document.getElementById('res-price').value = pri;
         
@@ -366,6 +389,8 @@
         document.getElementById('res-capacity').value = "";
         document.getElementById('res-tables').value = "";
         document.getElementById('res-duration').value = "";
+        document.getElementById('res-open').value = "";
+        document.getElementById('res-close').value = "";
         document.getElementById('res-cuisine').value = "";
         document.getElementById('res-price').value = "$$";
         document.getElementById('mgr-email').value = "";
