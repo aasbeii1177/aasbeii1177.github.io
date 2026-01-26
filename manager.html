@@ -17,7 +17,7 @@
         #manager-title { border-left: 5px solid #D4AF37; padding-left: 15px; margin: 0; }
         .controls-right { display: flex; gap: 15px; align-items: center; }
 
-        /* LIVE STATS BOX (NEW) */
+        /* LIVE STATS BOX */
         .live-stats {
             background: #1a1a1a; color: white; padding: 15px 20px; border-radius: 12px;
             display: flex; gap: 20px; align-items: center; margin-bottom: 30px;
@@ -200,6 +200,7 @@
     let restaurantDocId = "";
     let maxGuests = 0;
     let maxTables = 0; 
+    let latestSnapshot = null; 
     let unsubscribe = null; 
 
     // --- INIT ---
@@ -211,6 +212,8 @@
             opt.innerText = i + ":00";
             sel.appendChild(opt);
         }
+        // HEARTBEAT: Recalculate Dashboard every 10 seconds
+        setInterval(recalculateDashboard, 10000);
     };
 
     // --- LOGIN ---
@@ -239,7 +242,6 @@
                     currentRestaurant = managerSnap.data().restaurant;
                     document.getElementById('manager-title').innerText = currentRestaurant;
                     
-                    // GET RESTAURANT LIMITS
                     const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
                     const resSnap = await getDocs(q);
                     if(!resSnap.empty) {
@@ -264,88 +266,30 @@
         }
     });
 
-    // --- MODAL LOGIC (ADD & EDIT) ---
-    window.openModal = (mode, id, name, phone, date, time, guests, duration) => {
-        const modal = document.getElementById('booking-modal');
-        const title = document.getElementById('modal-title');
-        
-        if (mode === 'edit') {
-            title.innerText = "Edit Booking / Extend Time";
-            document.getElementById('edit-id').value = id;
-            document.getElementById('m-name').value = name;
-            document.getElementById('m-phone').value = phone;
-            document.getElementById('m-date').value = date;
-            document.getElementById('m-time').value = time;
-            document.getElementById('m-guests').value = guests;
-            document.getElementById('m-duration').value = duration || 3;
-        } else {
-            title.innerText = "Add Walk-in / Phone";
-            document.getElementById('edit-id').value = ""; // Clear ID
-            document.getElementById('m-name').value = "";
-            document.getElementById('m-phone').value = "";
-            document.getElementById('m-date').valueAsDate = new Date();
-            document.getElementById('m-guests').value = 2;
-            document.getElementById('m-duration').value = 3;
-        }
-        modal.style.display = 'flex';
-    };
+    // --- LIVE DASHBOARD (CLOCK + STATS) ---
+    function recalculateDashboard() {
+        if (!latestSnapshot) return;
 
-    window.closeModal = () => document.getElementById('booking-modal').style.display = 'none';
-
-    window.saveBooking = async () => {
-        const id = document.getElementById('edit-id').value;
-        const name = document.getElementById('m-name').value || "Walk-in";
-        const phone = document.getElementById('m-phone').value || "N/A";
-        const date = document.getElementById('m-date').value;
-        const time = document.getElementById('m-time').value;
-        const guests = parseInt(document.getElementById('m-guests').value);
-        const duration = parseInt(document.getElementById('m-duration').value);
-
-        if(!date || !time) return alert("Date and Time are required.");
-
-        try {
-            if (id) {
-                // UPDATE EXISTING
-                await updateDoc(doc(db, "reservations", id), {
-                    name, phone, date, time, persons: guests, duration: duration
-                });
-                alert("Booking Updated! Dashboard calculating...");
-            } else {
-                // CREATE NEW
-                await addDoc(collection(db, "reservations"), {
-                    restaurant: currentRestaurant,
-                    name, phone, date, time, 
-                    persons: guests, 
-                    duration: duration,
-                    status: "Accepted", 
-                    source: "Manager",
-                    createdAt: new Date()
-                });
-                alert("Booking Added!");
-            }
-            closeModal();
-        } catch (e) { alert("Error: " + e.message); }
-    };
-
-    // --- LIVE STATS CALCULATOR ---
-    function updateLiveStats(snapshot) {
         const now = new Date();
-        const currentHour = now.getHours(); // e.g. 14 for 2:00 PM
+        const currentHour = now.getHours(); 
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
         const todayStr = now.toISOString().split('T')[0];
 
-        document.getElementById('current-hour-display').innerText = `Time: ${currentHour}:00 (${todayStr})`;
+        // 1. Update Clock
+        document.getElementById('current-hour-display').innerText = `Live: ${currentHour}:${minutes}:${seconds} (${todayStr})`;
 
+        // 2. Recalculate Occupancy
         let liveGuests = 0;
         let liveTables = 0;
 
-        snapshot.forEach(doc => {
+        latestSnapshot.forEach(doc => {
             const data = doc.data();
-            // Filter: Must be TODAY and ACTIVE (Accepted/Pending/Arrived) and NOT Archived
             if (data.date === todayStr && !data.archived && data.status !== 'Declined') {
                 const startHour = parseInt(data.time.split(':')[0]);
                 const endHour = startHour + (data.duration || 3);
 
-                // IS IT HAPPENING NOW?
+                // Is the customer currently sitting?
                 if (currentHour >= startHour && currentHour < endHour) {
                     liveGuests += parseInt(data.persons);
                     liveTables += Math.ceil(parseInt(data.persons) / 4);
@@ -356,7 +300,6 @@
         document.getElementById('live-guests').innerText = liveGuests;
         document.getElementById('live-tables').innerText = liveTables;
         
-        // COLOR WARNINGS
         const gEl = document.getElementById('live-guests');
         if(liveGuests >= maxGuests) gEl.style.color = "#e74c3c"; // Red
         else if (liveGuests >= maxGuests * 0.8) gEl.style.color = "#F1C40F"; // Orange
@@ -373,10 +316,10 @@
         let isFirstLoad = true;
 
         unsubscribe = onSnapshot(q, (snapshot) => {
-            // 1. UPDATE LIVE DASHBOARD
-            updateLiveStats(snapshot);
+            // Save data for the clock
+            latestSnapshot = snapshot; 
+            recalculateDashboard(); // Immediate update
 
-            // 2. UPDATE LIST
             if(snapshot.empty) { list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings.</p>"; return; }
 
             if (!isFirstLoad) {
@@ -391,7 +334,6 @@
             isFirstLoad = false;
 
             let html = '';
-            // Sort by Date then Time? For now just simple render
             snapshot.docs.forEach(docSnap => {
                 const b = docSnap.data();
                 if(b.archived === true) return; 
@@ -431,7 +373,57 @@
         });
     }
 
-    // --- OTHER ACTIONS ---
+    // --- ACTIONS ---
+    window.openModal = (mode, id, name, phone, date, time, guests, duration) => {
+        const modal = document.getElementById('booking-modal');
+        const title = document.getElementById('modal-title');
+        
+        if (mode === 'edit') {
+            title.innerText = "Edit Booking / Extend Time";
+            document.getElementById('edit-id').value = id;
+            document.getElementById('m-name').value = name;
+            document.getElementById('m-phone').value = phone;
+            document.getElementById('m-date').value = date;
+            document.getElementById('m-time').value = time;
+            document.getElementById('m-guests').value = guests;
+            document.getElementById('m-duration').value = duration || 3;
+        } else {
+            title.innerText = "Add Walk-in / Phone";
+            document.getElementById('edit-id').value = ""; 
+            document.getElementById('m-name').value = "";
+            document.getElementById('m-phone').value = "";
+            document.getElementById('m-date').valueAsDate = new Date();
+            document.getElementById('m-guests').value = 2;
+            document.getElementById('m-duration').value = 3;
+        }
+        modal.style.display = 'flex';
+    };
+
+    window.closeModal = () => document.getElementById('booking-modal').style.display = 'none';
+
+    window.saveBooking = async () => {
+        const id = document.getElementById('edit-id').value;
+        const name = document.getElementById('m-name').value || "Walk-in";
+        const phone = document.getElementById('m-phone').value || "N/A";
+        const date = document.getElementById('m-date').value;
+        const time = document.getElementById('m-time').value;
+        const guests = parseInt(document.getElementById('m-guests').value);
+        const duration = parseInt(document.getElementById('m-duration').value);
+
+        if(!date || !time) return alert("Date and Time are required.");
+
+        try {
+            if (id) {
+                await updateDoc(doc(db, "reservations", id), { name, phone, date, time, persons: guests, duration: duration });
+                alert("Booking Updated! Live Dashboard refreshing...");
+            } else {
+                await addDoc(collection(db, "reservations"), { restaurant: currentRestaurant, name, phone, date, time, persons: guests, duration: duration, status: "Accepted", source: "Manager", createdAt: new Date() });
+                alert("Booking Added!");
+            }
+            closeModal();
+        } catch (e) { alert("Error: " + e.message); }
+    };
+
     window.handleDecision = async (id, phone, name, status) => {
         await updateDoc(doc(db, "reservations", id), { status: status });
         let cleanPhone = phone.replace(/\D/g, ''); 
@@ -441,9 +433,7 @@
     };
 
     window.archiveBooking = async (id) => {
-        if(confirm("Archive this booking? (This will free up the table)")) {
-            await updateDoc(doc(db, "reservations", id), { archived: true });
-        }
+        if(confirm("Archive this booking? (This frees up the table)")) { await updateDoc(doc(db, "reservations", id), { archived: true }); }
     };
     
     window.toggleStatus = async () => {
