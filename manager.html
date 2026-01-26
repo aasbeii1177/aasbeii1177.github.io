@@ -12,10 +12,9 @@
         
         h1, h2 { color: #2C3E50; font-weight: 700; margin-top: 0; }
         
-        /* HEADER & CONTROLS */
+        /* HEADER */
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; flex-wrap: wrap; gap: 15px; }
         #manager-title { border-left: 5px solid #D4AF37; padding-left: 15px; margin: 0; }
-
         .controls-right { display: flex; gap: 15px; align-items: center; }
 
         /* STATUS TOGGLE */
@@ -34,7 +33,7 @@
         .btn-add:hover { background: #D4AF37; }
         .btn-logout { background: #95A5A6; color: white; }
 
-        /* MODAL (For Manual Booking) */
+        /* MODAL */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
         .input-group { margin-bottom: 15px; }
@@ -65,12 +64,12 @@
         @media (min-width: 600px) { .actions { margin-top: 0; } }
         .btn-accept { background: #27ae60; color: white; }
         .btn-decline { background: white; border: 1px solid #e74c3c; color: #e74c3c; }
-        .btn-archive { background: none; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 18px; color: #999; }
+        .btn-icon { background: none; border: 1px solid #ddd; padding: 10px; border-radius: 8px; font-size: 18px; color: #666; }
+        .btn-icon:hover { background: #f0f0f0; }
         
         .hidden { display: none; }
         .error { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; }
         
-        /* Login Styles */
         #login-view { max-width: 400px; padding: 50px; text-align: center; margin: 10vh auto; }
         #login-view input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px; }
         .btn-login { width: 100%; background: #2C3E50; color: white; padding: 15px; font-size: 16px; }
@@ -100,7 +99,7 @@
             </div>
             
             <div class="controls-right">
-                <button class="btn-add" onclick="openManualModal()">+ Add Booking</button>
+                <button class="btn-add" onclick="openModal('add')">+ Add Booking</button>
                 <button class="btn-logout" onclick="logout()">Logout</button>
             </div>
         </div>
@@ -112,17 +111,17 @@
         </div>
     </div>
 
-    <div id="manual-modal" class="modal">
+    <div id="booking-modal" class="modal">
         <div class="modal-content">
-            <h3 style="margin-top:0;">Add Phone/Walk-in</h3>
+            <h3 id="modal-title" style="margin-top:0;">Add Booking</h3>
             
-            <div class="input-group">
-                <label>Guest Name (or "Walk-in")</label>
-                <input type="text" id="m-name" class="modal-input" placeholder="e.g. Samir or Walk-in">
+            <input type="hidden" id="edit-id"> <div class="input-group">
+                <label>Guest Name</label>
+                <input type="text" id="m-name" class="modal-input" placeholder="Name">
             </div>
             <div class="input-group">
-                <label>Phone (Optional)</label>
-                <input type="text" id="m-phone" class="modal-input" placeholder="09xx...">
+                <label>Phone</label>
+                <input type="text" id="m-phone" class="modal-input" placeholder="Phone">
             </div>
             <div class="input-group" style="display:flex; gap:10px;">
                 <div style="flex:1;">
@@ -131,17 +130,22 @@
                 </div>
                 <div style="flex:1;">
                     <label>Time</label>
-                    <select id="m-time" class="modal-input">
-                        </select>
+                    <select id="m-time" class="modal-input"></select>
                 </div>
             </div>
-            <div class="input-group">
-                <label>Number of Guests</label>
-                <input type="number" id="m-guests" class="modal-input" value="2" min="1">
+            <div class="input-group" style="display:flex; gap:10px;">
+                <div style="flex:1;">
+                    <label>Guests</label>
+                    <input type="number" id="m-guests" class="modal-input" value="2" min="1">
+                </div>
+                <div style="flex:1;">
+                    <label>Duration (Hrs)</label>
+                    <input type="number" id="m-duration" class="modal-input" value="3" min="1">
+                </div>
             </div>
 
-            <button onclick="saveManualBooking()" style="width:100%; background:#1a1a1a; color:white; margin-top:10px;">Confirm Booking</button>
-            <button onclick="closeManualModal()" style="width:100%; background:white; border:1px solid #ddd; color:#666; margin-top:10px;">Cancel</button>
+            <button onclick="saveBooking()" style="width:100%; background:#1a1a1a; color:white; margin-top:10px;">Save</button>
+            <button onclick="closeModal()" style="width:100%; background:white; border:1px solid #ddd; color:#666; margin-top:10px;">Cancel</button>
         </div>
     </div>
 
@@ -169,7 +173,6 @@
 
     // --- INIT ---
     window.onload = () => {
-        // Fill Time Options in Modal
         const sel = document.getElementById('m-time');
         for(let i=12; i<=23; i++) {
             const opt = document.createElement('option');
@@ -177,11 +180,9 @@
             opt.innerText = i + ":00";
             sel.appendChild(opt);
         }
-        // Set Date to Today
-        document.getElementById('m-date').valueAsDate = new Date();
     };
 
-    // --- LOGIN/LOGOUT ---
+    // --- LOGIN ---
     window.login = () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
@@ -200,11 +201,9 @@
         if (user) {
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
-            
             try {
                 const managerRef = doc(db, "managers", user.email);
                 const managerSnap = await getDoc(managerRef);
-
                 if (managerSnap.exists()) {
                     currentRestaurant = managerSnap.data().restaurant;
                     document.getElementById('manager-title').innerText = currentRestaurant;
@@ -227,67 +226,68 @@
         }
     });
 
-    // --- MANUAL BOOKING LOGIC ---
-    window.openManualModal = () => document.getElementById('manual-modal').style.display = 'flex';
-    window.closeManualModal = () => document.getElementById('manual-modal').style.display = 'none';
+    // --- MODAL LOGIC (ADD & EDIT) ---
+    window.openModal = (mode, id, name, phone, date, time, guests, duration) => {
+        const modal = document.getElementById('booking-modal');
+        const title = document.getElementById('modal-title');
+        
+        if (mode === 'edit') {
+            title.innerText = "Edit Booking / Extend Time";
+            document.getElementById('edit-id').value = id;
+            document.getElementById('m-name').value = name;
+            document.getElementById('m-phone').value = phone;
+            document.getElementById('m-date').value = date;
+            document.getElementById('m-time').value = time;
+            document.getElementById('m-guests').value = guests;
+            document.getElementById('m-duration').value = duration || 3;
+        } else {
+            title.innerText = "Add Walk-in / Phone";
+            document.getElementById('edit-id').value = ""; // Clear ID
+            document.getElementById('m-name').value = "";
+            document.getElementById('m-phone').value = "";
+            document.getElementById('m-date').valueAsDate = new Date();
+            document.getElementById('m-guests').value = 2;
+            document.getElementById('m-duration').value = 3;
+        }
+        modal.style.display = 'flex';
+    };
 
-    window.saveManualBooking = async () => {
+    window.closeModal = () => document.getElementById('booking-modal').style.display = 'none';
+
+    window.saveBooking = async () => {
+        const id = document.getElementById('edit-id').value;
         const name = document.getElementById('m-name').value || "Walk-in";
         const phone = document.getElementById('m-phone').value || "N/A";
         const date = document.getElementById('m-date').value;
         const time = document.getElementById('m-time').value;
-        const guests = document.getElementById('m-guests').value;
+        const guests = parseInt(document.getElementById('m-guests').value);
+        const duration = parseInt(document.getElementById('m-duration').value);
 
         if(!date || !time) return alert("Date and Time are required.");
 
         try {
-            // Add directly to DB with status 'Accepted'
-            // This immediately updates the capacity on the website!
-            await addDoc(collection(db, "reservations"), {
-                restaurant: currentRestaurant,
-                name: name,
-                phone: phone,
-                date: date,
-                time: time,
-                persons: parseInt(guests),
-                status: "Accepted",  // <--- KEY: Accepted immediately
-                source: "Manager",   // <--- Tag it as manual
-                createdAt: new Date()
-            });
-
-            closeManualModal();
-            // Clear inputs
-            document.getElementById('m-name').value = "";
-            document.getElementById('m-phone').value = "";
-            alert("Booking Added! Capacity updated.");
-
-        } catch (e) {
-            alert("Error: " + e.message);
-        }
+            if (id) {
+                // UPDATE EXISTING
+                await updateDoc(doc(db, "reservations", id), {
+                    name, phone, date, time, persons: guests, duration: duration
+                });
+                alert("Booking Updated! Capacity recalculated.");
+            } else {
+                // CREATE NEW
+                await addDoc(collection(db, "reservations"), {
+                    restaurant: currentRestaurant,
+                    name, phone, date, time, 
+                    persons: guests, 
+                    duration: duration,
+                    status: "Accepted", 
+                    source: "Manager",
+                    createdAt: new Date()
+                });
+                alert("Booking Added!");
+            }
+            closeModal();
+        } catch (e) { alert("Error: " + e.message); }
     };
-
-    // --- STATUS TOGGLE ---
-    window.toggleStatus = async () => {
-        if(!restaurantDocId) return;
-        const toggle = document.getElementById('status-toggle');
-        const isNowOpen = toggle.checked;
-        updateToggleUI(isNowOpen); 
-        const resRef = doc(db, "restaurants", restaurantDocId);
-        await updateDoc(resRef, { isOpen: isNowOpen });
-    };
-
-    function updateToggleUI(isOpen) {
-        const toggle = document.getElementById('status-toggle');
-        const label = document.getElementById('status-text');
-        toggle.checked = isOpen;
-        if(isOpen) {
-            label.innerText = "🟢 Accepting Orders";
-            label.style.color = "#27ae60";
-        } else {
-            label.innerText = "🔴 Kitchen Busy (Closed)";
-            label.style.color = "#e74c3c";
-        }
-    }
 
     // --- REAL-TIME LISTENER ---
     function startRealtimeListener() {
@@ -301,7 +301,6 @@
         unsubscribe = onSnapshot(q, (snapshot) => {
             if(snapshot.empty) { list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings.</p>"; return; }
 
-            // Sound only plays for WEB bookings (Source undefined or Web)
             if (!isFirstLoad) {
                 snapshot.docChanges().forEach((change) => {
                     const d = change.doc.data();
@@ -319,27 +318,33 @@
                 if(b.archived === true) return; 
                 
                 let buttons = '';
-                // If Manager added it, it's already accepted, so no buttons needed usually
-                // If Web booking is Pending, show buttons
                 if(b.status === 'Pending') {
                     buttons = `
                         <button class="btn-accept" onclick="handleDecision('${docSnap.id}', '${b.phone}', '${b.name}', 'Accepted')">Accept & WhatsApp 🟢</button>
                         <button class="btn-decline" onclick="handleDecision('${docSnap.id}', '${b.phone}', '${b.name}', 'Declined')">Decline & WhatsApp 🔴</button>
                     `;
                 } else {
-                    // Show status text
                     buttons = `<span style="color:#999; font-size:12px; font-weight:bold; margin-right:10px;">${b.status}</span>`;
                 }
-                buttons += `<button class="btn-archive" onclick="archiveBooking('${docSnap.id}')" title="Archive">🗑️</button>`;
+                
+                // ESCAPE STRINGS FOR JS CALLS
+                const safeName = b.name.replace(/'/g, "\\'");
+                const safePhone = (b.phone || "").replace(/'/g, "\\'");
+                const dur = b.duration || 3;
 
-                // Tag manual bookings visually
+                // NEW: Edit Button + Archive Button
+                buttons += `
+                    <button class="btn-icon" title="Edit / Extend" onclick="openModal('edit', '${docSnap.id}', '${safeName}', '${safePhone}', '${b.date}', '${b.time}', ${b.persons}, ${dur})">✏️</button>
+                    <button class="btn-icon" title="Finished / Archive" onclick="archiveBooking('${docSnap.id}')">🗑️</button>
+                `;
+
                 const sourceTag = b.source === "Manager" ? '<span style="color:#D4AF37; font-size:10px;">(Manual)</span>' : '';
 
                 html += `
                 <div class="booking-card status-${b.status}">
                     <div class="booking-info">
                         <h3>${b.name} ${sourceTag} <span class="badge" style="background:${b.status=='Accepted'?'#2ECC71':(b.status=='Pending'?'#F1C40F':'#E74C3C')}; color:white;">${b.status}</span></h3>
-                        <p>📅 ${b.date} | ⏰ ${b.time}</p>
+                        <p>📅 ${b.date} | ⏰ ${b.time} | ⏳ ${dur} Hrs</p>
                         <p>👥 ${b.persons} Guests | 📞 ${b.phone}</p>
                     </div>
                     <div class="actions">${buttons}</div>
@@ -349,6 +354,7 @@
         });
     }
 
+    // --- OTHER ACTIONS ---
     window.handleDecision = async (id, phone, name, status) => {
         await updateDoc(doc(db, "reservations", id), { status: status });
         let cleanPhone = phone.replace(/\D/g, ''); 
@@ -358,10 +364,27 @@
     };
 
     window.archiveBooking = async (id) => {
-        if(confirm("Archive this booking?")) {
+        if(confirm("Archive this booking? (This will free up the table)")) {
             await updateDoc(doc(db, "reservations", id), { archived: true });
         }
     };
+    
+    window.toggleStatus = async () => {
+        if(!restaurantDocId) return;
+        const toggle = document.getElementById('status-toggle');
+        const isNowOpen = toggle.checked;
+        updateToggleUI(isNowOpen); 
+        const resRef = doc(db, "restaurants", restaurantDocId);
+        await updateDoc(resRef, { isOpen: isNowOpen });
+    };
+
+    function updateToggleUI(isOpen) {
+        const toggle = document.getElementById('status-toggle');
+        const label = document.getElementById('status-text');
+        toggle.checked = isOpen;
+        if(isOpen) { label.innerText = "🟢 Accepting Orders"; label.style.color = "#27ae60"; } 
+        else { label.innerText = "🔴 Kitchen Busy (Closed)"; label.style.color = "#e74c3c"; }
+    }
 </script>
 </body>
 </html>
