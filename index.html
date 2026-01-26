@@ -19,7 +19,7 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); margin: 0; color: var(--primary); -webkit-font-smoothing: antialiased; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--primary); margin: 0; font-weight: 600; }
         
-        /* NEW: TOP NAVIGATION */
+        /* TOP NAVIGATION */
         .top-nav {
             position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
             display: flex; justify-content: space-between; align-items: center;
@@ -57,10 +57,10 @@
         .input-field { width: 100%; margin-bottom: 20px; box-sizing: border-box; }
         label { font-size: 12px; font-weight: 700; color: #999; margin-bottom: 5px; display:block; }
 
-        /* NEW: PHONE INPUT GROUP */
+        /* PHONE INPUT */
         .phone-group { display: flex; gap: 10px; margin-bottom: 20px; }
         .code-select { width: 110px; cursor: pointer; }
-        
+
         /* TIME SLOT GRID */
         .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
         .time-slot { padding: 12px; text-align: center; background: white; border: 1px solid #eee; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: 600; font-size: 14px; }
@@ -69,6 +69,7 @@
         .time-slot.disabled { background: #f5f5f5; color: #ccc; border-color: transparent; cursor: not-allowed; text-decoration: line-through; }
         .time-slot.warning { border-color: #F1C40F; color: #F39C12; }
 
+        /* CARDS */
         .card { background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; border: 1px solid rgba(0,0,0,0.02); }
         .card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px rgba(0,0,0,0.12); }
         .card-img-wrapper { overflow: hidden; height: 220px; position: relative; }
@@ -261,10 +262,11 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    if (window.location.pathname.endsWith('/index.html')) {
-        var newPath = window.location.pathname.replace('/index.html', '/');
-        window.history.replaceState(null, '', newPath);
-    }
+    // Global State
+    window.allRestaurants = [];
+    window.selectedRestaurant = "";
+    window.selectedSlotDuration = 3;
+    window.selectedFullPhone = "";
 
     window.onload = async function() {
         const today = new Date().toISOString().split('T')[0];
@@ -290,18 +292,18 @@
             const cuisineSelect = document.getElementById('filter-cuisine');
             cuisines.forEach(c => {
                 const opt = document.createElement('option');
-                opt.value = c;
-                opt.innerText = c;
+                opt.value = c; opt.innerText = c;
                 cuisineSelect.appendChild(opt);
             });
             renderList(window.allRestaurants);
 
         } catch (error) { console.error(error); } 
-        finally { loader.style.display = 'none'; }
+        finally { if(loader) loader.style.display = 'none'; }
     };
 
     window.renderList = (data) => {
         const container = document.getElementById('restaurant-list-container');
+        if(!container) return;
         if(data.length === 0) { container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>No venues match.</p>"; return; }
         
         let html = '';
@@ -313,8 +315,11 @@
             const openTime = branch.openTime !== undefined ? branch.openTime : 12; 
             const closeTime = branch.closeTime !== undefined ? branch.closeTime : 22; 
             
+            const safeName = branch.name.replace(/'/g, "\\'");
+            const safeImg = (branch.image || '').replace(/'/g, "\\'");
+            
             let buttonHtml = isOpen ? `<span class="btn-card">Book Table</span>` : `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
-            let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity}, ${duration}, ${tables}, ${openTime}, ${closeTime})"` : `style="cursor:not-allowed; opacity:0.8;"`;
+            let clickAction = isOpen ? `onclick="openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${tables}, ${openTime}, ${closeTime})"` : `style="cursor:not-allowed; opacity:0.8;"`;
             
             html += `
             <div class="card" ${clickAction}>
@@ -361,108 +366,9 @@
         
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
-        switchFormStep('step2', 'step1');
-        switchFormStep('step3', 'step1');
+        window.switchFormStep('step2', 'step1');
+        window.switchFormStep('step3', 'step1');
         window.scrollTo(0,0);
-    }
-    
-    window.openManage = () => {
-        document.getElementById('home-page').classList.remove('active-section');
-        document.getElementById('booking-page').classList.remove('active-section');
-        document.getElementById('manage-page').classList.add('active-section');
-        window.scrollTo(0,0);
-    }
-
-    window.findBookings = async () => {
-        const code = document.getElementById('manage-code').value;
-        const num = document.getElementById('manage-phone').value;
-        const list = document.getElementById('user-bookings-list');
-        
-        if(!num) return alert("Please enter your phone number.");
-        
-        // Construct full number
-        let cleanNum = num.replace(/^0+/, ''); 
-        let fullPhone = (code ? code : "") + cleanNum; // e.g. 963912...
-
-        list.innerHTML = "<div style='text-align:center;'><div class='loader'></div> Finding...</div>";
-
-        try {
-            // NOTE: We check for "phone" equals "9639..."
-            const q = query(collection(db, "reservations"), where("phone", "==", fullPhone));
-            const snapshot = await getDocs(q);
-            
-            let html = "";
-            let count = 0;
-            const today = new Date();
-            today.setHours(0,0,0,0);
-
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                const bDate = new Date(d.date);
-                if (!d.archived && d.status !== 'Declined' && bDate >= today) {
-                    count++;
-                    html += `
-                    <div class="my-booking-card">
-                        <h3>${d.restaurant}</h3>
-                        <p>📅 ${d.date} at ${d.time}</p>
-                        <p>👤 ${d.persons} Guests</p>
-                        <p>Status: <strong style="color:${d.status === 'Accepted' ? 'green' : '#F39C12'}">${d.status}</strong></p>
-                        <button class="btn-cancel-user" onclick="cancelBookingUser('${doc.id}')">Cancel Booking</button>
-                    </div>`;
-                }
-            });
-
-            if(count === 0) list.innerHTML = "<p style='text-align:center; color:#888;'>No active reservations found for +" + fullPhone + "</p>";
-            else list.innerHTML = html;
-
-        } catch (e) {
-            console.error(e);
-            list.innerHTML = "<p style='text-align:center; color:red;'>Error. Try entering exact format.</p>";
-        }
-    }
-
-    window.cancelBookingUser = async (id) => {
-        if(confirm("Are you sure you want to cancel this reservation?")) {
-            try {
-                await updateDoc(doc(db, "reservations", id), { archived: true });
-                alert("Reservation cancelled successfully.");
-                window.findBookings();
-            } catch(e) { alert("Error: " + e.message); }
-        }
-    }
-
-    function getTablesNeeded(people) { return Math.ceil(people / 4); }
-
-    function calculateOccupancyMaps(snapshot) {
-        let guestMap = new Array(24).fill(0);
-        let tableMap = new Array(24).fill(0);
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if(data.status !== 'Declined' && !data.archived) {
-                const arrivalHour = parseInt(data.time.split(':')[0]); 
-                const guests = parseInt(data.persons) || 0;
-                const tablesUsed = getTablesNeeded(guests);
-                const thisDuration = data.duration || 3;
-                for(let i=0; i<thisDuration; i++) {
-                    if (arrivalHour + i < 24) {
-                        guestMap[arrivalHour + i] += guests;
-                        tableMap[arrivalHour + i] += tablesUsed;
-                    }
-                }
-            }
-        });
-        return { guestMap, tableMap };
-    }
-
-    function doesItFit(startHour, duration, maps, groupSize, guestLimit, tableLimit) {
-        const tablesNeeded = getTablesNeeded(groupSize);
-        for(let i=0; i<duration; i++) {
-            if(startHour+i < 24) {
-                if((maps.guestMap[startHour + i] + groupSize) > guestLimit) return false;
-                if((maps.tableMap[startHour + i] + tablesNeeded) > tableLimit) return false;
-            }
-        }
-        return true;
     }
 
     window.updateTimeSlots = async () => {
@@ -479,13 +385,9 @@
             return;
         }
 
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        const selected = new Date(dateInput);
-        selected.setHours(0,0,0,0);
-
-        if(selected < today) {
-            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#e74c3c; padding:20px;'>⚠️ You cannot book a past date.</div>";
+        const todayStr = new Date().toISOString().split('T')[0];
+        if(dateInput < todayStr) {
+            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#e74c3c; padding:20px;'>⚠️ Past date selected.</div>";
             return;
         }
 
@@ -498,19 +400,47 @@
         const STANDARD_DUR = window.currentDuration || 3;
         const MIN_DUR = Math.max(1, STANDARD_DUR - 1);
 
+        const isToday = dateInput === todayStr;
         const now = new Date();
-        const isToday = selected.getTime() === today.getTime();
         const currentHour = now.getHours();
 
         const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
         const snapshot = await getDocs(q);
-        const maps = calculateOccupancyMaps(snapshot);
+        
+        let guestMap = new Array(24).fill(0);
+        let tableMap = new Array(24).fill(0);
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if(data.status !== 'Declined' && !data.archived) {
+                const arrivalHour = parseInt(data.time.split(':')[0]); 
+                const guests = parseInt(data.persons) || 0;
+                const tablesUsed = Math.ceil(guests / 4);
+                const thisDuration = data.duration || 3;
+                for(let i=0; i<thisDuration; i++) {
+                    if (arrivalHour + i < 24) {
+                        guestMap[arrivalHour + i] += guests;
+                        tableMap[arrivalHour + i] += tablesUsed;
+                    }
+                }
+            }
+        });
+
+        const doesItFit = (start, dur) => {
+            const tablesNeeded = Math.ceil(groupSize / 4);
+            for(let i=0; i<dur; i++) {
+                if(start+i < 24) {
+                    if((guestMap[start+i] + groupSize) > guestLimit) return false;
+                    if((tableMap[start+i] + tablesNeeded) > tableLimit) return false;
+                }
+            }
+            return true;
+        };
 
         let html = '';
         for (let h = startHour; h <= endHour; h++) {
             const timeString = `${h}:00`;
             let divClass = "time-slot";
-            let action = `onclick="selectSlot(this, '${timeString}', ${STANDARD_DUR})"`;
+            let action = "";
             let displayText = timeString;
 
             if (isToday && h <= currentHour) {
@@ -518,9 +448,10 @@
                 continue; 
             }
 
-            if (doesItFit(h, STANDARD_DUR, maps, groupSize, guestLimit, tableLimit)) {
+            if (doesItFit(h, STANDARD_DUR)) {
+                action = `onclick="selectSlot(this, '${timeString}', ${STANDARD_DUR})"`;
                 html += `<div class="${divClass}" ${action}>${displayText}</div>`;
-            } else if (doesItFit(h, MIN_DUR, maps, groupSize, guestLimit, tableLimit) && MIN_DUR < STANDARD_DUR) {
+            } else if (doesItFit(h, MIN_DUR)) {
                 action = `onclick="selectSlot(this, '${timeString}', ${MIN_DUR})"`;
                 html += `<div class="${divClass} warning" ${action}>${timeString}</div>`;
             } else {
@@ -538,41 +469,38 @@
     }
 
     window.goToReview = async () => {
-        const name = document.getElementById('name').value;
+        const name = document.getElementById('name').value.trim();
+        const num = document.getElementById('phone').value.trim();
         const code = document.getElementById('phone-code').value;
-        const num = document.getElementById('phone').value;
         const date = document.getElementById('date').value;
         const time = document.getElementById('selected-time-value').value; 
-        const persons = parseInt(document.getElementById('persons').value || 0);
-        const resName = window.selectedRestaurant;
+        const persons = document.getElementById('persons').value;
+
+        if(!name) return alert("Please enter your Name.");
+        if(!num) return alert("Please enter your Phone Number.");
+        if(!date) return alert("Please select a Date.");
+        if(!time) return alert("Please select a Time Slot from the grid.");
         
-        if(!name || !num || !date || !time || !persons) return alert("Please fill all fields.");
-
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        const selected = new Date(date);
-        selected.setHours(0,0,0,0);
-        if(selected < today) return alert("Cannot book a past date.");
-
-        // Construct Full Phone for Display/Saving
         let cleanNum = num.replace(/^0+/, ''); 
         window.selectedFullPhone = (code ? code : "") + cleanNum;
+        
+        if(!window.selectedSlotDuration) window.selectedSlotDuration = 3;
 
-        window.selectedDuration = window.selectedSlotDuration; 
-
-        document.getElementById('rev-loc').innerText = resName;
+        document.getElementById('rev-loc').innerText = window.selectedRestaurant;
         document.getElementById('rev-name').innerText = name;
         document.getElementById('rev-phone-display').innerText = "+" + window.selectedFullPhone;
         document.getElementById('rev-time-display').innerText = `${time} ${date}`;
         document.getElementById('rev-guests').innerText = persons;
+        document.getElementById('rev-duration').innerText = window.selectedSlotDuration + " Hours";
         
-        const STANDARD_DUR = window.currentDuration || 3;
-        const durText = window.selectedDuration < STANDARD_DUR ? `⚠️ ${window.selectedDuration} Hours Only (Busy)` : `${window.selectedDuration} Hours (Standard)`;
-        document.getElementById('rev-duration').innerText = durText;
-        switchFormStep('step1', 'step2');
+        window.switchFormStep('step1', 'step2');
     }
 
-    window.switchFormStep = (hide, show) => { document.getElementById(hide).style.display = 'none'; document.getElementById(show).style.display = 'block'; }
+    window.switchFormStep = (hide, show) => { 
+        document.getElementById(hide).style.display = 'none'; 
+        document.getElementById(show).style.display = 'block'; 
+    }
+    
     window.goHome = function() { 
         document.getElementById('booking-page').classList.remove('active-section'); 
         document.getElementById('manage-page').classList.remove('active-section');
@@ -580,6 +508,11 @@
     }
     window.openLogin = () => document.getElementById('loginModal').style.display = 'block';
     window.closeLogin = () => document.getElementById('loginModal').style.display = 'none';
+    window.openManage = () => {
+        document.getElementById('home-page').classList.remove('active-section');
+        document.getElementById('booking-page').classList.remove('active-section');
+        document.getElementById('manage-page').classList.add('active-section');
+    }
 
     window.handleLogin = async () => {
         const email = document.getElementById('login-email').value;
@@ -600,12 +533,12 @@
         const bookingData = { 
             restaurant: window.selectedRestaurant, 
             name: document.getElementById('name').value, 
-            phone: window.selectedFullPhone, // SAVE FULL CODE+NUMBER
+            phone: window.selectedFullPhone,
             date: document.getElementById('date').value, 
             time: document.getElementById('selected-time-value').value, 
             persons: document.getElementById('persons').value, 
             status: "Pending", 
-            duration: window.selectedDuration, 
+            duration: window.selectedSlotDuration, 
             createdAt: new Date() 
         };
         try {
@@ -613,6 +546,50 @@
             document.getElementById('step3').style.display = 'block';
         } catch (e) { alert("Error: " + e.message); document.getElementById('step2').style.display = 'block'; }
     }
+    
+    // Manage Bookings
+    window.findBookings = async () => {
+        const code = document.getElementById('manage-code').value;
+        const num = document.getElementById('manage-phone').value;
+        const list = document.getElementById('user-bookings-list');
+        
+        if(!num) return alert("Please enter your phone number.");
+        let cleanNum = num.replace(/^0+/, ''); 
+        let fullPhone = (code ? code : "") + cleanNum; 
+
+        list.innerHTML = "<div style='text-align:center;'><div class='loader'></div> Finding...</div>";
+
+        try {
+            const q = query(collection(db, "reservations"), where("phone", "==", fullPhone));
+            const snapshot = await getDocs(q);
+            let html = "";
+            let count = 0;
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) {
+                    count++;
+                    html += `
+                    <div class="my-booking-card">
+                        <h3>${d.restaurant}</h3>
+                        <p>📅 ${d.date} at ${d.time}</p>
+                        <p>👤 ${d.persons} Guests</p>
+                        <p>Status: <strong style="color:${d.status === 'Accepted' ? 'green' : '#F39C12'}">${d.status}</strong></p>
+                        <button class="btn-cancel-user" onclick="cancelBookingUser('${doc.id}')">Cancel Booking</button>
+                    </div>`;
+                }
+            });
+            if(count === 0) list.innerHTML = "<p style='text-align:center; color:#888;'>No active reservations found for +" + fullPhone + "</p>";
+            else list.innerHTML = html;
+        } catch (e) { list.innerHTML = "<p style='text-align:center; color:red;'>Error finding bookings.</p>"; }
+    }
+
+    window.cancelBookingUser = async (id) => {
+        if(confirm("Cancel this reservation?")) {
+            await updateDoc(doc(db, "reservations", id), { archived: true });
+            alert("Cancelled.");
+            window.findBookings();
+        }
+    }
 </script>
-</body>
-</html>
