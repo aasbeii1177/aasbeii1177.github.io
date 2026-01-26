@@ -12,33 +12,36 @@
         
         h1, h2 { color: #2C3E50; font-weight: 700; margin-top: 0; }
         
-        /* HEADER & TOGGLE */
-        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; }
+        /* HEADER & CONTROLS */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; flex-wrap: wrap; gap: 15px; }
         #manager-title { border-left: 5px solid #D4AF37; padding-left: 15px; margin: 0; }
 
-        /* The Switch Box */
+        .controls-right { display: flex; gap: 15px; align-items: center; }
+
+        /* STATUS TOGGLE */
         .status-control { display: flex; align-items: center; gap: 10px; }
-        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #27ae60; } /* Green when Open */
-        input:checked + .slider:before { transform: translateX(26px); }
-        .status-label { font-weight: bold; font-size: 14px; color: #666; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #27ae60; }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .status-label { font-weight: bold; font-size: 13px; color: #666; }
 
-        /* Input Fields */
-        input[type="email"], input[type="password"] { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px; font-size: 16px; transition: 0.3s; }
-        input:focus { border-color: #2C3E50; outline: none; background: #fafafa; }
-        
-        /* Buttons */
-        button { padding: 12px 25px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; }
-        .btn-logout { background: #95A5A6; color: white; margin-left: 20px; }
+        /* BUTTONS */
+        button { padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .btn-add { background: #1a1a1a; color: white; display: flex; align-items: center; gap: 5px; }
+        .btn-add:hover { background: #D4AF37; }
+        .btn-logout { background: #95A5A6; color: white; }
 
-        /* Login Box */
-        #login-view { max-width: 400px; padding: 50px; text-align: center; margin: 10vh auto; }
-        .btn-login { width: 100%; background: #2C3E50; color: white; font-size: 16px; padding: 15px; margin-top: 10px; }
+        /* MODAL (For Manual Booking) */
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; font-weight: bold; color: #888; margin-bottom: 5px; }
+        .modal-input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; }
 
-        /* Booking Cards */
+        /* BOOKING CARDS */
         .booking-card { 
             background: #fff; border: 1px solid #eee; border-left: 5px solid transparent;
             padding: 25px; margin-bottom: 20px; border-radius: 12px; 
@@ -58,7 +61,6 @@
         .booking-info p { margin: 4px 0; color: #7f8c8d; font-size: 14px; display: flex; align-items: center; gap: 8px; }
         .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-left: 10px; background: rgba(0,0,0,0.05); font-weight: 800; }
 
-        /* Actions */
         .actions { display: flex; gap: 10px; margin-top: 15px; align-items: center; }
         @media (min-width: 600px) { .actions { margin-top: 0; } }
         .btn-accept { background: #27ae60; color: white; }
@@ -67,6 +69,11 @@
         
         .hidden { display: none; }
         .error { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; }
+        
+        /* Login Styles */
+        #login-view { max-width: 400px; padding: 50px; text-align: center; margin: 10vh auto; }
+        #login-view input { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; box-sizing: border-box; margin-bottom: 15px; }
+        .btn-login { width: 100%; background: #2C3E50; color: white; padding: 15px; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -88,10 +95,14 @@
                         <input type="checkbox" id="status-toggle" onchange="toggleStatus()">
                         <span class="slider"></span>
                     </label>
-                    <span id="status-text" class="status-label">Checking Status...</span>
+                    <span id="status-text" class="status-label">Checking...</span>
                 </div>
             </div>
-            <button class="btn-logout" onclick="logout()">Logout</button>
+            
+            <div class="controls-right">
+                <button class="btn-add" onclick="openManualModal()">+ Add Booking</button>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
         </div>
 
         <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a" preload="auto"></audio>
@@ -101,10 +112,43 @@
         </div>
     </div>
 
+    <div id="manual-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Add Phone/Walk-in</h3>
+            
+            <div class="input-group">
+                <label>Guest Name (or "Walk-in")</label>
+                <input type="text" id="m-name" class="modal-input" placeholder="e.g. Samir or Walk-in">
+            </div>
+            <div class="input-group">
+                <label>Phone (Optional)</label>
+                <input type="text" id="m-phone" class="modal-input" placeholder="09xx...">
+            </div>
+            <div class="input-group" style="display:flex; gap:10px;">
+                <div style="flex:1;">
+                    <label>Date</label>
+                    <input type="date" id="m-date" class="modal-input">
+                </div>
+                <div style="flex:1;">
+                    <label>Time</label>
+                    <select id="m-time" class="modal-input">
+                        </select>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Number of Guests</label>
+                <input type="number" id="m-guests" class="modal-input" value="2" min="1">
+            </div>
+
+            <button onclick="saveManualBooking()" style="width:100%; background:#1a1a1a; color:white; margin-top:10px;">Confirm Booking</button>
+            <button onclick="closeManualModal()" style="width:100%; background:white; border:1px solid #ddd; color:#666; margin-top:10px;">Cancel</button>
+        </div>
+    </div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, updateDoc, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, updateDoc, addDoc, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
@@ -120,10 +164,24 @@
     const db = getFirestore(app);
 
     let currentRestaurant = "";
-    let restaurantDocId = ""; // To store the exact ID of the restaurant doc
+    let restaurantDocId = ""; 
     let unsubscribe = null; 
 
-    // --- LOGIN ---
+    // --- INIT ---
+    window.onload = () => {
+        // Fill Time Options in Modal
+        const sel = document.getElementById('m-time');
+        for(let i=12; i<=23; i++) {
+            const opt = document.createElement('option');
+            opt.value = i + ":00";
+            opt.innerText = i + ":00";
+            sel.appendChild(opt);
+        }
+        // Set Date to Today
+        document.getElementById('m-date').valueAsDate = new Date();
+    };
+
+    // --- LOGIN/LOGOUT ---
     window.login = () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
@@ -138,14 +196,12 @@
         signOut(auth).then(() => { window.location.href = "index.html"; });
     };
 
-    // --- AUTH MONITOR ---
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
             
             try {
-                // 1. Get Manager Info
                 const managerRef = doc(db, "managers", user.email);
                 const managerSnap = await getDoc(managerRef);
 
@@ -153,39 +209,69 @@
                     currentRestaurant = managerSnap.data().restaurant;
                     document.getElementById('manager-title').innerText = currentRestaurant;
                     
-                    // 2. Find the Restaurant Document (To control 'isOpen' status)
                     const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
                     const resSnap = await getDocs(q);
                     if(!resSnap.empty) {
                         const resDoc = resSnap.docs[0];
                         restaurantDocId = resDoc.id;
-                        // Set Toggle State
-                        const isOpen = resDoc.data().isOpen !== false; // Default to true if missing
-                        updateToggleUI(isOpen);
+                        updateToggleUI(resDoc.data().isOpen !== false);
                     }
-
                     startRealtimeListener(); 
                 } else {
                     document.getElementById('bookings-list').innerHTML = "<p style='color:red;'>Access Denied</p>";
                 }
             } catch (error) { console.error(error); }
-
         } else {
             document.getElementById('login-view').classList.remove('hidden');
             document.getElementById('dashboard-view').classList.add('hidden');
         }
     });
 
-    // --- STATUS TOGGLE LOGIC ---
+    // --- MANUAL BOOKING LOGIC ---
+    window.openManualModal = () => document.getElementById('manual-modal').style.display = 'flex';
+    window.closeManualModal = () => document.getElementById('manual-modal').style.display = 'none';
+
+    window.saveManualBooking = async () => {
+        const name = document.getElementById('m-name').value || "Walk-in";
+        const phone = document.getElementById('m-phone').value || "N/A";
+        const date = document.getElementById('m-date').value;
+        const time = document.getElementById('m-time').value;
+        const guests = document.getElementById('m-guests').value;
+
+        if(!date || !time) return alert("Date and Time are required.");
+
+        try {
+            // Add directly to DB with status 'Accepted'
+            // This immediately updates the capacity on the website!
+            await addDoc(collection(db, "reservations"), {
+                restaurant: currentRestaurant,
+                name: name,
+                phone: phone,
+                date: date,
+                time: time,
+                persons: parseInt(guests),
+                status: "Accepted",  // <--- KEY: Accepted immediately
+                source: "Manager",   // <--- Tag it as manual
+                createdAt: new Date()
+            });
+
+            closeManualModal();
+            // Clear inputs
+            document.getElementById('m-name').value = "";
+            document.getElementById('m-phone').value = "";
+            alert("Booking Added! Capacity updated.");
+
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    };
+
+    // --- STATUS TOGGLE ---
     window.toggleStatus = async () => {
         if(!restaurantDocId) return;
-        
         const toggle = document.getElementById('status-toggle');
         const isNowOpen = toggle.checked;
-        
-        updateToggleUI(isNowOpen); // Update Text immediately
-        
-        // Update Firebase
+        updateToggleUI(isNowOpen); 
         const resRef = doc(db, "restaurants", restaurantDocId);
         await updateDoc(resRef, { isOpen: isNowOpen });
     };
@@ -193,7 +279,6 @@
     function updateToggleUI(isOpen) {
         const toggle = document.getElementById('status-toggle');
         const label = document.getElementById('status-text');
-        
         toggle.checked = isOpen;
         if(isOpen) {
             label.innerText = "🟢 Accepting Orders";
@@ -204,7 +289,7 @@
         }
     }
 
-    // --- REAL-TIME BOOKINGS ---
+    // --- REAL-TIME LISTENER ---
     function startRealtimeListener() {
         if(!currentRestaurant) return;
         const list = document.getElementById('bookings-list');
@@ -216,9 +301,11 @@
         unsubscribe = onSnapshot(q, (snapshot) => {
             if(snapshot.empty) { list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings.</p>"; return; }
 
+            // Sound only plays for WEB bookings (Source undefined or Web)
             if (!isFirstLoad) {
                 snapshot.docChanges().forEach((change) => {
-                    if (change.type === "added" && !change.doc.data().archived) {
+                    const d = change.doc.data();
+                    if (change.type === "added" && !d.archived && d.source !== "Manager") {
                         sound.currentTime = 0;
                         sound.play().catch(e => console.log("Audio blocked"));
                     }
@@ -227,43 +314,43 @@
             isFirstLoad = false;
 
             let html = '';
-            let visibleCount = 0;
-
             snapshot.forEach(docSnap => {
                 const b = docSnap.data();
                 if(b.archived === true) return; 
-                visibleCount++;
                 
                 let buttons = '';
+                // If Manager added it, it's already accepted, so no buttons needed usually
+                // If Web booking is Pending, show buttons
                 if(b.status === 'Pending') {
                     buttons = `
                         <button class="btn-accept" onclick="handleDecision('${docSnap.id}', '${b.phone}', '${b.name}', 'Accepted')">Accept & WhatsApp 🟢</button>
                         <button class="btn-decline" onclick="handleDecision('${docSnap.id}', '${b.phone}', '${b.name}', 'Declined')">Decline & WhatsApp 🔴</button>
                     `;
                 } else {
-                    buttons = `<span style="color:#999; font-size:12px; font-weight:bold; margin-right:10px;">Action Taken</span>`;
+                    // Show status text
+                    buttons = `<span style="color:#999; font-size:12px; font-weight:bold; margin-right:10px;">${b.status}</span>`;
                 }
                 buttons += `<button class="btn-archive" onclick="archiveBooking('${docSnap.id}')" title="Archive">🗑️</button>`;
+
+                // Tag manual bookings visually
+                const sourceTag = b.source === "Manager" ? '<span style="color:#D4AF37; font-size:10px;">(Manual)</span>' : '';
 
                 html += `
                 <div class="booking-card status-${b.status}">
                     <div class="booking-info">
-                        <h3>${b.name} <span class="badge" style="background:${b.status=='Accepted'?'#2ECC71':(b.status=='Pending'?'#F1C40F':'#E74C3C')}; color:white;">${b.status}</span></h3>
+                        <h3>${b.name} ${sourceTag} <span class="badge" style="background:${b.status=='Accepted'?'#2ECC71':(b.status=='Pending'?'#F1C40F':'#E74C3C')}; color:white;">${b.status}</span></h3>
                         <p>📅 ${b.date} | ⏰ ${b.time}</p>
                         <p>👥 ${b.persons} Guests | 📞 ${b.phone}</p>
                     </div>
                     <div class="actions">${buttons}</div>
                 </div>`;
             });
-
-            if(visibleCount === 0) list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings.</p>";
-            else list.innerHTML = html;
+            list.innerHTML = html;
         });
     }
 
     window.handleDecision = async (id, phone, name, status) => {
-        const ref = doc(db, "reservations", id);
-        await updateDoc(ref, { status: status });
+        await updateDoc(doc(db, "reservations", id), { status: status });
         let cleanPhone = phone.replace(/\D/g, ''); 
         if(cleanPhone.startsWith('0')) cleanPhone = "963" + cleanPhone.substring(1); 
         let message = status === "Accepted" ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅` : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌`;
