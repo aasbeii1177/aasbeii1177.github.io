@@ -212,7 +212,6 @@
             opt.innerText = i + ":00";
             sel.appendChild(opt);
         }
-        // HEARTBEAT: Recalculate Dashboard every 10 seconds
         setInterval(recalculateDashboard, 10000);
     };
 
@@ -249,10 +248,8 @@
                         restaurantDocId = resSnap.docs[0].id;
                         maxGuests = d.capacity || 20;
                         maxTables = d.tables || 10;
-                        
                         document.getElementById('max-guests').innerText = "/ " + maxGuests;
                         document.getElementById('max-tables').innerText = "/ " + maxTables;
-                        
                         updateToggleUI(d.isOpen !== false);
                     }
                     startRealtimeListener(); 
@@ -266,7 +263,7 @@
         }
     });
 
-    // --- LIVE DASHBOARD (CLOCK + STATS) ---
+    // --- LIVE DASHBOARD ---
     function recalculateDashboard() {
         if (!latestSnapshot) return;
 
@@ -276,10 +273,8 @@
         const seconds = now.getSeconds().toString().padStart(2, '0');
         const todayStr = now.toISOString().split('T')[0];
 
-        // 1. Update Clock
         document.getElementById('current-hour-display').innerText = `Live: ${currentHour}:${minutes}:${seconds} (${todayStr})`;
 
-        // 2. Recalculate Occupancy
         let liveGuests = 0;
         let liveTables = 0;
 
@@ -289,7 +284,6 @@
                 const startHour = parseInt(data.time.split(':')[0]);
                 const endHour = startHour + (data.duration || 3);
 
-                // Is the customer currently sitting?
                 if (currentHour >= startHour && currentHour < endHour) {
                     liveGuests += parseInt(data.persons);
                     liveTables += Math.ceil(parseInt(data.persons) / 4);
@@ -306,7 +300,7 @@
         else gEl.style.color = "#2ECC71"; // Green
     }
 
-    // --- REAL-TIME LISTENER ---
+    // --- REAL-TIME LISTENER (SORTED) ---
     function startRealtimeListener() {
         if(!currentRestaurant) return;
         const list = document.getElementById('bookings-list');
@@ -316,9 +310,8 @@
         let isFirstLoad = true;
 
         unsubscribe = onSnapshot(q, (snapshot) => {
-            // Save data for the clock
             latestSnapshot = snapshot; 
-            recalculateDashboard(); // Immediate update
+            recalculateDashboard();
 
             if(snapshot.empty) { list.innerHTML = "<p style='text-align:center; padding:40px; color:#999;'>No active bookings.</p>"; return; }
 
@@ -333,16 +326,26 @@
             }
             isFirstLoad = false;
 
+            // --- SORTING LOGIC ---
+            const allDocs = [];
+            snapshot.forEach(doc => {
+                if(!doc.data().archived) allDocs.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Sort: Earliest Date First, then Earliest Time
+            allDocs.sort((a, b) => {
+                if (a.date !== b.date) return a.date.localeCompare(b.date);
+                // Compare times (e.g. "19:00" vs "20:00")
+                return parseInt(a.time) - parseInt(b.time);
+            });
+
             let html = '';
-            snapshot.docs.forEach(docSnap => {
-                const b = docSnap.data();
-                if(b.archived === true) return; 
-                
+            allDocs.forEach(b => {
                 let buttons = '';
                 if(b.status === 'Pending') {
                     buttons = `
-                        <button class="btn-accept" onclick="handleDecision('${docSnap.id}', '${b.phone}', '${b.name}', 'Accepted')">Accept & WhatsApp 🟢</button>
-                        <button class="btn-decline" onclick="handleDecision('${docSnap.id}', '${b.phone}', '${b.name}', 'Declined')">Decline & WhatsApp 🔴</button>
+                        <button class="btn-accept" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name}', 'Accepted')">Accept & WhatsApp 🟢</button>
+                        <button class="btn-decline" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name}', 'Declined')">Decline & WhatsApp 🔴</button>
                     `;
                 } else {
                     buttons = `<span style="color:#999; font-size:12px; font-weight:bold; margin-right:10px;">${b.status}</span>`;
@@ -353,8 +356,8 @@
                 const dur = b.duration || 3;
 
                 buttons += `
-                    <button class="btn-icon" title="Edit / Extend" onclick="openModal('edit', '${docSnap.id}', '${safeName}', '${safePhone}', '${b.date}', '${b.time}', ${b.persons}, ${dur})">✏️</button>
-                    <button class="btn-icon" title="Finished / Archive" onclick="archiveBooking('${docSnap.id}')">🗑️</button>
+                    <button class="btn-icon" title="Edit / Extend" onclick="openModal('edit', '${b.id}', '${safeName}', '${safePhone}', '${b.date}', '${b.time}', ${b.persons}, ${dur})">✏️</button>
+                    <button class="btn-icon" title="Finished / Archive" onclick="archiveBooking('${b.id}')">🗑️</button>
                 `;
 
                 const sourceTag = b.source === "Manager" ? '<span style="color:#D4AF37; font-size:10px;">(Manual)</span>' : '';
@@ -373,11 +376,16 @@
         });
     }
 
-    // --- ACTIONS ---
+    // --- ACTIONS & VALIDATION ---
     window.openModal = (mode, id, name, phone, date, time, guests, duration) => {
         const modal = document.getElementById('booking-modal');
         const title = document.getElementById('modal-title');
+        const dateInput = document.getElementById('m-date');
         
+        // PREVENT PAST DATES
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today; 
+
         if (mode === 'edit') {
             title.innerText = "Edit Booking / Extend Time";
             document.getElementById('edit-id').value = id;
@@ -392,7 +400,7 @@
             document.getElementById('edit-id').value = ""; 
             document.getElementById('m-name').value = "";
             document.getElementById('m-phone').value = "";
-            document.getElementById('m-date').valueAsDate = new Date();
+            document.getElementById('m-date').value = today;
             document.getElementById('m-guests').value = 2;
             document.getElementById('m-duration').value = 3;
         }
@@ -412,10 +420,24 @@
 
         if(!date || !time) return alert("Date and Time are required.");
 
+        // TIME TRAVEL CHECK
+        const today = new Date();
+        const selDate = new Date(date);
+        const isToday = selDate.getDate() === today.getDate() && selDate.getMonth() === today.getMonth();
+        const selHour = parseInt(time.split(':')[0]);
+        const currHour = today.getHours();
+
+        if (selDate < new Date(today.toDateString())) {
+            return alert("Cannot book a past date!");
+        }
+        if (isToday && selHour < currHour) {
+            return alert("Cannot book a past time! It is already " + currHour + ":00");
+        }
+
         try {
             if (id) {
                 await updateDoc(doc(db, "reservations", id), { name, phone, date, time, persons: guests, duration: duration });
-                alert("Booking Updated! Live Dashboard refreshing...");
+                alert("Updated!");
             } else {
                 await addDoc(collection(db, "reservations"), { restaurant: currentRestaurant, name, phone, date, time, persons: guests, duration: duration, status: "Accepted", source: "Manager", createdAt: new Date() });
                 alert("Booking Added!");
