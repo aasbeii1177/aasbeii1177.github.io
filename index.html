@@ -67,7 +67,7 @@
                         <option>Please select a date first</option>
                     </select>
 
-                    <input type="number" class="input-field" id="persons" min="1" max="20" placeholder="Number of Guests">
+                    <input type="number" class="input-field" id="persons" min="1" max="20" placeholder="Number of Guests" onchange="updateTimeSlots()">
                     <button class="btn-primary" onclick="goToReview()">Continue</button>
                 </div>
 
@@ -124,23 +124,20 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // --- CONFIGURATION ---
-    const DINING_DURATION = 3; // Estimated hours a table stays occupied
+    const DINING_DURATION = 3; 
 
     if (window.location.pathname.endsWith('/index.html')) {
         var newPath = window.location.pathname.replace('/index.html', '/');
         window.history.replaceState(null, '', newPath);
     }
 
-    // --- MAIN LOADING LOGIC ---
+    // --- LOADING ---
     window.onload = async function() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').setAttribute('min', today);
-        
         const container = document.getElementById('restaurant-list-container');
         const loader = document.getElementById('loader-main');
         let html = '';
-
         try {
             const querySnapshot = await getDocs(collection(db, "restaurants"));
             if(querySnapshot.empty) {
@@ -150,43 +147,21 @@
                     const branch = doc.data();
                     const isOpen = branch.isOpen !== false; 
                     const capacity = branch.capacity || 20; 
-
-                    let buttonHtml = '';
-                    let clickAction = '';
-                    
-                    if(isOpen) {
-                        buttonHtml = `<span class="btn-card">Book Table</span>`;
-                        clickAction = `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity})"`;
-                    } else {
-                        buttonHtml = `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
-                        clickAction = `style="cursor:not-allowed; opacity:0.8;"`;
-                    }
-
-                    html += `
-                    <div class="card" ${clickAction}>
-                        <div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div>
-                        <div class="card-content">
-                            <h3 class="card-title">${branch.name}</h3>
-                            <span class="card-loc">📍 ${branch.location}</span>
-                            ${buttonHtml}
-                        </div>
-                    </div>`;
+                    let buttonHtml = isOpen ? `<span class="btn-card">Book Table</span>` : `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
+                    let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity})"` : `style="cursor:not-allowed; opacity:0.8;"`;
+                    html += `<div class="card" ${clickAction}><div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div><div class="card-content"><h3 class="card-title">${branch.name}</h3><span class="card-loc">📍 ${branch.location}</span>${buttonHtml}</div></div>`;
                 });
                 container.innerHTML = html;
             }
-        } catch (error) { console.error(error); } 
-        finally { loader.style.display = 'none'; }
+        } catch (error) { console.error(error); } finally { loader.style.display = 'none'; }
     };
 
-    // --- NAVIGATION ---
     window.openBooking = function(name, imgUrl, capacity) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity; 
-        
         document.getElementById('selected-restaurant-title').innerText = name;
         document.getElementById('date').value = ""; 
         document.getElementById('time').innerHTML = "<option>Please select a date first</option>";
-        
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
         switchFormStep('step2', 'step1');
@@ -194,10 +169,34 @@
         window.scrollTo(0,0);
     }
 
-    // --- SMART TIME SLOT CALCULATOR (WITH OVERLAP LOGIC) ---
+    // --- CALCULATE "TRUE" OCCUPANCY PER HOUR ---
+    // Returns an array [0, 0... 15, 20, 20...] representing occupancy at each hour 0-23
+    function calculateOccupancyMap(snapshot) {
+        let occupancy = new Array(24).fill(0);
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if(data.status !== 'Declined' && !data.archived) {
+                const arrivalHour = parseInt(data.time.split(':')[0]); 
+                const guests = parseInt(data.persons) || 0;
+                
+                // Add guests to arrival hour AND the next (Duration - 1) hours
+                for(let i=0; i<DINING_DURATION; i++) {
+                    if (arrivalHour + i < 24) {
+                        occupancy[arrivalHour + i] += guests;
+                    }
+                }
+            }
+        });
+        return occupancy;
+    }
+
+    // --- SMART TIME SLOT DISPLAY ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const timeSelect = document.getElementById('time');
+        const personsInput = document.getElementById('persons').value || 0; // NEW: Check size of THIS group
+        const groupSize = parseInt(personsInput) || 2; // Default to 2 if not typed yet
         const resName = window.selectedRestaurant;
         const limit = window.currentCapacity || 20; 
 
@@ -205,54 +204,33 @@
 
         timeSelect.innerHTML = "<option>Checking availability...</option>";
         
-        // 1. Get ALL reservations for this Restaurant on this Date
-        const q = query(
-            collection(db, "reservations"), 
-            where("restaurant", "==", resName), 
-            where("date", "==", dateInput)
-        );
+        const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
         const snapshot = await getDocs(q);
 
-        // 2. Count "Direct Arrivals" per hour
-        let directArrivals = {}; // e.g., { "19": 10 people, "20": 5 people }
-        
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if(data.status !== 'Declined' && !data.archived) {
-                // Extract Hour integer (e.g. "19:00" -> 19)
-                const hour = parseInt(data.time.split(':')[0]); 
-                const guests = parseInt(data.persons) || 0;
-                
-                if(!directArrivals[hour]) directArrivals[hour] = 0;
-                directArrivals[hour] += guests;
-            }
-        });
+        // 1. Get the Heatmap of the restaurant
+        const occupancyMap = calculateOccupancyMap(snapshot);
 
-        // 3. Build Dropdown checking OCCUPANCY (Arrivals + Overlap)
         let optionsHtml = '<option value="">Select Time</option>';
         const openingHours = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
 
         openingHours.forEach(h => {
-            // Calculate Total Occupancy at hour 'h'
-            // Sum of arrivals at h, h-1, h-2 (if duration is 3)
-            let currentOccupancy = 0;
+            // CHECK THE FUTURE: 
+            // If I arrive at 'h', do I fit at 'h'? Do I fit at 'h+1'? Do I fit at 'h+2'?
+            let fits = true;
             
-            for (let i = 0; i < DINING_DURATION; i++) {
-                // If checking 20:00, we add people who arrived at 20, 19, and 18.
-                const checkHour = h - i;
-                if(directArrivals[checkHour]) {
-                    currentOccupancy += directArrivals[checkHour];
+            for(let i=0; i<DINING_DURATION; i++) {
+                if(h+i < 24) {
+                    const projectedLoad = occupancyMap[h + i] + groupSize;
+                    if(projectedLoad > limit) {
+                        fits = false; 
+                    }
                 }
             }
 
             const timeString = `${h}:00`;
-            
-            if (currentOccupancy >= limit) {
-                // DISABLE FULL HOURS
+            if (!fits) {
                 optionsHtml += `<option disabled style="color:#e74c3c;">${timeString} (Full 🔴)</option>`;
             } else {
-                // SHOW AVAILABLE
-                // Note: Showing "Seats Left" is tricky with overlap, so we just show available.
                 optionsHtml += `<option value="${timeString}">${timeString}</option>`;
             }
         });
@@ -260,26 +238,65 @@
         timeSelect.innerHTML = optionsHtml;
     };
 
-    // --- HELPERS ---
-    window.switchFormStep = (hide, show) => {
-        document.getElementById(hide).style.display = 'none';
-        document.getElementById(show).style.display = 'block';
+    // --- DOUBLE CHECK ON CLICK ---
+    window.goToReview = async () => {
+        const name = document.getElementById('name').value;
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const persons = parseInt(document.getElementById('persons').value || 0);
+        const resName = window.selectedRestaurant;
+        const limit = window.currentCapacity || 20;
+
+        if(!name || !date || !time || !persons) return alert("Please fill all fields");
+
+        const btn = document.querySelector('#step1 .btn-primary');
+        const originalText = btn.innerText;
+        btn.innerText = "Checking availability...";
+        btn.disabled = true;
+
+        try {
+            const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", date));
+            const snapshot = await getDocs(q);
+            const occupancyMap = calculateOccupancyMap(snapshot);
+            
+            const arrivalHour = parseInt(time.split(':')[0]);
+            let fits = true;
+            
+            // Check Future Collision again
+            for(let i=0; i<DINING_DURATION; i++) {
+                if(arrivalHour+i < 24) {
+                    if((occupancyMap[arrivalHour + i] + persons) > limit) {
+                        fits = false;
+                    }
+                }
+            }
+
+            if (!fits) {
+                alert(`⚠️ Sorry! Your booking (Staying ${arrivalHour}:00 - ${arrivalHour+DINING_DURATION}:00) overlaps with a full house.\nPlease select a different time or fewer guests.`);
+                updateTimeSlots();
+                return;
+            }
+
+            document.getElementById('rev-loc').innerText = resName;
+            document.getElementById('rev-name').innerText = name;
+            document.getElementById('rev-date').innerText = date;
+            document.getElementById('rev-time').innerText = time;
+            document.getElementById('rev-guests').innerText = persons;
+            
+            switchFormStep('step1', 'step2');
+
+        } catch(e) { console.error(e); alert("Connection error."); } 
+        finally { btn.innerText = originalText; btn.disabled = false; }
     }
 
-    window.goHome = function() {
-        document.getElementById('booking-page').classList.remove('active-section');
-        document.getElementById('home-page').classList.add('active-section');
-    }
-
-    // --- LOGIN ---
+    window.switchFormStep = (hide, show) => { document.getElementById(hide).style.display = 'none'; document.getElementById(show).style.display = 'block'; }
+    window.goHome = function() { document.getElementById('booking-page').classList.remove('active-section'); document.getElementById('home-page').classList.add('active-section'); }
     window.openLogin = () => document.getElementById('loginModal').style.display = 'block';
     window.closeLogin = () => document.getElementById('loginModal').style.display = 'none';
 
     window.handleLogin = async () => {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-pass').value;
-        const errorMsg = document.getElementById('login-error');
-        
         try {
             await signInWithEmailAndPassword(auth, email, pass);
             if (email === "admin@tawelty.com") window.location.href = "admin.html";
@@ -288,48 +305,16 @@
                 if (managerSnap.exists()) window.location.href = "manager.html";
                 else throw new Error("Not authorized");
             }
-        } catch (error) {
-            errorMsg.innerText = "Error: " + error.message;
-            errorMsg.style.display = 'block';
-        }
+        } catch (error) { document.getElementById('login-error').innerText = "Error: " + error.message; document.getElementById('login-error').style.display = 'block'; }
     };
-
-    window.goToReview = () => {
-        const name = document.getElementById('name').value;
-        const date = document.getElementById('date').value;
-        const time = document.getElementById('time').value;
-        if(!name || !date || !time) return alert("Please fill all fields");
-        
-        document.getElementById('rev-loc').innerText = window.selectedRestaurant;
-        document.getElementById('rev-name').innerText = name;
-        document.getElementById('rev-date').innerText = date;
-        document.getElementById('rev-time').innerText = time;
-        document.getElementById('rev-guests').innerText = document.getElementById('persons').value;
-        
-        switchFormStep('step1', 'step2');
-    }
 
     window.sendEmail = async function() {
         document.getElementById('step2').style.display = 'none';
-        
-        const bookingData = {
-            restaurant: window.selectedRestaurant,
-            name: document.getElementById('name').value,
-            phone: document.getElementById('phone').value,
-            date: document.getElementById('date').value,
-            time: document.getElementById('time').value,
-            persons: document.getElementById('persons').value,
-            status: "Pending", 
-            createdAt: new Date()
-        };
-
+        const bookingData = { restaurant: window.selectedRestaurant, name: document.getElementById('name').value, phone: document.getElementById('phone').value, date: document.getElementById('date').value, time: document.getElementById('time').value, persons: document.getElementById('persons').value, status: "Pending", createdAt: new Date() };
         try {
             await addDoc(collection(db, "reservations"), bookingData);
             document.getElementById('step3').style.display = 'block';
-        } catch (e) {
-            alert("Error: " + e.message);
-            document.getElementById('step2').style.display = 'block';
-        }
+        } catch (e) { alert("Error: " + e.message); document.getElementById('step2').style.display = 'block'; }
     }
 </script>
 </body>
