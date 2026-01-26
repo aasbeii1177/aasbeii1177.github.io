@@ -28,7 +28,7 @@
         .stat-val { font-size: 20px; font-weight: 700; color: #D4AF37; }
         .stat-limit { font-size: 14px; color: #666; font-weight: 400; color: #bbb; }
 
-        /* NEW: DATE DIVIDER */
+        /* DATE DIVIDER */
         .date-header {
             margin: 40px 0 15px 0;
             padding-bottom: 10px;
@@ -212,18 +212,16 @@
     let restaurantDocId = "";
     let maxGuests = 0;
     let maxTables = 0; 
+    // STORE HOURS GLOBALLY
+    let openTime = 12;
+    let closeTime = 22;
+
     let latestSnapshot = null; 
     let unsubscribe = null; 
 
     // --- INIT ---
     window.onload = () => {
-        const sel = document.getElementById('m-time');
-        for(let i=12; i<=23; i++) {
-            const opt = document.createElement('option');
-            opt.value = i + ":00";
-            opt.innerText = i + ":00";
-            sel.appendChild(opt);
-        }
+        // Dropdown populates after fetch
         setInterval(recalculateDashboard, 10000);
     };
 
@@ -260,6 +258,9 @@
                         restaurantDocId = resSnap.docs[0].id;
                         maxGuests = d.capacity || 20;
                         maxTables = d.tables || 10;
+                        openTime = d.openTime !== undefined ? d.openTime : 12; // FETCH OPEN
+                        closeTime = d.closeTime !== undefined ? d.closeTime : 22; // FETCH CLOSE
+                        
                         document.getElementById('max-guests').innerText = "/ " + maxGuests;
                         document.getElementById('max-tables').innerText = "/ " + maxTables;
                         updateToggleUI(d.isOpen !== false);
@@ -312,7 +313,7 @@
         else gEl.style.color = "#2ECC71"; // Green
     }
 
-    // --- REAL-TIME LISTENER (GROUPED BY DATE) ---
+    // --- REAL-TIME LISTENER ---
     function startRealtimeListener() {
         if(!currentRestaurant) return;
         const list = document.getElementById('bookings-list');
@@ -338,7 +339,6 @@
             }
             isFirstLoad = false;
 
-            // --- SORTING ---
             const allDocs = [];
             snapshot.forEach(doc => {
                 if(!doc.data().archived) allDocs.push({ id: doc.id, ...doc.data() });
@@ -349,15 +349,12 @@
                 return parseInt(a.time) - parseInt(b.time);
             });
 
-            // --- RENDERING WITH DATE HEADERS ---
             let html = '';
             let lastDate = null;
 
             allDocs.forEach(b => {
-                // INSERT HEADER IF NEW DATE
                 if (b.date !== lastDate) {
                     const dateObj = new Date(b.date);
-                    // Formatting: "Monday, 26 January"
                     const dateStr = dateObj.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
                     html += `<div class="date-header">${dateStr}</div>`;
                     lastDate = b.date;
@@ -403,8 +400,17 @@
         const modal = document.getElementById('booking-modal');
         const title = document.getElementById('modal-title');
         const dateInput = document.getElementById('m-date');
+        const timeSelect = document.getElementById('m-time');
+
+        // POPULATE DROPDOWN BASED ON REAL HOURS
+        timeSelect.innerHTML = "";
+        for(let i=openTime; i<=closeTime; i++) {
+            const opt = document.createElement('option');
+            opt.value = i + ":00";
+            opt.innerText = i + ":00";
+            timeSelect.appendChild(opt);
+        }
         
-        // Prevent past dates
         const today = new Date().toISOString().split('T')[0];
         dateInput.min = today; 
 
@@ -442,7 +448,7 @@
 
         if(!date || !time) return alert("Date and Time are required.");
 
-        // TIME TRAVEL CHECK (MANAGER)
+        // TIME TRAVEL CHECK
         const today = new Date();
         const selDate = new Date(date);
         const isToday = selDate.getDate() === today.getDate() && selDate.getMonth() === today.getMonth();
