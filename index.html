@@ -56,6 +56,7 @@
         .search-input:focus, .filter-select:focus, .input-field:focus { background: white; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1); }
         
         .input-field { width: 100%; margin-bottom: 20px; box-sizing: border-box; }
+        label { font-size: 12px; font-weight: 700; color: #999; margin-bottom: 5px; display:block; }
 
         /* RESTAURANT CARD (Zoom Effect) */
         .card { 
@@ -144,13 +145,26 @@
                 <h2 id="selected-restaurant-title" style="margin-bottom:20px;">Reserve Table</h2>
                 
                 <div id="step1">
-                    <input type="text" class="input-field" id="name" placeholder="Full Name">
-                    <input type="tel" class="input-field" id="phone" placeholder="Phone (WhatsApp)">
-                    <label style="font-size:12px; font-weight:bold; color:#888;">Select Date:</label>
-                    <input type="date" class="input-field" id="date" onchange="updateTimeSlots()">
-                    <label style="font-size:12px; font-weight:bold; color:#888;">Select Time:</label>
-                    <select id="time" class="input-field"><option>Please select a date first</option></select>
-                    <input type="number" class="input-field" id="persons" min="1" max="20" placeholder="Number of Guests" onchange="updateTimeSlots()">
+                    <label>Full Name</label>
+                    <input type="text" class="input-field" id="name" placeholder="Name">
+                    
+                    <label>Phone (WhatsApp)</label>
+                    <input type="tel" class="input-field" id="phone" placeholder="09...">
+                    
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1;">
+                            <label>Select Date</label>
+                            <input type="date" class="input-field" id="date" onchange="updateTimeSlots()">
+                        </div>
+                        <div style="flex:1;">
+                            <label>Guests</label>
+                            <input type="number" class="input-field" id="persons" value="2" min="1" max="20" onchange="updateTimeSlots()">
+                        </div>
+                    </div>
+
+                    <label>Available Time Slots</label>
+                    <select id="time" class="input-field"><option>Select Date & Guests first</option></select>
+                    
                     <button class="btn-primary" onclick="goToReview()">Continue</button>
                 </div>
 
@@ -235,7 +249,7 @@
                 window.allRestaurants.push(data);
             });
 
-            // ⚡ SORT A-Z
+            // SORT A-Z
             window.allRestaurants.sort((a, b) => a.name.localeCompare(b.name));
 
             const cuisineSelect = document.getElementById('filter-cuisine');
@@ -262,8 +276,8 @@
             const capacity = branch.capacity || 20; 
             const tables = branch.tables || 10; 
             const duration = branch.duration || 3; 
-            const openTime = branch.openTime !== undefined ? branch.openTime : 12; // NEW
-            const closeTime = branch.closeTime !== undefined ? branch.closeTime : 22; // NEW
+            const openTime = branch.openTime !== undefined ? branch.openTime : 12; 
+            const closeTime = branch.closeTime !== undefined ? branch.closeTime : 22; 
             
             let buttonHtml = isOpen ? `<span class="btn-card">Book Table</span>` : `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
             let clickAction = isOpen ? `onclick="openBooking('${branch.name.replace(/'/g, "\\'")}', '${branch.image || ''}', ${capacity}, ${duration}, ${tables}, ${openTime}, ${closeTime})"` : `style="cursor:not-allowed; opacity:0.8;"`;
@@ -303,12 +317,14 @@
         window.currentCapacity = capacity; 
         window.currentDuration = duration;
         window.currentTablesLimit = tables || 10; 
-        window.currentOpen = open; // Save Start
-        window.currentClose = close; // Save End
+        window.currentOpen = open; 
+        window.currentClose = close; 
         
         document.getElementById('selected-restaurant-title').innerText = name;
         document.getElementById('date').value = ""; 
-        document.getElementById('time').innerHTML = "<option>Please select a date first</option>";
+        document.getElementById('time').innerHTML = "<option>Please select date & guests</option>";
+        document.getElementById('persons').value = "2"; // Default
+        
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
         switchFormStep('step2', 'step1');
@@ -355,7 +371,7 @@
         return true;
     }
 
-    // --- TIME SLOTS (DYNAMIC HOURS) ---
+    // --- TIME SLOTS (DYNAMIC) ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const timeSelect = document.getElementById('time');
