@@ -58,10 +58,10 @@
         .input-field { width: 100%; margin-bottom: 20px; box-sizing: border-box; }
         label { font-size: 12px; font-weight: 700; color: #999; margin-bottom: 5px; display:block; }
 
-        /* NEW: TIME SLOT GRID */
+        /* TIME SLOT GRID */
         .time-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* 4 Columns */
+            grid-template-columns: repeat(4, 1fr); 
             gap: 10px;
             margin-bottom: 25px;
         }
@@ -77,11 +77,7 @@
             font-size: 14px;
         }
         .time-slot:hover { border-color: var(--primary); }
-        
-        /* Selected State */
         .time-slot.selected { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        
-        /* Disabled/Full State */
         .time-slot.disabled { background: #f5f5f5; color: #ccc; border-color: transparent; cursor: not-allowed; text-decoration: line-through; }
         .time-slot.warning { border-color: #F1C40F; color: #F39C12; }
 
@@ -121,6 +117,7 @@
         .btn-primary { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: 700; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); background: #000; }
         
+        /* FORM SECTIONS */
         .page-section { display: none; animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .active-section { display: block; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
@@ -130,6 +127,7 @@
         .success-animation { width: 80px; height: 80px; border-radius: 50%; background: #2ECC71; color: white; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; font-size: 40px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
+        /* MODAL */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 90%; max-width: 380px; margin: 15vh auto; padding: 40px; border-radius: 24px; text-align: center; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         
@@ -268,12 +266,15 @@
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 data.id = doc.id;
+                // Defaults
                 if(!data.cuisine) data.cuisine = "General";
                 if(!data.price) data.price = "$$";
+                
                 cuisines.add(data.cuisine);
                 window.allRestaurants.push(data);
             });
 
+            // SORT A-Z
             window.allRestaurants.sort((a, b) => a.name.localeCompare(b.name));
 
             const cuisineSelect = document.getElementById('filter-cuisine');
@@ -348,7 +349,7 @@
         document.getElementById('date').value = ""; 
         document.getElementById('time-grid').innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#ccc; padding:20px;'>Select Date & Guests first</div>";
         document.getElementById('selected-time-value').value = ""; // Clear selection
-        document.getElementById('persons').value = "2"; 
+        document.getElementById('persons').value = "2"; // Default
         
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
@@ -391,7 +392,7 @@
         return true;
     }
 
-    // --- TIME GRID GENERATION ---
+    // --- TIME GRID GENERATION (WITH PAST DATE CHECK) ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const grid = document.getElementById('time-grid');
@@ -399,15 +400,7 @@
         const groupSize = parseInt(personsInput) || 2; 
         const resName = window.selectedRestaurant;
         
-        const guestLimit = window.currentCapacity || 20; 
-        const tableLimit = window.currentTablesLimit || 10; 
-        const startHour = window.currentOpen !== undefined ? window.currentOpen : 12;
-        const endHour = window.currentClose !== undefined ? window.currentClose : 22;
-
-        const STANDARD_DUR = window.currentDuration || 3;
-        const MIN_DUR = Math.max(1, STANDARD_DUR - 1);
-
-        // Clear hidden input on date change
+        // Clear previous
         document.getElementById('selected-time-value').value = "";
 
         if(!dateInput) {
@@ -415,15 +408,30 @@
             return;
         }
 
+        // --- HARD CHECK FOR PAST DATE ---
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const selected = new Date(dateInput);
+        selected.setHours(0,0,0,0);
+
+        if(selected < today) {
+            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#e74c3c; padding:20px;'>⚠️ You cannot book a past date.</div>";
+            return;
+        }
+
         grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#ccc;'><div class='loader'></div> Checking...</div>";
 
-        // TIME CHECK
-        const today = new Date();
-        const selectedDate = new Date(dateInput);
-        const isToday = selectedDate.getDate() === today.getDate() && 
-                        selectedDate.getMonth() === today.getMonth() && 
-                        selectedDate.getFullYear() === today.getFullYear();
-        const currentHour = today.getHours();
+        const guestLimit = window.currentCapacity || 20; 
+        const tableLimit = window.currentTablesLimit || 10; 
+        const startHour = window.currentOpen !== undefined ? window.currentOpen : 12;
+        const endHour = window.currentClose !== undefined ? window.currentClose : 22;
+        const STANDARD_DUR = window.currentDuration || 3;
+        const MIN_DUR = Math.max(1, STANDARD_DUR - 1);
+
+        // Current Hour Check for TODAY
+        const now = new Date();
+        const isToday = selected.getTime() === today.getTime();
+        const currentHour = now.getHours();
 
         const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
         const snapshot = await getDocs(q);
@@ -437,49 +445,50 @@
             let action = `onclick="selectSlot(this, '${timeString}', ${STANDARD_DUR})"`;
             let displayText = timeString;
 
-            // PAST CHECK
+            // PAST HOURS ON TODAY
             if (isToday && h <= currentHour) {
                 html += `<div class="time-slot disabled">${timeString}</div>`;
                 continue; 
             }
 
             if (doesItFit(h, STANDARD_DUR, maps, groupSize, guestLimit, tableLimit)) {
-                // FITS STANDARD DURATION
                 html += `<div class="${divClass}" ${action}>${displayText}</div>`;
             } else if (doesItFit(h, MIN_DUR, maps, groupSize, guestLimit, tableLimit) && MIN_DUR < STANDARD_DUR) {
-                // FITS SHORT DURATION ONLY
                 action = `onclick="selectSlot(this, '${timeString}', ${MIN_DUR})"`;
                 html += `<div class="${divClass} warning" ${action}>${timeString}</div>`;
             } else {
-                // FULL
                 html += `<div class="time-slot disabled">Full</div>`;
             }
         }
         grid.innerHTML = html;
     };
 
-    // --- NEW SELECTION LOGIC ---
     window.selectSlot = function(el, time, duration) {
-        // Remove active class from all
         document.querySelectorAll('.time-slot').forEach(div => div.classList.remove('selected'));
-        // Add to clicked
         el.classList.add('selected');
-        // Set Hidden Value
         document.getElementById('selected-time-value').value = time;
-        // Store assigned duration for this specific slot
         window.selectedSlotDuration = duration;
     }
 
+    // --- FINAL VALIDATION ON SUBMIT ---
     window.goToReview = async () => {
         const name = document.getElementById('name').value;
         const date = document.getElementById('date').value;
-        const time = document.getElementById('selected-time-value').value; // READ HIDDEN INPUT
+        const time = document.getElementById('selected-time-value').value; 
         const persons = parseInt(document.getElementById('persons').value || 0);
         const resName = window.selectedRestaurant;
         
+        // 1. Basic Fields Check
         if(!name || !date || !time || !persons) return alert("Please select a valid date and time slot.");
 
-        // We already validated limits during generation, but logic requires storing duration
+        // 2. Strict Past Date Check
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const selected = new Date(date);
+        selected.setHours(0,0,0,0);
+
+        if(selected < today) return alert("Cannot book a past date.");
+
         window.selectedDuration = window.selectedSlotDuration; 
 
         document.getElementById('rev-loc').innerText = resName;
