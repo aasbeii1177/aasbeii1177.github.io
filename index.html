@@ -19,6 +19,22 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); margin: 0; color: var(--primary); -webkit-font-smoothing: antialiased; }
         h1, h2, h3 { font-family: 'Playfair Display', serif; color: var(--primary); margin: 0; font-weight: 600; }
         
+        /* NEW: TOP NAVIGATION */
+        .top-nav {
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px; box-sizing: border-box;
+        }
+        .nav-logo { color: white; font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: bold; text-decoration: none; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-item { 
+            color: white; text-decoration: none; font-size: 0.9rem; font-weight: 600; 
+            background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; 
+            backdrop-filter: blur(5px); transition: 0.2s; cursor: pointer;
+        }
+        .nav-item:hover { background: white; color: var(--primary); }
+
+        /* HERO SECTION */
         .hero { 
             background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=2874&auto=format&fit=crop'); 
             background-size: cover; background-position: center; background-attachment: fixed;
@@ -30,16 +46,22 @@
         .container { max-width: 1000px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
 
+        /* FILTER BAR */
         .filter-bar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); margin-bottom: 40px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border: 1px solid rgba(255,255,255,0.5); }
         
-        .search-input, .filter-select, .input-field { background: var(--input-bg); border: 2px solid transparent; padding: 16px; border-radius: 12px; font-size: 15px; outline: none; transition: 0.3s; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .search-input, .filter-select, .input-field, .code-select { background: var(--input-bg); border: 2px solid transparent; padding: 16px; border-radius: 12px; font-size: 15px; outline: none; transition: 0.3s; font-family: 'Plus Jakarta Sans', sans-serif; }
         .search-input { flex: 2; }
         .filter-select { flex: 1; min-width: 120px; cursor: pointer; }
-        .search-input:focus, .filter-select:focus, .input-field:focus { background: white; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1); }
+        .search-input:focus, .filter-select:focus, .input-field:focus, .code-select:focus { background: white; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1); }
         
         .input-field { width: 100%; margin-bottom: 20px; box-sizing: border-box; }
         label { font-size: 12px; font-weight: 700; color: #999; margin-bottom: 5px; display:block; }
 
+        /* NEW: PHONE INPUT GROUP */
+        .phone-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .code-select { width: 110px; cursor: pointer; }
+        
+        /* TIME SLOT GRID */
         .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
         .time-slot { padding: 12px; text-align: center; background: white; border: 1px solid #eee; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: 600; font-size: 14px; }
         .time-slot:hover { border-color: var(--primary); }
@@ -75,21 +97,25 @@
         .success-animation { width: 80px; height: 80px; border-radius: 50%; background: #2ECC71; color: white; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; font-size: 40px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
-        /* MANAGE BOOKING STYLES */
         .my-booking-card { background:#F8F9FA; padding:20px; border-radius:12px; margin-bottom:15px; border-left:4px solid var(--gold); }
-        .my-booking-card p { margin: 5px 0; color:#555; font-size:14px; }
         .btn-cancel-user { background:white; color:#e74c3c; border:1px solid #e74c3c; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px; margin-top:10px; }
         .btn-cancel-user:hover { background:#e74c3c; color:white; }
 
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 90%; max-width: 380px; margin: 15vh auto; padding: 40px; border-radius: 24px; text-align: center; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         
-        .footer { text-align: center; margin-top: 60px; padding: 30px; color: #ccc; font-size: 0.85rem; border-top: 1px solid #eee; display: flex; justify-content: center; gap: 20px; }
-        .footer a { color: var(--gold); text-decoration: none; font-weight: 600; cursor: pointer; transition:0.2s; }
-        .footer a:hover { color: var(--primary); }
+        .footer { text-align: center; margin-top: 60px; padding: 30px; color: #ccc; font-size: 0.85rem; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
+
+    <div class="top-nav">
+        <a href="#" onclick="goHome()" class="nav-logo">Tawelty</a>
+        <div class="nav-links">
+            <a onclick="openManage()" class="nav-item">Manage Booking</a>
+            <a onclick="openLogin()" class="nav-item">Staff Login</a>
+        </div>
+    </div>
 
     <div class="hero">
         <h1>Tawelty</h1>
@@ -122,9 +148,23 @@
                 <div id="step1">
                     <label>Full Name</label>
                     <input type="text" class="input-field" id="name" placeholder="Name">
-                    <label>Phone (WhatsApp)</label>
-                    <input type="tel" class="input-field" id="phone" placeholder="09...">
-                    <div style="display:flex; gap:10px;">
+                    
+                    <label>Phone Number (WhatsApp)</label>
+                    <div class="phone-group">
+                        <select id="phone-code" class="code-select">
+                            <option value="963" selected>🇸🇾 +963</option>
+                            <option value="961">🇱🇧 +961</option>
+                            <option value="971">🇦🇪 +971</option>
+                            <option value="966">🇸🇦 +966</option>
+                            <option value="962">🇯🇴 +962</option>
+                            <option value="964">🇮🇶 +964</option>
+                            <option value="20">🇪🇬 +20</option>
+                            <option value="">Other</option>
+                        </select>
+                        <input type="tel" class="input-field" id="phone" placeholder="09..." style="margin-bottom:0;">
+                    </div>
+                    
+                    <div style="display:flex; gap:10px; margin-top:20px;">
                         <div style="flex:1;">
                             <label>Select Date</label>
                             <input type="date" class="input-field" id="date" onchange="updateTimeSlots()">
@@ -134,11 +174,13 @@
                             <input type="number" class="input-field" id="persons" value="2" min="1" max="20" onchange="updateTimeSlots()">
                         </div>
                     </div>
+
                     <label>Available Time Slots</label>
                     <div id="time-grid" class="time-grid">
                         <div style="grid-column:1/-1; text-align:center; color:#ccc; padding:20px;">Select Date & Guests first</div>
                     </div>
                     <input type="hidden" id="selected-time-value">
+                    
                     <button class="btn-primary" onclick="goToReview()">Continue</button>
                 </div>
 
@@ -147,8 +189,8 @@
                     <div style="background:#f8f8f8; padding:20px; border-radius:10px; margin:20px 0;">
                         <p><strong>Venue:</strong> <span id="rev-loc"></span></p>
                         <p><strong>Name:</strong> <span id="rev-name"></span></p>
+                        <p><strong>Phone:</strong> <span id="rev-phone-display"></span></p>
                         <p><strong>Time:</strong> <span id="rev-time-display"></span></p>
-                        <p><strong>Duration:</strong> <span id="rev-duration" style="color:#D4AF37; font-weight:bold;"></span></p>
                         <p><strong>Guests:</strong> <span id="rev-guests"></span></p>
                     </div>
                     <button class="btn-primary" onclick="sendEmail()">Confirm Request</button>
@@ -168,9 +210,19 @@
             <div class="form-box">
                 <a onclick="goHome()" style="cursor:pointer; color:#999; display:block; margin-bottom:20px;">← Back Home</a>
                 <h2>My Reservations</h2>
-                <p style="color:#666; font-size:14px; margin-bottom:20px;">Enter your phone number to see your bookings.</p>
+                <p style="color:#666; font-size:14px; margin-bottom:20px;">Enter your full phone number (with code) to see your bookings.</p>
                 
-                <input type="tel" id="manage-phone" class="input-field" placeholder="Phone Number (e.g. 09...)">
+                <div class="phone-group">
+                    <select id="manage-code" class="code-select">
+                        <option value="963" selected>🇸🇾 +963</option>
+                        <option value="961">🇱🇧 +961</option>
+                        <option value="971">🇦🇪 +971</option>
+                        <option value="966">🇸🇦 +966</option>
+                        <option value="">Other</option>
+                    </select>
+                    <input type="tel" id="manage-phone" class="input-field" placeholder="Number" style="margin-bottom:0;">
+                </div>
+                
                 <button class="btn-primary" onclick="findBookings()">Find Bookings</button>
 
                 <div id="user-bookings-list" style="margin-top:30px;"></div>
@@ -189,11 +241,7 @@
         </div>
     </div>
 
-    <div class="footer">
-        <span>© 2026 Tawelty</span>
-        <a onclick="openManage()">Manage Booking</a>
-        <a onclick="openLogin()">Staff Login</a>
-    </div>
+    <div class="footer">© 2026 Tawelty.</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -218,7 +266,6 @@
         window.history.replaceState(null, '', newPath);
     }
 
-    // --- MAIN LOADING ---
     window.onload = async function() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').setAttribute('min', today);
@@ -298,7 +345,6 @@
         renderList(filtered);
     }
 
-    // --- NAVIGATION ---
     window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity; 
@@ -320,7 +366,6 @@
         window.scrollTo(0,0);
     }
     
-    // --- MANAGE BOOKING LOGIC ---
     window.openManage = () => {
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.remove('active-section');
@@ -329,15 +374,21 @@
     }
 
     window.findBookings = async () => {
-        const phone = document.getElementById('manage-phone').value;
+        const code = document.getElementById('manage-code').value;
+        const num = document.getElementById('manage-phone').value;
         const list = document.getElementById('user-bookings-list');
         
-        if(!phone) return alert("Please enter your phone number.");
+        if(!num) return alert("Please enter your phone number.");
         
+        // Construct full number
+        let cleanNum = num.replace(/^0+/, ''); 
+        let fullPhone = (code ? code : "") + cleanNum; // e.g. 963912...
+
         list.innerHTML = "<div style='text-align:center;'><div class='loader'></div> Finding...</div>";
 
         try {
-            const q = query(collection(db, "reservations"), where("phone", "==", phone));
+            // NOTE: We check for "phone" equals "9639..."
+            const q = query(collection(db, "reservations"), where("phone", "==", fullPhone));
             const snapshot = await getDocs(q);
             
             let html = "";
@@ -348,8 +399,6 @@
             snapshot.forEach(doc => {
                 const d = doc.data();
                 const bDate = new Date(d.date);
-                
-                // Show only Active and Future bookings
                 if (!d.archived && d.status !== 'Declined' && bDate >= today) {
                     count++;
                     html += `
@@ -363,12 +412,12 @@
                 }
             });
 
-            if(count === 0) list.innerHTML = "<p style='text-align:center; color:#888;'>No active reservations found for this number.</p>";
+            if(count === 0) list.innerHTML = "<p style='text-align:center; color:#888;'>No active reservations found for +" + fullPhone + "</p>";
             else list.innerHTML = html;
 
         } catch (e) {
             console.error(e);
-            list.innerHTML = "<p style='text-align:center; color:red;'>Error fetching bookings. Make sure the phone number matches exactly.</p>";
+            list.innerHTML = "<p style='text-align:center; color:red;'>Error. Try entering exact format.</p>";
         }
     }
 
@@ -377,7 +426,7 @@
             try {
                 await updateDoc(doc(db, "reservations", id), { archived: true });
                 alert("Reservation cancelled successfully.");
-                window.findBookings(); // Refresh list
+                window.findBookings();
             } catch(e) { alert("Error: " + e.message); }
         }
     }
@@ -490,12 +539,14 @@
 
     window.goToReview = async () => {
         const name = document.getElementById('name').value;
+        const code = document.getElementById('phone-code').value;
+        const num = document.getElementById('phone').value;
         const date = document.getElementById('date').value;
         const time = document.getElementById('selected-time-value').value; 
         const persons = parseInt(document.getElementById('persons').value || 0);
         const resName = window.selectedRestaurant;
         
-        if(!name || !date || !time || !persons) return alert("Please select a valid date and time slot.");
+        if(!name || !num || !date || !time || !persons) return alert("Please fill all fields.");
 
         const today = new Date();
         today.setHours(0,0,0,0);
@@ -503,10 +554,15 @@
         selected.setHours(0,0,0,0);
         if(selected < today) return alert("Cannot book a past date.");
 
+        // Construct Full Phone for Display/Saving
+        let cleanNum = num.replace(/^0+/, ''); 
+        window.selectedFullPhone = (code ? code : "") + cleanNum;
+
         window.selectedDuration = window.selectedSlotDuration; 
 
         document.getElementById('rev-loc').innerText = resName;
         document.getElementById('rev-name').innerText = name;
+        document.getElementById('rev-phone-display').innerText = "+" + window.selectedFullPhone;
         document.getElementById('rev-time-display').innerText = `${time} ${date}`;
         document.getElementById('rev-guests').innerText = persons;
         
@@ -541,7 +597,17 @@
 
     window.sendEmail = async function() {
         document.getElementById('step2').style.display = 'none';
-        const bookingData = { restaurant: window.selectedRestaurant, name: document.getElementById('name').value, phone: document.getElementById('phone').value, date: document.getElementById('date').value, time: document.getElementById('selected-time-value').value, persons: document.getElementById('persons').value, status: "Pending", duration: window.selectedDuration, createdAt: new Date() };
+        const bookingData = { 
+            restaurant: window.selectedRestaurant, 
+            name: document.getElementById('name').value, 
+            phone: window.selectedFullPhone, // SAVE FULL CODE+NUMBER
+            date: document.getElementById('date').value, 
+            time: document.getElementById('selected-time-value').value, 
+            persons: document.getElementById('persons').value, 
+            status: "Pending", 
+            duration: window.selectedDuration, 
+            createdAt: new Date() 
+        };
         try {
             await addDoc(collection(db, "reservations"), bookingData);
             document.getElementById('step3').style.display = 'block';
