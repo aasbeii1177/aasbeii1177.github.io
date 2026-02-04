@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طاولتي - حجوزات فاخرة</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111111">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <meta property="og:title" content="طاولتي - حجوزات مطاعم">
+    <meta property="og:description" content="احجز طاولتك في أفخم مطاعم الشام.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1559339352-11d035aa65de">
+
+    <style>
+        /* --- MODERN ARABIC THEME --- */
+        :root { 
+            --primary: #111111; 
+            --gold: #D4AF37; 
+            --bg: #F8F9FA; 
+            --surface: #FFFFFF; 
+            --input-bg: #F0F2F5;
+            --radius: 16px;
+        }
+        
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); margin: 0; color: var(--primary); -webkit-font-smoothing: antialiased; }
+        h1, h2, h3 { font-weight: 700; margin: 0; }
+        
+        /* TOP NAVIGATION */
+        .top-nav {
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 40px; box-sizing: border-box;
+        }
+        .nav-logo { color: white; font-size: 1.5rem; font-weight: bold; text-decoration: none; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-item { 
+            color: white; text-decoration: none; font-size: 0.9rem; font-weight: 600; 
+            background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; 
+            backdrop-filter: blur(5px); transition: 0.2s; cursor: pointer;
+        }
+        .nav-item:hover { background: white; color: var(--primary); }
+
+        /* HERO SECTION */
+        .hero { 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=2874&auto=format&fit=crop'); 
+            background-size: cover; background-position: center; background-attachment: fixed;
+            height: 380px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; margin-bottom: -40px; padding-bottom: 40px; 
+        }
+        .hero h1 { color: white; font-size: 4rem; margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .hero p { font-size: 1.1rem; letter-spacing: 1px; color: var(--gold); font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+
+        /* FILTER BAR */
+        .filter-bar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); margin-bottom: 40px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; border: 1px solid rgba(255,255,255,0.5); }
+        .search-input, .filter-select, .input-field, .code-select { background: var(--input-bg); border: 2px solid transparent; padding: 14px; border-radius: 12px; font-size: 15px; outline: none; transition: 0.3s; font-family: 'Cairo', sans-serif; }
+        .search-input { flex: 2; }
+        .filter-select { flex: 1; min-width: 120px; cursor: pointer; }
+        .search-input:focus, .filter-select:focus, .input-field:focus, .code-select:focus { background: white; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1); }
+        
+        .input-field { width: 100%; margin-bottom: 20px; box-sizing: border-box; }
+        label { font-size: 13px; font-weight: 700; color: #999; margin-bottom: 5px; display:block; }
+
+        .phone-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .code-select { width: 110px; cursor: pointer; direction: ltr; text-align: right; } /* Keep codes LTR for readability */
+
+        /* TIME GRID */
+        .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
+        .time-slot { padding: 12px; text-align: center; background: white; border: 1px solid #eee; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: 600; font-size: 14px; }
+        .time-slot:hover { border-color: var(--primary); }
+        .time-slot.selected { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .time-slot.disabled { background: #f5f5f5; color: #ccc; border-color: transparent; cursor: not-allowed; text-decoration: line-through; }
+        .time-slot.warning { border-color: #F1C40F; color: #F39C12; }
+
+        /* CARDS */
+        .card { background: var(--surface); border-radius: var(--radius); overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.04); transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer; border: 1px solid rgba(0,0,0,0.02); }
+        .card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px rgba(0,0,0,0.12); }
+        .card-img-wrapper { overflow: hidden; height: 220px; position: relative; }
+        .card-img { width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform 0.6s ease; }
+        .card:hover .card-img { transform: scale(1.08); } 
+        .card-content { padding: 25px; position: relative; }
+        .card-tags { display: flex; gap: 8px; margin-bottom: 12px; }
+        .tag { font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; }
+        .tag-cuisine { background: #F2F2F2; color: #555; }
+        .tag-price { background: #FFF9E6; color: #BFA15F; }
+        .card-title { font-size: 1.4rem; margin-bottom: 6px; }
+        .card-loc { color: #999; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; font-weight: 500; }
+        .btn-card { display: block; width: 100%; padding: 14px; text-align: center; background: white; border: 1px solid #eee; color: var(--primary); border-radius: 12px; font-weight: 700; margin-top: 20px; transition: 0.3s; }
+        .card:hover .btn-card { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-busy { background: #f5f5f5 !important; color: #aaa !important; border-color: transparent !important; cursor: not-allowed; }
+        
+        .btn-primary { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: 700; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); font-family: 'Cairo', sans-serif; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); background: #000; }
+        .btn-primary:disabled { background: #ccc !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.7; }
+
+        .page-section { display: none; animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .active-section { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .form-box { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.08); max-width: 480px; margin: 0 auto; border: 1px solid rgba(0,0,0,0.02); }
+
+        .success-animation { width: 80px; height: 80px; border-radius: 50%; background: #2ECC71; color: white; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; font-size: 40px; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .my-booking-card { background:#F8F9FA; padding:20px; border-radius:12px; margin-bottom:15px; border-right:4px solid var(--gold); }
+        .btn-cancel-user { background:white; color:#e74c3c; border:1px solid #e74c3c; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px; margin-top:10px; font-family:'Cairo'; }
+        .btn-cancel-user:hover { background:#e74c3c; color:white; }
+
+        /* RTL Specifics */
+        .card-loc { flex-direction: row; } 
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
+        .modal-content { background: white; width: 90%; max-width: 380px; margin: 15vh auto; padding: 40px; border-radius: 24px; text-align: center; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
+        
+        .footer { text-align: center; margin-top: 60px; padding: 30px; color: #ccc; font-size: 0.85rem; border-top: 1px solid #eee; }
+        .policy-box { background: #f9f9f9; padding: 15px; border-radius: 10px; margin: 20px 0; font-size: 13px; color: #555; display: flex; align-items: flex-start; gap: 10px; text-align: right; }
+        .policy-box input { margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <a href="#" onclick="goHome()" class="nav-logo">طاولتي</a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-item">English 🇬🇧</a>
+            <a onclick="openManage()" class="nav-item">حجوزاتي</a>
+            <a onclick="openLogin()" class="nav-item">دخول الموظفين</a>
+        </div>
+    </div>
+
+    <div class="hero">
+        <h1>طاولتي</h1>
+        <p>بوابتك لأرقى المطاعم</p>
+    </div>
+
+    <div class="container">
+        <div id="home-page" class="page-section active-section">
+            <div class="filter-bar">
+                <input type="text" id="search-input" class="search-input" placeholder="🔍 ابحث عن مطعم..." onkeyup="applyFilters()">
+                <select id="filter-cuisine" class="filter-select" onchange="applyFilters()">
+                    <option value="All">كل المطابخ</option>
+                </select>
+                <select id="filter-price" class="filter-select" onchange="applyFilters()">
+                    <option value="All">أي سعر</option>
+                    <option value="$">$ (اقتصادي)</option>
+                    <option value="$$">$$ (متوسط)</option>
+                    <option value="$$$">$$$ (فاخر)</option>
+                </select>
+            </div>
+            <div id="loader-main" style="text-align:center; padding:50px;">جاري تحميل المطاعم...</div>
+            <div id="restaurant-list-container" class="grid"></div>
+        </div>
+
+        <div id="booking-page" class="page-section">
+            <div class="form-box">
+                <a onclick="goHome()" style="cursor:pointer; color:#999; display:block; margin-bottom:20px;">← عودة للمطاعم</a>
+                <h2 id="selected-restaurant-title" style="margin-bottom:20px;">حجز طاولة</h2>
+                
+                <div id="step1">
+                    <label>الاسم الكامل</label>
+                    <input type="text" class="input-field" id="name" placeholder="الاسم الثلاثي">
+                    
+                    <label>رقم الهاتف (واتساب)</label>
+                    <div class="phone-group">
+                        <select id="phone-code" class="code-select">
+                            <option value="963" selected>🇸🇾 +963</option>
+                            <option value="961">🇱🇧 +961</option>
+                            <option value="971">🇦🇪 +971</option>
+                            <option value="966">🇸🇦 +966</option>
+                            <option value="962">🇯🇴 +962</option>
+                            <option value="964">🇮🇶 +964</option>
+                            <option value="20">🇪🇬 +20</option>
+                            <option value="">أخرى</option>
+                        </select>
+                        <input type="tel" class="input-field" id="phone" placeholder="09..." style="margin-bottom:0; text-align:left; direction:ltr;">
+                    </div>
+                    
+                    <div style="display:flex; gap:10px; margin-top:20px;">
+                        <div style="flex:1;">
+                            <label>التاريخ</label>
+                            <input type="date" class="input-field" id="date" onchange="updateTimeSlots()">
+                        </div>
+                        <div style="flex:1;">
+                            <label>الضيوف</label>
+                            <input type="number" class="input-field" id="persons" value="2" min="1" max="20" onchange="updateTimeSlots()">
+                        </div>
+                    </div>
+
+                    <label>الأوقات المتاحة</label>
+                    <div id="time-grid" class="time-grid">
+                        <div style="grid-column:1/-1; text-align:center; color:#ccc; padding:20px;">اختر التاريخ والعدد أولاً</div>
+                    </div>
+                    <input type="hidden" id="selected-time-value">
+                    
+                    <button class="btn-primary" onclick="goToReview()">متابعة</button>
+                </div>
+
+                <div id="step2" style="display:none;">
+                    <h3>تأكيد التفاصيل</h3>
+                    <div style="background:#f8f8f8; padding:20px; border-radius:10px; margin:20px 0;">
+                        <p><strong>المكان:</strong> <span id="rev-loc"></span></p>
+                        <p><strong>الاسم:</strong> <span id="rev-name"></span></p>
+                        <p><strong>الهاتف:</strong> <span id="rev-phone-display" style="direction:ltr; unicode-bidi: embed;"></span></p>
+                        <p><strong>الوقت:</strong> <span id="rev-time-display"></span></p>
+                        <p><strong>العدد:</strong> <span id="rev-guests"></span></p>
+                        <p><strong>المدة:</strong> <span id="rev-duration"></span></p>
+                    </div>
+
+                    <div class="policy-box">
+                        <input type="checkbox" id="policy-check" onchange="toggleConfirmBtn()">
+                        <span>أتفهم أن الحجز يُثبت لمدة <strong>15 دقيقة فقط</strong>، وقد يتم إلغاؤه في حال التأخر.</span>
+                    </div>
+
+                    <button id="btn-confirm-final" class="btn-primary" onclick="sendEmail()" disabled>تأكيد الحجز</button>
+                    <button style="background:none; border:none; width:100%; padding:15px; cursor:pointer; color:#888;" onclick="switchFormStep('step2', 'step1')">تعديل</button>
+                </div>
+
+                <div id="step3" style="display:none; text-align:center; padding:30px 20px;">
+                    <div class="success-animation">✓</div>
+                    <h3 style="margin-top:10px; font-size:1.8rem;">تم إرسال الطلب</h3>
+                    <p style="color:#888; margin-bottom:30px; line-height:1.6;">تم استلام طلبك بنجاح.<br>يرجى انتظار رسالة التأكيد عبر <strong>الواتساب</strong>.</p>
+                    <button class="btn-primary" onclick="goHome()">عودة للمطاعم</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="manage-page" class="page-section">
+            <div class="form-box">
+                <a onclick="goHome()" style="cursor:pointer; color:#999; display:block; margin-bottom:20px;">← العودة للرئيسية</a>
+                <h2>حجوزاتي</h2>
+                <div class="phone-group">
+                    <select id="manage-code" class="code-select">
+                        <option value="963" selected>🇸🇾 +963</option>
+                        <option value="961">🇱🇧 +961</option>
+                        <option value="">أخرى</option>
+                    </select>
+                    <input type="tel" id="manage-phone" class="input-field" placeholder="الرقم..." style="margin-bottom:0; text-align:left; direction:ltr;">
+                </div>
+                <button class="btn-primary" onclick="findBookings()">بحث عن حجوزات</button>
+                <div id="user-bookings-list" style="margin-top:30px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span onclick="closeLogin()" style="position:absolute; right:20px; top:15px; font-size:24px; cursor:pointer;">&times;</span>
+            <h2 style="margin-bottom:20px;">دخول الموظفين</h2>
+            <input type="email" id="login-email" class="input-field" placeholder="البريد الإلكتروني" style="text-align:left; direction:ltr;">
+            <input type="password" id="login-pass" class="input-field" placeholder="كلمة المرور" style="text-align:left; direction:ltr;">
+            <button class="btn-primary" onclick="handleLogin()">دخول</button>
+            <p id="login-error" style="color:red; display:none; margin-top:10px; font-size:0.8rem;"></p>
+        </div>
+    </div>
+
+    <div class="footer">© 2026 طاولتي. جميع الحقوق محفوظة.</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, getDoc, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
+      authDomain: "tawelty-realtime.firebaseapp.com",
+      projectId: "tawelty-realtime",
+      storageBucket: "tawelty-realtime.firebasestorage.app",
+      messagingSenderId: "127610217841",
+      appId: "1:127610217841:web:9535aedf4a06c645c9c2d0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // Global Vars
+    window.allRestaurants = [];
+    window.selectedRestaurant = "";
+    window.selectedSlotDuration = 3;
+    window.selectedFullPhone = "";
+
+    // 1. SETUP
+    window.onload = async function() {
+        // PWA Install Prompt (Optional)
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date').setAttribute('min', today);
+        const loader = document.getElementById('loader-main');
+
+        try {
+            const querySnapshot = await getDocs(collection(db, "restaurants"));
+            window.allRestaurants = []; 
+            let cuisines = new Set();
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                data.id = doc.id;
+                if(!data.cuisine) data.cuisine = "General";
+                if(!data.price) data.price = "$$";
+                cuisines.add(data.cuisine);
+                window.allRestaurants.push(data);
+            });
+
+            window.allRestaurants.sort((a, b) => a.name.localeCompare(b.name));
+
+            const cuisineSelect = document.getElementById('filter-cuisine');
+            cuisines.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.innerText = c;
+                cuisineSelect.appendChild(opt);
+            });
+            renderList(window.allRestaurants);
+
+        } catch (error) { console.error(error); } 
+        finally { if(loader) loader.style.display = 'none'; }
+    };
+
+    window.renderList = (data) => {
+        const container = document.getElementById('restaurant-list-container');
+        if(!container) return;
+        if(data.length === 0) { container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>لا يوجد نتائج.</p>"; return; }
+        
+        let html = '';
+        data.forEach((branch) => {
+            const isOpen = branch.isOpen !== false; 
+            const capacity = branch.capacity || 20; 
+            const tables = branch.tables || 10; 
+            const duration = branch.duration || 3; 
+            const openTime = branch.openTime !== undefined ? branch.openTime : 12; 
+            const closeTime = branch.closeTime !== undefined ? branch.closeTime : 22; 
+            
+            const safeName = branch.name.replace(/'/g, "\\'");
+            const safeImg = (branch.image || '').replace(/'/g, "\\'");
+            
+            // Buttons Translated
+            let buttonHtml = isOpen ? `<span class="btn-card">احجز طاولة</span>` : `<span class="btn-card btn-busy">🔴 محجوز بالكامل</span>`;
+            let clickAction = isOpen ? `onclick="openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${tables}, ${openTime}, ${closeTime})"` : `style="cursor:not-allowed; opacity:0.8;"`;
+            
+            html += `
+            <div class="card" ${clickAction}>
+                <div class="card-img-wrapper">
+                    <div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div>
+                </div>
+                <div class="card-content">
+                    <div class="card-tags"><span class="tag tag-cuisine">${branch.cuisine}</span><span class="tag tag-price">${branch.price}</span></div>
+                    <h3 class="card-title">${branch.name}</h3>
+                    <span class="card-loc">📍 ${branch.location}</span>
+                    ${buttonHtml}
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    window.applyFilters = () => {
+        const search = document.getElementById('search-input').value.toLowerCase();
+        const cuisine = document.getElementById('filter-cuisine').value;
+        const price = document.getElementById('filter-price').value;
+        const filtered = window.allRestaurants.filter(r => {
+            const matchesName = r.name.toLowerCase().includes(search) || r.location.toLowerCase().includes(search);
+            const matchesCuisine = cuisine === "All" || r.cuisine === cuisine;
+            const matchesPrice = price === "All" || r.price === price;
+            return matchesName && matchesCuisine && matchesPrice;
+        });
+        renderList(filtered);
+    }
+
+    // 2. NAV
+    window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close) {
+        window.selectedRestaurant = name;
+        window.currentCapacity = capacity; 
+        window.currentDuration = duration;
+        window.currentTablesLimit = tables || 10; 
+        window.currentOpen = open; 
+        window.currentClose = close; 
+        
+        document.getElementById('selected-restaurant-title').innerText = name;
+        document.getElementById('date').value = ""; 
+        document.getElementById('time-grid').innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#ccc; padding:20px;'>يرجى اختيار التاريخ والعدد</div>";
+        document.getElementById('selected-time-value').value = ""; 
+        document.getElementById('persons').value = "2"; 
+        
+        document.getElementById('policy-check').checked = false;
+        document.getElementById('btn-confirm-final').disabled = true;
+
+        document.getElementById('home-page').classList.remove('active-section');
+        document.getElementById('booking-page').classList.add('active-section');
+        window.switchFormStep('step2', 'step1');
+        window.switchFormStep('step3', 'step1');
+        window.scrollTo(0,0);
+    }
+
+    // 3. TIME SLOTS
+    window.updateTimeSlots = async () => {
+        const dateInput = document.getElementById('date').value;
+        const grid = document.getElementById('time-grid');
+        const personsInput = document.getElementById('persons').value || 0; 
+        const groupSize = parseInt(personsInput) || 2; 
+        const resName = window.selectedRestaurant;
+        
+        document.getElementById('selected-time-value').value = "";
+
+        if(!dateInput) {
+            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#ccc; padding:20px;'>يرجى اختيار التاريخ</div>";
+            return;
+        }
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        if(dateInput < todayStr) {
+            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#e74c3c; padding:20px;'>⚠️ لا يمكن الحجز في تاريخ قديم</div>";
+            return;
+        }
+
+        grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#ccc;'><div class='loader'></div> جاري التحقق...</div>";
+
+        const guestLimit = window.currentCapacity || 20; 
+        const tableLimit = window.currentTablesLimit || 10; 
+        const startHour = window.currentOpen !== undefined ? window.currentOpen : 12;
+        const endHour = window.currentClose !== undefined ? window.currentClose : 22;
+        const STANDARD_DUR = window.currentDuration || 3;
+        const MIN_DUR = Math.max(1, STANDARD_DUR - 1);
+
+        const isToday = dateInput === todayStr;
+        const now = new Date();
+        const currentHour = now.getHours();
+
+        const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
+        const snapshot = await getDocs(q);
+        
+        let guestMap = new Array(24).fill(0);
+        let tableMap = new Array(24).fill(0);
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if(data.status !== 'Declined' && !data.archived) {
+                const arrivalHour = parseInt(data.time.split(':')[0]); 
+                const guests = parseInt(data.persons) || 0;
+                const tablesUsed = Math.ceil(guests / 4);
+                const thisDuration = data.duration || 3;
+                for(let i=0; i<thisDuration; i++) {
+                    if (arrivalHour + i < 24) {
+                        guestMap[arrivalHour + i] += guests;
+                        tableMap[arrivalHour + i] += tablesUsed;
+                    }
+                }
+            }
+        });
+
+        const doesItFit = (start, dur) => {
+            const tablesNeeded = Math.ceil(groupSize / 4);
+            for(let i=0; i<dur; i++) {
+                if(start+i < 24) {
+                    if((guestMap[start+i] + groupSize) > guestLimit) return false;
+                    if((tableMap[start+i] + tablesNeeded) > tableLimit) return false;
+                }
+            }
+            return true;
+        };
+
+        let html = '';
+        for (let h = startHour; h <= endHour; h++) {
+            const timeString = `${h}:00`;
+            let divClass = "time-slot";
+            let action = "";
+            let displayText = timeString;
+
+            if (isToday && h <= currentHour) {
+                html += `<div class="time-slot disabled">${timeString}</div>`;
+                continue; 
+            }
+
+            if (doesItFit(h, STANDARD_DUR)) {
+                action = `onclick="selectSlot(this, '${timeString}', ${STANDARD_DUR})"`;
+                html += `<div class="${divClass}" ${action}>${displayText}</div>`;
+            } else if (doesItFit(h, MIN_DUR)) {
+                action = `onclick="selectSlot(this, '${timeString}', ${MIN_DUR})"`;
+                html += `<div class="${divClass} warning" ${action}>${timeString}</div>`;
+            } else {
+                html += `<div class="time-slot disabled">ممتلئ</div>`;
+            }
+        }
+        grid.innerHTML = html;
+    };
+
+    window.selectSlot = function(el, time, duration) {
+        document.querySelectorAll('.time-slot').forEach(div => div.classList.remove('selected'));
+        el.classList.add('selected');
+        document.getElementById('selected-time-value').value = time;
+        window.selectedSlotDuration = duration;
+    }
+
+    // 4. CONTINUE & SUBMIT
+    window.goToReview = async () => {
+        const nameInp = document.getElementById('name');
+        const numInp = document.getElementById('phone');
+        const dateInp = document.getElementById('date');
+        const timeInp = document.getElementById('selected-time-value');
+        const persInp = document.getElementById('persons');
+
+        if(!nameInp || !nameInp.value) return alert("الرجاء إدخال الاسم.");
+        if(!numInp || !numInp.value) return alert("الرجاء إدخال رقم الهاتف.");
+        if(!dateInp || !dateInp.value) return alert("الرجاء اختيار التاريخ.");
+        if(!timeInp || !timeInp.value) return alert("الرجاء اختيار وقت من القائمة.");
+        
+        let cleanNum = numInp.value.replace(/^0+/, ''); 
+        const code = document.getElementById('phone-code').value;
+        window.selectedFullPhone = (code ? code : "") + cleanNum;
+        
+        if(!window.selectedSlotDuration) window.selectedSlotDuration = 3;
+
+        document.getElementById('rev-loc').innerText = window.selectedRestaurant;
+        document.getElementById('rev-name').innerText = nameInp.value;
+        document.getElementById('rev-phone-display').innerText = "+" + window.selectedFullPhone;
+        document.getElementById('rev-time-display').innerText = `${timeInp.value} ${dateInp.value}`;
+        document.getElementById('rev-guests').innerText = persInp.value;
+        document.getElementById('rev-duration').innerText = window.selectedSlotDuration + " ساعات";
+        
+        window.switchFormStep('step1', 'step2');
+    }
+
+    window.toggleConfirmBtn = () => {
+        const check = document.getElementById('policy-check');
+        document.getElementById('btn-confirm-final').disabled = !check.checked;
+    }
+
+    window.switchFormStep = (hide, show) => { 
+        document.getElementById(hide).style.display = 'none'; 
+        document.getElementById(show).style.display = 'block'; 
+    }
+    
+    // 5. UTILS
+    window.goHome = function() { 
+        document.getElementById('booking-page').classList.remove('active-section'); 
+        document.getElementById('manage-page').classList.remove('active-section');
+        document.getElementById('home-page').classList.add('active-section'); 
+    }
+    window.openLogin = () => document.getElementById('loginModal').style.display = 'block';
+    window.closeLogin = () => document.getElementById('loginModal').style.display = 'none';
+    window.openManage = () => {
+        document.getElementById('home-page').classList.remove('active-section');
+        document.getElementById('booking-page').classList.remove('active-section');
+        document.getElementById('manage-page').classList.add('active-section');
+    }
+
+    window.handleLogin = async () => {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-pass').value;
+        try {
+            await signInWithEmailAndPassword(auth, email, pass);
+            if (email === "admin@tawelty.com") window.location.href = "admin.html";
+            else {
+                const managerSnap = await getDoc(doc(db, "managers", email));
+                if (managerSnap.exists()) window.location.href = "manager.html";
+                else throw new Error("غير مصرح بالدخول");
+            }
+        } catch (error) { document.getElementById('login-error').innerText = "خطأ: " + error.message; document.getElementById('login-error').style.display = 'block'; }
+    };
+
+    window.sendEmail = async function() {
+        document.getElementById('step2').style.display = 'none';
+        const bookingData = { 
+            restaurant: window.selectedRestaurant, 
+            name: document.getElementById('name').value, 
+            phone: window.selectedFullPhone,
+            date: document.getElementById('date').value, 
+            time: document.getElementById('selected-time-value').value, 
+            persons: document.getElementById('persons').value, 
+            status: "Pending", 
+            duration: window.selectedDuration, 
+            createdAt: new Date() 
+        };
+        try {
+            await addDoc(collection(db, "reservations"), bookingData);
+            document.getElementById('step3').style.display = 'block';
+        } catch (e) { alert("خطأ: " + e.message); document.getElementById('step2').style.display = 'block'; }
+    }
+    
+    window.findBookings = async () => {
+        const code = document.getElementById('manage-code').value;
+        const num = document.getElementById('manage-phone').value;
+        const list = document.getElementById('user-bookings-list');
+        
+        if(!num) return alert("الرجاء إدخال رقم الهاتف.");
+        let cleanNum = num.replace(/^0+/, ''); 
+        let fullPhone = (code ? code : "") + cleanNum; 
+
+        list.innerHTML = "<div style='text-align:center;'><div class='loader'></div> جاري البحث...</div>";
+
+        try {
+            const q = query(collection(db, "reservations"), where("phone", "==", fullPhone));
+            const snapshot = await getDocs(q);
+            let html = "";
+            let count = 0;
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) {
+                    count++;
+                    
+                    // Translate Status
+                    let statusArabic = d.status === 'Accepted' ? 'مؤكد ✅' : 'قيد الانتظار ⏳';
+                    let statusColor = d.status === 'Accepted' ? 'green' : '#F39C12';
+
+                    html += `
+                    <div class="my-booking-card">
+                        <h3>${d.restaurant}</h3>
+                        <p>📅 ${d.date} الساعة ${d.time}</p>
+                        <p>👤 ${d.persons} ضيوف</p>
+                        <p>الحالة: <strong style="color:${statusColor}">${statusArabic}</strong></p>
+                        <button class="btn-cancel-user" onclick="cancelBookingUser('${doc.id}')">إلغاء الحجز</button>
+                    </div>`;
+                }
+            });
+            if(count === 0) list.innerHTML = "<p style='text-align:center; color:#888;'>لا يوجد حجوزات لهذا الرقم.</p>";
+            else list.innerHTML = html;
+        } catch (e) { list.innerHTML = "<p style='text-align:center; color:red;'>خطأ في البحث.</p>"; }
+    }
+
+    window.cancelBookingUser = async (id) => {
+        if(confirm("هل أنت متأكد من إلغاء الحجز؟")) {
+            await updateDoc(doc(db, "reservations", id), { archived: true });
+            alert("تم الإلغاء بنجاح.");
+            window.findBookings();
+        }
+    }
+</script>
+</body>
+</html>
