@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tawelty - Premium Dining</title>
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js');
+    });
+  }
+</script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         /* --- TAWELTY V2: MODERN LUXURY THEME --- */
@@ -609,3 +618,4 @@
 </script>
 </body>
 </html>
+
