@@ -25,7 +25,7 @@
         /* HEADER */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .header h2 { font-size: 1.5rem; color: var(--text-main); }
-        .btn-logout { background: none; border: none; color: var(--text-sub); font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+        .btn-logout { background: none; border: none; color: red; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
 
         /* TABS */
         .view-tabs { display: flex; gap: 10px; background: white; padding: 5px; border-radius: 50px; border: 1px solid var(--border); width: fit-content; margin-bottom: 20px; }
@@ -120,7 +120,7 @@
             <button class="btn-add" onclick="openModal('add')">+</button>
         </div>
         
-        <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a" preload="auto"></audio>
+        <audio id="notif-sound" src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjQ1LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWgAAAA0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQZAAABi0eU5sAAAAPo8pzYAAAACWjL0AAAACWjL0AAAAD/88AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQZAABAAABAAAAAAABAAAAAAABAAAAAAABAAAAAAABAAAAAAA=" preload="auto"></audio>
     </div>
 
     <div id="booking-modal" class="modal">
@@ -178,6 +178,9 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // REAL NOTIFICATION SOUND (Bell/Chime)
+    const AUDIO_SRC = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a";
+
     let currentRestaurant = "";
     let maxGuests = 0;
     let maxTables = 0; 
@@ -189,33 +192,37 @@
 
     window.onload = () => { 
         setInterval(recalculateDashboard, 10000);
+        document.getElementById('notif-sound').src = AUDIO_SRC; // Set real source
         
-        // --- SILENT AUDIO UNLOCKER ---
-        // This waits for the first touch anywhere on the screen
-        const unlockAudio = () => {
+        // --- THE SILENT UNLOCKER ---
+        // This attaches to the entire screen. The FIRST time the manager touches ANYTHING, sound unlocks.
+        const unlocker = () => {
             const sound = document.getElementById('notif-sound');
             if(sound) {
-                sound.volume = 1.0;
+                sound.muted = true; // Start muted to not startle
                 sound.play().then(() => {
                     sound.pause();
                     sound.currentTime = 0;
+                    sound.muted = false; // Unmute for future
                 }).catch(e => {});
             }
-            // Remove listeners so it only runs once
-            document.removeEventListener('click', unlockAudio);
-            document.removeEventListener('touchstart', unlockAudio);
-            
-            // Try Keep Awake
-            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(e=>{});
+            // Remove listeners once unlocked
+            document.removeEventListener('click', unlocker);
+            document.removeEventListener('touchstart', unlocker);
         };
-        document.addEventListener('click', unlockAudio);
-        document.addEventListener('touchstart', unlockAudio);
+        document.addEventListener('click', unlocker);
+        document.addEventListener('touchstart', unlocker);
     };
 
     // --- AUTH ---
     window.login = () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
+        
+        // Unlock sound on login click too
+        const sound = document.getElementById('notif-sound');
+        if(sound) { sound.play().catch(e=>{}); sound.pause(); }
+
         signInWithEmailAndPassword(auth, email, pass).catch(e => {
             document.getElementById('login-msg').innerText = "Failed: " + e.message;
             document.getElementById('login-msg').classList.remove('hidden');
@@ -231,7 +238,6 @@
         if (user) {
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
-            
             try {
                 const managerRef = doc(db, "managers", user.email);
                 const managerSnap = await getDoc(managerRef);
@@ -277,8 +283,12 @@
                     if (change.type === "added") {
                         const d = change.doc.data();
                         if (!d.archived && d.source !== "Manager" && d.status === "Pending") {
+                            // Force play
                             sound.currentTime = 0;
-                            sound.play().catch(e => console.log("Sound block:", e));
+                            sound.play().catch(e => console.log("Sound error:", e));
+                            
+                            // Vibrate phone if supported
+                            if("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
                         }
                     }
                 });
