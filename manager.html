@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Manager Portal - Tawelty</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
         /* --- MODERN LIGHT THEME --- */
@@ -17,61 +17,63 @@
             --radius: 12px;
         }
 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 40px 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; padding-bottom: 80px; }
         
         h1, h2, h3 { margin: 0; font-weight: 700; }
         
         /* HEADER */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .header h2 { font-size: 1.8rem; color: var(--text-main); }
-        .btn-logout { background: none; border: none; color: var(--text-sub); font-weight: 600; cursor: pointer; }
-        .btn-logout:hover { color: red; text-decoration: underline; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h2 { font-size: 1.5rem; color: var(--text-main); }
+        .btn-logout { background: none; border: none; color: var(--text-sub); font-weight: 600; cursor: pointer; font-size: 0.9rem; }
 
         /* TABS */
         .view-tabs { display: flex; gap: 10px; background: white; padding: 5px; border-radius: 50px; border: 1px solid var(--border); width: fit-content; margin-bottom: 20px; }
-        .tab-btn { background: none; border: none; padding: 8px 16px; border-radius: 40px; font-weight: 600; color: var(--text-sub); cursor: pointer; transition: 0.2s; }
+        .tab-btn { background: none; border: none; padding: 8px 16px; border-radius: 40px; font-weight: 600; color: var(--text-sub); cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
         .tab-btn.active { background: var(--text-main); color: white; }
 
         /* STATS */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: var(--surface); padding: 25px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); text-align: center; border: 1px solid var(--border); }
-        .stat-val { display: block; font-size: 2.2rem; font-weight: 800; color: var(--text-main); line-height: 1.1; }
-        .stat-limit { display: block; font-size: 0.9rem; color: var(--text-sub); margin-bottom: 8px; }
-        .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: #888; }
-        .time-card { grid-column: 1 / -1; background: var(--text-main); color: white; padding: 12px; border-radius: 12px; text-align: center; font-weight: 600; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); text-align: center; border: 1px solid var(--border); }
+        .stat-val { display: block; font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1.1; }
+        .stat-limit { display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 5px; }
+        .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: #888; }
+        .time-card { grid-column: 1 / -1; background: var(--text-main); color: white; padding: 10px; border-radius: 12px; text-align: center; font-weight: 600; font-size: 1.1rem; }
 
         /* ACTION BAR */
-        .action-bar { display: flex; justify-content: flex-end; margin-bottom: 20px; }
-        .btn-add { background: var(--text-main); color: white; border: none; padding: 14px 24px; border-radius: 50px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .action-bar { position: fixed; bottom: 20px; right: 20px; z-index: 90; }
+        .btn-add { background: var(--text-main); color: white; border: none; width: 60px; height: 60px; border-radius: 50%; font-size: 24px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); cursor: pointer; display: flex; justify-content: center; align-items: center; }
 
         /* BOOKING LIST */
-        .date-header { position: sticky; top: 10px; z-index: 10; background: rgba(244, 245, 247, 0.95); backdrop-filter: blur(5px); padding: 10px 0; margin: 30px 0 15px 0; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; color: var(--text-sub); border-bottom: 2px solid var(--border); }
+        .date-header { position: sticky; top: 0; z-index: 10; background: rgba(244, 245, 247, 0.95); backdrop-filter: blur(5px); padding: 15px 0; margin: 10px 0; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; color: var(--text-sub); border-bottom: 2px solid var(--border); }
         
-        .booking-card { background: var(--surface); padding: 20px 25px; border-radius: 16px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 15px; transition: 0.2s; }
-        @media(min-width: 600px) { .booking-card { flex-direction: row; justify-content: space-between; align-items: center; } }
-
-        .status-Pending { border-left: 5px solid #FFAB00; }
-        .status-Accepted { border-left: 5px solid #36B37E; }
-        .status-Declined { opacity: 0.6; border-left: 5px solid #555; background: #fafafa; }
-        .status-History { opacity: 0.6; border-left: 5px solid #FF5630; background: #fff5f5; }
-
-        .actions { display: flex; gap: 10px; }
-        .btn-icon { background: white; border: 1px solid var(--border); color: var(--text-sub); width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; }
-        .btn-icon:hover { background: var(--bg); color: var(--text-main); }
+        .booking-card { background: var(--surface); padding: 15px; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; position: relative; }
         
-        .btn-decision { padding: 8px 16px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+        .status-Pending { border-left: 6px solid #FFAB00; }
+        .status-Accepted { border-left: 6px solid #36B37E; }
+        .status-Declined { opacity: 0.7; border-left: 6px solid #555; background: #fafafa; }
+        .status-History { opacity: 0.7; border-left: 6px solid #FF5630; background: #fff5f5; }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .card-title { font-weight: 800; font-size: 1.1rem; margin: 0; }
+        .card-meta { font-size: 0.9rem; color: #555; display: flex; gap: 10px; margin-top: 5px; font-weight: 500; }
+        .btn-decision-row { display: flex; gap: 10px; margin-top: 5px; }
+        
+        .btn-decision { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
         .btn-accept { background: #E3FCEF; color: #006644; }
         .btn-decline { background: #FFEBE6; color: #BF2600; }
 
-        /* MODAL */
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(23, 43, 77, 0.6); backdrop-filter: blur(2px); justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 40px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-        .modal-input { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
+        .actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 5px; }
+        .btn-icon { background: #eee; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1rem; }
+
+        /* OVERLAYS */
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 85%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        .modal-input { width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
         label { font-size: 0.8rem; font-weight: 700; color: var(--text-sub); margin-bottom: 5px; display: block; text-transform: uppercase; }
 
-        .hidden { display: none; }
-        #login-view { max-width: 350px; margin: 10vh auto; text-align: center; }
+        .hidden { display: none !important; }
+        #login-view { max-width: 350px; margin: 10vh auto; text-align: center; padding: 20px; }
         .btn-login { width: 100%; padding: 15px; background: var(--text-main); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 1rem; }
     </style>
 </head>
@@ -88,38 +90,37 @@
     <div id="dashboard-view" class="container hidden">
         <div class="header">
             <h2 id="manager-title">Loading...</h2>
-            
-            <div class="view-tabs">
-                <button id="tab-active" class="tab-btn active" onclick="setView('active')">Live</button>
-                <button id="tab-history" class="tab-btn" onclick="setView('history')">Today's Canceled</button>
-            </div>
-
             <button class="btn-logout" onclick="logout()">Sign Out</button>
+        </div>
+
+        <div class="view-tabs">
+            <button id="tab-active" class="tab-btn active" onclick="setView('active')">Live</button>
+            <button id="tab-history" class="tab-btn" onclick="setView('history')">Today's Canceled</button>
         </div>
 
         <div class="stats-grid">
             <div class="time-card" id="current-hour-display">--:--</div>
             <div class="stat-card">
                 <span class="stat-val" id="live-guests">0</span>
-                <span class="stat-limit" id="max-guests">/ 0 Capacity</span>
-                <span class="stat-label">Current Guests</span>
+                <span class="stat-limit" id="max-guests">/ 0 Cap</span>
+                <span class="stat-label">Guests</span>
             </div>
             <div class="stat-card">
                 <span class="stat-val" id="live-tables">0</span>
-                <span class="stat-limit" id="max-tables">/ 0 Tables</span>
-                <span class="stat-label">Active Tables</span>
+                <span class="stat-limit" id="max-tables">/ 0 Tbl</span>
+                <span class="stat-label">Tables</span>
             </div>
         </div>
 
-        <div class="action-bar">
-            <button class="btn-add" onclick="openModal('add')">+ New Booking</button>
-        </div>
-
-        <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a" preload="auto"></audio>
-
         <div id="bookings-list">
-            <div style="text-align:center; padding:50px; color:#999;">Connecting to database...</div>
+            <div style="text-align:center; padding:50px; color:#999;">Connecting...</div>
         </div>
+
+        <div class="action-bar">
+            <button class="btn-add" onclick="openModal('add')">+</button>
+        </div>
+        
+        <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a" preload="auto"></audio>
     </div>
 
     <div id="booking-modal" class="modal">
@@ -149,7 +150,7 @@
                     <input type="number" id="m-guests" class="modal-input" value="2" min="1">
                 </div>
                 <div style="flex:1;">
-                    <label>Duration (h)</label>
+                    <label>Duration</label>
                     <input type="number" id="m-duration" class="modal-input" value="3" min="1">
                 </div>
             </div>
@@ -184,12 +185,34 @@
     let closeTime = 22;
     let latestSnapshot = null; 
     let unsubscribe = null; 
-    
-    // VIEW STATE
-    window.currentView = 'active'; // 'active' or 'history'
+    window.currentView = 'active'; 
 
-    window.onload = () => { setInterval(recalculateDashboard, 10000); };
+    window.onload = () => { 
+        setInterval(recalculateDashboard, 10000);
+        
+        // --- SILENT AUDIO UNLOCKER ---
+        // This waits for the first touch anywhere on the screen
+        const unlockAudio = () => {
+            const sound = document.getElementById('notif-sound');
+            if(sound) {
+                sound.volume = 1.0;
+                sound.play().then(() => {
+                    sound.pause();
+                    sound.currentTime = 0;
+                }).catch(e => {});
+            }
+            // Remove listeners so it only runs once
+            document.removeEventListener('click', unlockAudio);
+            document.removeEventListener('touchstart', unlockAudio);
+            
+            // Try Keep Awake
+            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(e=>{});
+        };
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
+    };
 
+    // --- AUTH ---
     window.login = () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
@@ -204,17 +227,11 @@
         signOut(auth).then(() => { window.location.href = "index.html"; });
     };
 
-    window.setView = (view) => {
-        window.currentView = view;
-        document.getElementById('tab-active').classList.toggle('active', view === 'active');
-        document.getElementById('tab-history').classList.toggle('active', view === 'history');
-        if(latestSnapshot) renderListFromSnapshot(latestSnapshot); 
-    };
-
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
+            
             try {
                 const managerRef = doc(db, "managers", user.email);
                 const managerSnap = await getDoc(managerRef);
@@ -241,6 +258,42 @@
             document.getElementById('dashboard-view').classList.add('hidden');
         }
     });
+
+    // --- REALTIME ---
+    function startRealtimeListener() {
+        if(!currentRestaurant) return;
+        const sound = document.getElementById('notif-sound');
+        const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant));
+        let isFirstLoad = true;
+
+        unsubscribe = onSnapshot(q, (snapshot) => {
+            latestSnapshot = snapshot; 
+            recalculateDashboard();
+            renderListFromSnapshot(snapshot);
+
+            if (!isFirstLoad) {
+                snapshot.docChanges().forEach((change) => {
+                    // Play sound ONLY for new pending bookings
+                    if (change.type === "added") {
+                        const d = change.doc.data();
+                        if (!d.archived && d.source !== "Manager" && d.status === "Pending") {
+                            sound.currentTime = 0;
+                            sound.play().catch(e => console.log("Sound block:", e));
+                        }
+                    }
+                });
+            }
+            isFirstLoad = false;
+        });
+    }
+
+    // --- RENDER & LOGIC (Identical to before) ---
+    window.setView = (view) => {
+        window.currentView = view;
+        document.getElementById('tab-active').classList.toggle('active', view === 'active');
+        document.getElementById('tab-history').classList.toggle('active', view === 'history');
+        if(latestSnapshot) renderListFromSnapshot(latestSnapshot); 
+    };
 
     function recalculateDashboard() {
         if (!latestSnapshot) return;
@@ -275,29 +328,6 @@
         else gEl.style.color = "#172B4D"; 
     }
 
-    function startRealtimeListener() {
-        if(!currentRestaurant) return;
-        const sound = document.getElementById('notif-sound');
-        const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant));
-        let isFirstLoad = true;
-
-        unsubscribe = onSnapshot(q, (snapshot) => {
-            latestSnapshot = snapshot; 
-            recalculateDashboard();
-            renderListFromSnapshot(snapshot);
-
-            if (!isFirstLoad) {
-                snapshot.docChanges().forEach((change) => {
-                    // Only play sound if added to ACTIVE list
-                    if (change.type === "added" && !change.doc.data().archived && change.doc.data().source !== "Manager") {
-                        sound.currentTime = 0; sound.play().catch(e => {});
-                    }
-                });
-            }
-            isFirstLoad = false;
-        });
-    }
-
     function renderListFromSnapshot(snapshot) {
         const list = document.getElementById('bookings-list');
         const allDocs = [];
@@ -305,15 +335,11 @@
 
         snapshot.forEach(doc => { 
             const d = doc.data();
-            
-            // LOGIC: ACTIVE vs HISTORY
             if (window.currentView === 'active') {
-                // Show: Not Cancelled AND Not Declined AND (Date is Today or Future)
                 if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) {
                     allDocs.push({ id: doc.id, ...d });
                 }
             } else {
-                // Show: Cancelled OR Declined BUT ONLY for TODAY
                 if ((d.archived || d.status === 'Declined') && d.date === todayStr) {
                     allDocs.push({ id: doc.id, ...d });
                 }
@@ -321,11 +347,10 @@
         });
         
         if(allDocs.length === 0) {
-            list.innerHTML = `<p style='text-align:center; padding:50px; color:#aaa;'>No ${window.currentView === 'active' ? 'active' : 'cancelled'} bookings for today.</p>`;
+            list.innerHTML = `<p style='text-align:center; padding:50px; color:#aaa;'>No ${window.currentView} bookings.</p>`;
             return;
         }
 
-        // Sort: Active = Soonest first. History = Newest first.
         allDocs.sort((a, b) => {
             if (a.date !== b.date) return window.currentView==='active' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
             return parseInt(a.time) - parseInt(b.time);
@@ -337,24 +362,24 @@
         allDocs.forEach(b => {
             if (b.date !== lastDate) {
                 const dObj = new Date(b.date);
-                const dStr = dObj.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
+                const dStr = dObj.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
                 html += `<div class="date-header">${dStr}</div>`;
                 lastDate = b.date;
             }
 
             let buttons = '';
             let cardClass = `status-${b.status}`;
-            let statusText = b.status;
-            if (b.archived) { cardClass = "status-History"; statusText = "Cancelled"; }
-
+            
             if (window.currentView === 'active') {
                 if(b.status === 'Pending') {
                     buttons = `
-                        <button class="btn-decision btn-accept" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name}', 'Accepted')">Accept</button>
-                        <button class="btn-decision btn-decline" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name}', 'Declined')">Decline</button>
+                        <div class="btn-decision-row">
+                            <button class="btn-decision btn-accept" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name}', 'Accepted')">Accept</button>
+                            <button class="btn-decision btn-decline" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name}', 'Declined')">Decline</button>
+                        </div>
                     `;
                 } else {
-                    buttons = `<span style="color:#36B37E; font-weight:700; margin-right:15px; font-size:0.9rem;">${b.status}</span>`;
+                    buttons = `<div style="font-size:0.8rem; color:#36B37E; font-weight:bold; margin-top:5px;">✅ ACCEPTED</div>`;
                 }
                 const safeName = b.name.replace(/'/g, "\\'");
                 const safePhone = (b.phone || "").replace(/'/g, "\\'");
@@ -362,25 +387,22 @@
                 buttons += `
                     <div class="actions">
                         <button class="btn-icon" onclick="openModal('edit', '${b.id}', '${safeName}', '${safePhone}', '${b.date}', '${b.time}', ${b.persons}, ${b.duration||3})">✏️</button>
-                        <button class="btn-icon" onclick="archiveBooking('${b.id}')">🗑</button>
+                        <button class="btn-icon" onclick="archiveBooking('${b.id}')" style="color:red;">🗑</button>
                     </div>
                 `;
             } else {
-                // History View Actions
-                buttons = `<span style="color:#888; font-size:0.8rem; font-weight:bold;">${statusText}</span>`;
+                buttons = `<div style="font-size:0.8rem; color:#888; font-weight:bold; margin-top:5px;">❌ ${b.status}</div>`;
             }
-
-            const sourceTag = b.source === "Manager" ? '<span style="font-size:0.7rem; background:#eee; padding:2px 5px; border-radius:4px; margin-left:5px;">STAFF</span>' : '';
 
             html += `
             <div class="booking-card ${cardClass}">
-                <div>
-                    <h3 style="margin-bottom:5px;">${b.name} ${sourceTag}</h3>
-                    <div style="font-size:0.9rem; color:#555;">
-                        <span>🕒 ${b.time}</span> • <span>👤 ${b.persons} Ppl</span> • <span>📞 ${b.phone}</span>
-                    </div>
+                <div class="card-header">
+                    <h3 class="card-title">${b.name}</h3>
                 </div>
-                <div style="display:flex; align-items:center;">${buttons}</div>
+                <div class="card-meta">
+                    <span>🕒 ${b.time}</span> • <span>👤 ${b.persons}</span> • <span>📞 ${b.phone}</span>
+                </div>
+                ${buttons}
             </div>`;
         });
         list.innerHTML = html;
@@ -436,42 +458,11 @@
 
         if(!date || !time) return alert("Date/Time required");
 
-        const today = new Date(); 
-        const selDate = new Date(date);
-        const isToday = selDate.getDate() === today.getDate() && selDate.getMonth() === today.getMonth();
-        const selHour = parseInt(time.split(':')[0]);
-        const currHour = today.getHours();
-
-        if (selDate < new Date(today.toDateString())) return alert("Past Date!");
-        if (isToday && selHour < currHour) return alert("Past Time!");
-
         const btn = document.querySelector('#booking-modal .btn-login');
         const originalText = btn.innerText;
-        btn.innerText = "Checking...";
+        btn.innerText = "Saving...";
         
         try {
-            const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant), where("date", "==", date));
-            const snapshot = await getDocs(q);
-            
-            let currentGuests = 0;
-            snapshot.forEach(doc => {
-                if(id && doc.id === id) return;
-                const d = doc.data();
-                if(!d.archived && d.status !== 'Declined') {
-                    const startH = parseInt(d.time.split(':')[0]);
-                    const endH = startH + (d.duration || 3);
-                    if (selHour < endH && (selHour + duration) > startH) {
-                        currentGuests += parseInt(d.persons);
-                    }
-                }
-            });
-
-            if (currentGuests + guests > maxGuests) {
-                if (!confirm(`⚠️ WARNING: Capacity Exceeded!\nLimit: ${maxGuests}\nNew Total: ${currentGuests+guests}\n\nForce Add?`)) {
-                    btn.innerText = originalText; return;
-                }
-            }
-
             if (id) {
                 await updateDoc(doc(db, "reservations", id), { name, phone, date, time, persons: guests, duration: duration });
             } else {
@@ -491,7 +482,7 @@
     };
 
     window.archiveBooking = async (id) => {
-        if(confirm("Archive/Cancel this booking? It will move to History.")) { await updateDoc(doc(db, "reservations", id), { archived: true }); }
+        if(confirm("Archive/Cancel this booking?")) { await updateDoc(doc(db, "reservations", id), { archived: true }); }
     };
 </script>
 </body>
