@@ -6,13 +6,14 @@
     <title>طاولتي - حجوزات فاخرة</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#111111">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
+      }
+    </script>
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     
-    <meta property="og:title" content="طاولتي - حجوزات مطاعم">
-    <meta property="og:description" content="احجز طاولتك في أفخم مطاعم الشام.">
-    <meta property="og:image" content="https://images.unsplash.com/photo-1559339352-11d035aa65de">
-
     <style>
         /* --- MODERN ARABIC THEME --- */
         :root { 
@@ -283,7 +284,6 @@
 
     // 1. SETUP
     window.onload = async function() {
-        // PWA Install Prompt (Optional)
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
         const today = new Date().toISOString().split('T')[0];
@@ -491,43 +491,58 @@
         window.selectedSlotDuration = duration;
     }
 
-    // 4. CONTINUE & SUBMIT
+    // 4. CONTINUE & SUBMIT (CRASH PROOF)
+    window.switchFormStep = (hide, show) => { 
+        document.getElementById(hide).style.display = 'none'; 
+        document.getElementById(show).style.display = 'block'; 
+    }
+
     window.goToReview = async () => {
-        const nameInp = document.getElementById('name');
-        const numInp = document.getElementById('phone');
-        const dateInp = document.getElementById('date');
-        const timeInp = document.getElementById('selected-time-value');
-        const persInp = document.getElementById('persons');
+        try {
+            const nameInp = document.getElementById('name');
+            const numInp = document.getElementById('phone');
+            const dateInp = document.getElementById('date');
+            const timeInp = document.getElementById('selected-time-value');
+            const persInp = document.getElementById('persons');
 
-        if(!nameInp || !nameInp.value) return alert("الرجاء إدخال الاسم.");
-        if(!numInp || !numInp.value) return alert("الرجاء إدخال رقم الهاتف.");
-        if(!dateInp || !dateInp.value) return alert("الرجاء اختيار التاريخ.");
-        if(!timeInp || !timeInp.value) return alert("الرجاء اختيار وقت من القائمة.");
-        
-        let cleanNum = numInp.value.replace(/^0+/, ''); 
-        const code = document.getElementById('phone-code').value;
-        window.selectedFullPhone = (code ? code : "") + cleanNum;
-        
-        if(!window.selectedSlotDuration) window.selectedSlotDuration = 3;
+            // SAFETY CHECKS
+            if(!nameInp || !nameInp.value) return alert("الرجاء إدخال الاسم.");
+            if(!numInp || !numInp.value) return alert("الرجاء إدخال رقم الهاتف.");
+            if(!dateInp || !dateInp.value) return alert("الرجاء اختيار التاريخ.");
+            if(!timeInp || !timeInp.value) return alert("الرجاء اختيار وقت من القائمة.");
+            
+            let cleanNum = numInp.value.replace(/^0+/, ''); 
+            const code = document.getElementById('phone-code').value;
+            window.selectedFullPhone = (code ? code : "") + cleanNum;
+            
+            if(!window.selectedSlotDuration) window.selectedSlotDuration = 3;
 
-        document.getElementById('rev-loc').innerText = window.selectedRestaurant;
-        document.getElementById('rev-name').innerText = nameInp.value;
-        document.getElementById('rev-phone-display').innerText = "+" + window.selectedFullPhone;
-        document.getElementById('rev-time-display').innerText = `${timeInp.value} ${dateInp.value}`;
-        document.getElementById('rev-guests').innerText = persInp.value;
-        document.getElementById('rev-duration').innerText = window.selectedSlotDuration + " ساعات";
-        
-        window.switchFormStep('step1', 'step2');
+            // UPDATE UI (SAFE)
+            const elLoc = document.getElementById('rev-loc');
+            const elName = document.getElementById('rev-name');
+            const elPhone = document.getElementById('rev-phone-display');
+            const elTime = document.getElementById('rev-time-display');
+            const elGuests = document.getElementById('rev-guests');
+            const elDur = document.getElementById('rev-duration');
+
+            if(elLoc) elLoc.innerText = window.selectedRestaurant;
+            if(elName) elName.innerText = nameInp.value;
+            if(elPhone) elPhone.innerText = "+" + window.selectedFullPhone;
+            if(elTime) elTime.innerText = `${timeInp.value} ${dateInp.value}`;
+            if(elGuests) elGuests.innerText = persInp.value;
+            if(elDur) elDur.innerText = window.selectedSlotDuration + " ساعات";
+            
+            window.switchFormStep('step1', 'step2');
+
+        } catch (e) {
+            console.error(e);
+            alert("خطأ: " + e.message); // Will show user if something actually breaks
+        }
     }
 
     window.toggleConfirmBtn = () => {
         const check = document.getElementById('policy-check');
         document.getElementById('btn-confirm-final').disabled = !check.checked;
-    }
-
-    window.switchFormStep = (hide, show) => { 
-        document.getElementById(hide).style.display = 'none'; 
-        document.getElementById(show).style.display = 'block'; 
     }
     
     // 5. UTILS
@@ -568,7 +583,7 @@
             time: document.getElementById('selected-time-value').value, 
             persons: document.getElementById('persons').value, 
             status: "Pending", 
-            duration: window.selectedDuration, 
+            duration: window.selectedSlotDuration, 
             createdAt: new Date() 
         };
         try {
