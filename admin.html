@@ -62,9 +62,25 @@
         <h2 id="form-title" style="margin-bottom: 10px;">Setup New Venue</h2>
         
         <div class="section-title">1. Restaurant Details</div>
-        <label>Name</label><input type="text" id="res-name" placeholder="e.g. Naranj">
-        <label>Location</label><input type="text" id="res-location" placeholder="e.g. Old Damascus">
-        <label>Image Link</label><input type="text" id="res-image" placeholder="https://...">
+        <label>Name</label>
+        <input type="text" id="res-name" placeholder="e.g. Naranj">
+        
+        <label>City</label>
+        <select id="res-city">
+            <option value="Damascus" selected>Damascus (دمشق)</option>
+            <option value="Rif Damascus">Rif Damascus (ريف دمشق)</option>
+            <option value="Aleppo">Aleppo (حلب)</option>
+            <option value="Homs">Homs (حمص)</option>
+            <option value="Latakia">Latakia (اللاذقية)</option>
+            <option value="Tartus">Tartus (طرطوس)</option>
+            <option value="Hama">Hama (حماة)</option>
+        </select>
+
+        <label>Area / Location</label>
+        <input type="text" id="res-location" placeholder="e.g. Old City">
+        
+        <label>Image Link</label>
+        <input type="text" id="res-image" placeholder="https://...">
         
         <div style="display:flex; gap:10px;">
             <div style="flex:1;">
@@ -187,13 +203,14 @@
 
     async function createRestaurant() {
         const rName = document.getElementById('res-name').value;
+        const rCity = document.getElementById('res-city').value; // Get City
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
         const rTabs = document.getElementById('res-tables').value || "10";
         const rDur = document.getElementById('res-duration').value || "3";
-        const rOpen = document.getElementById('res-open').value || "12"; // Default 12pm
-        const rClose = document.getElementById('res-close').value || "22"; // Default 10pm
+        const rOpen = document.getElementById('res-open').value || "12";
+        const rClose = document.getElementById('res-close').value || "22";
         const rCus = document.getElementById('res-cuisine').value || "General";
         const rPri = document.getElementById('res-price').value || "$$";
         
@@ -209,15 +226,16 @@
         try {
             await addDoc(collection(db, "restaurants"), { 
                 name: rName, 
+                city: rCity,
                 location: rLoc, 
                 image: rImg || 'https://via.placeholder.com/400x300',
                 capacity: parseInt(rCap),
                 tables: parseInt(rTabs),
                 duration: parseInt(rDur),
-                openTime: parseInt(rOpen), // Save Open
-                closeTime: parseInt(rClose), // Save Close
+                openTime: parseInt(rOpen),
+                closeTime: parseInt(rClose),
                 cuisine: rCus, 
-                price: rPri    
+                price: rPri     
             });
             
             const secondaryApp = initializeApp(firebaseConfig, "Secondary");
@@ -234,6 +252,7 @@
 
     async function updateRestaurant() {
         const rName = document.getElementById('res-name').value;
+        const rCity = document.getElementById('res-city').value; // Get City
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
@@ -254,13 +273,14 @@
             const resRef = doc(db, "restaurants", editingId);
             await updateDoc(resRef, { 
                 name: rName, 
+                city: rCity,
                 location: rLoc, 
                 image: rImg,
                 capacity: parseInt(rCap),
                 tables: parseInt(rTabs),
                 duration: parseInt(rDur),
-                openTime: parseInt(rOpen), // Update
-                closeTime: parseInt(rClose), // Update
+                openTime: parseInt(rOpen),
+                closeTime: parseInt(rClose),
                 cuisine: rCus,
                 price: rPri
             });
@@ -300,23 +320,22 @@
                 const safeCap = d.capacity || 20; 
                 const safeTabs = d.tables || 10;
                 const safeDur = d.duration || 3;
-                const safeOpen = d.openTime !== undefined ? d.openTime : 12; // Check
-                const safeClose = d.closeTime !== undefined ? d.closeTime : 22; // Check
+                const safeOpen = d.openTime !== undefined ? d.openTime : 12;
+                const safeClose = d.closeTime !== undefined ? d.closeTime : 22;
                 const safeCus = d.cuisine || "General"; 
                 const safePri = d.price || "$$"; 
-
-                const mgrEmail = mgrMap[d.name] || "No Manager Linked";
+                const safeCity = d.city || "Damascus";
 
                 html += `
                 <div class="res-item">
                     <div class="res-info">
-                        <div class="res-name">${d.name}</div>
+                        <div class="res-name">${d.name} <span style="font-weight:normal; font-size:12px; color:#555;">(${safeCity})</span></div>
                         <div class="res-meta">${d.location} | ${safeCus} | ${safePri}</div>
                         <div class="res-meta">Hours: ${safeOpen}:00 - ${safeClose}:00 | Time: ${safeDur}h</div>
                     </div>
                     <div>
                         <button class="btn-action btn-qr" onclick="showQr('${safeName}')">📱</button>
-                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, ${safeTabs}, '${safeCus}', '${safePri}', ${safeDur}, ${safeOpen}, ${safeClose})">✏️</button>
+                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, ${safeTabs}, '${safeCus}', '${safePri}', ${safeDur}, ${safeOpen}, ${safeClose}, '${safeCity}')">✏️</button>
                         <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}', '${safeName}')">🗑️</button>
                     </div>
                 </div>`;
@@ -337,17 +356,18 @@
     
     window.closeQr = () => document.getElementById('qr-modal').style.display = 'none';
 
-    window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur, open, close) => {
+    window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur, open, close, city) => {
         editingId = id;
         editingOldName = name;
         document.getElementById('res-name').value = name;
+        document.getElementById('res-city').value = city || "Damascus"; // Set City
         document.getElementById('res-location').value = loc;
         document.getElementById('res-image').value = img;
         document.getElementById('res-capacity').value = cap;
         document.getElementById('res-tables').value = tabs;
         document.getElementById('res-duration').value = dur;
-        document.getElementById('res-open').value = open; // Fill
-        document.getElementById('res-close').value = close; // Fill
+        document.getElementById('res-open').value = open;
+        document.getElementById('res-close').value = close;
         document.getElementById('res-cuisine').value = cus;
         document.getElementById('res-price').value = pri;
         
@@ -384,6 +404,7 @@
 
     function clearInputs() {
         document.getElementById('res-name').value = "";
+        document.getElementById('res-city').value = "Damascus"; // Reset City
         document.getElementById('res-location').value = "";
         document.getElementById('res-image').value = "";
         document.getElementById('res-capacity').value = "";
