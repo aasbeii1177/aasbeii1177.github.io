@@ -22,7 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- TAWELTY V3.0 ARABIC --- */
+        /* --- TAWELTY V3.1 ARABIC --- */
         :root { 
             --primary: #111111; 
             --gold: #D4AF37; 
@@ -133,8 +133,7 @@
         <div class="nav-links">
             <a href="index.html" class="nav-item">English 🇬🇧</a>
             <a onclick="openManage()" class="nav-item">حجوزاتي</a>
-            <a onclick="openLogin()" class="nav-item">دخول الموظفين</a>
-        </div>
+            </div>
     </div>
 
     <div class="hero">
@@ -304,6 +303,17 @@
         return `${h}:${m}`;
     };
 
+    // Dictionary for City Translation
+    const cityTrans = {
+        "Damascus": "دمشق",
+        "Rif Damascus": "ريف دمشق",
+        "Aleppo": "حلب",
+        "Homs": "حمص",
+        "Latakia": "اللاذقية",
+        "Tartus": "طرطوس",
+        "Hama": "حماة"
+    };
+
     // 1. SETUP
     window.onload = async function() {
         if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
@@ -323,7 +333,7 @@
                 data.id = doc.id;
                 if(!data.cuisine) data.cuisine = "General";
                 if(!data.price) data.price = "$$";
-                if(!data.city) data.city = "دمشق"; // Default Arabic
+                if(!data.city) data.city = "Damascus"; 
                 cuisines.add(data.cuisine);
                 cities.add(data.city);
                 window.allRestaurants.push(data);
@@ -341,7 +351,9 @@
             const citySelect = document.getElementById('filter-city');
             cities.forEach(c => {
                 const opt = document.createElement('option');
-                opt.value = c; opt.innerText = c;
+                opt.value = c; 
+                // Use translation map or fallback to English
+                opt.innerText = cityTrans[c] || c; 
                 citySelect.appendChild(opt);
             });
 
@@ -365,7 +377,7 @@
             const openTime = branch.openTime !== undefined ? branch.openTime : 12; 
             const closeTime = branch.closeTime !== undefined ? branch.closeTime : 22; 
             
-            // Format Hours
+            // Format Hours in Arabic
             const formatH = (h) => {
                 const ampm = h >= 12 ? 'م' : 'ص';
                 const h12 = h % 12 || 12;
@@ -375,7 +387,11 @@
 
             const safeName = branch.name.replace(/'/g, "\\'");
             const safeImg = (branch.image || '').replace(/'/g, "\\'");
-            const displayCity = branch.city ? `${branch.city} - ` : '';
+            
+            // Translate City in Display
+            const engCity = branch.city || "Damascus";
+            const arCity = cityTrans[engCity] || engCity;
+            const displayCity = `${arCity} - `;
             
             let buttonHtml = isOpen ? `<span class="btn-card">احجز طاولة</span>` : `<span class="btn-card btn-busy">🔴 محجوز بالكامل</span>`;
             let clickAction = isOpen ? `onclick="openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${tables}, ${openTime}, ${closeTime})"` : `style="cursor:not-allowed; opacity:0.8;"`;
@@ -506,9 +522,7 @@
 
         const doesItFit = (start, slots) => {
             const tablesNeeded = Math.ceil(groupSize / 4);
-            // Relaxed "Closing Time" check: Allow if it starts before closing
-            // if (start + slots > 48) return false; 
-
+            
             for(let i=0; i<slots; i++) {
                 if(start+i < 48) {
                     if((guestMap[start+i] + groupSize) > guestLimit) return false;
