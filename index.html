@@ -22,7 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     
     <style>
-        /* --- TAWELTY V2: MOBILE OPTIMIZED --- */
+        /* --- TAWELTY V2.8: CLEAN UI --- */
         :root { 
             --primary: #111111; 
             --gold: #D4AF37; 
@@ -32,7 +32,6 @@
             --radius: 16px;
         }
         
-        /* FIX 2: PREVENT HORIZONTAL SCROLL */
         html, body { overflow-x: hidden; width: 100%; }
         
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); margin: 0; color: var(--primary); -webkit-font-smoothing: antialiased; }
@@ -55,16 +54,14 @@
         .hero { 
             background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=2874&auto=format&fit=crop'); 
             background-size: cover; background-position: center; background-attachment: fixed;
-            height: 320px; /* Shorter for mobile */
+            height: 320px; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; margin-bottom: -40px; padding-bottom: 40px; 
         }
         .hero h1 { color: white; font-size: 3rem; letter-spacing: -1px; margin-bottom: 10px; text-shadow: 0 4px 20px rgba(0,0,0,0.3); }
         .hero p { font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         
-        /* FIX 3: FLUID CONTAINER */
         .container { max-width: 1000px; margin: 0 auto; padding: 15px; position: relative; z-index: 2; box-sizing: border-box; width: 100%; }
         
-        /* FIX 4: SMART GRID FOR MOBILE */
         .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media(min-width: 600px) {
             .grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
@@ -73,7 +70,6 @@
         .filter-bar { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 15px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); margin-bottom: 30px; display: flex; flex-direction: column; gap: 10px; border: 1px solid rgba(255,255,255,0.5); }
         @media(min-width: 600px) { .filter-bar { flex-direction: row; } }
 
-        /* FIX 5: FONT SIZE 16PX TO STOP IPHONE ZOOM */
         .search-input, .filter-select, .input-field, .code-select { background: var(--input-bg); border: 2px solid transparent; padding: 16px; border-radius: 12px; font-size: 16px; outline: none; transition: 0.3s; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; box-sizing: border-box; }
         
         .search-input:focus, .filter-select:focus, .input-field:focus, .code-select:focus { background: white; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1); }
@@ -86,7 +82,6 @@
 
         .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 25px; }
         .time-slot { padding: 12px 5px; text-align: center; background: white; border: 1px solid #eee; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; }
-        .time-slot:hover { border-color: var(--primary); }
         .time-slot.selected { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .time-slot.disabled { background: #f5f5f5; color: #ccc; border-color: transparent; cursor: not-allowed; text-decoration: line-through; }
         .time-slot.warning { border-color: #F1C40F; color: #F39C12; }
@@ -294,6 +289,17 @@
     window.selectedSlotDuration = 3;
     window.selectedFullPhone = "";
 
+    const timeToIndex = (timeStr) => {
+        const [h, m] = timeStr.split(':').map(Number);
+        return (h * 2) + (m === 30 ? 1 : 0);
+    };
+    
+    const indexToTime = (idx) => {
+        const h = Math.floor(idx / 2);
+        const m = (idx % 2 === 0) ? "00" : "30";
+        return `${h}:${m}`;
+    };
+
     // 1. SETUP
     window.onload = async function() {
         const today = new Date().toISOString().split('T')[0];
@@ -405,7 +411,7 @@
         window.scrollTo(0,0);
     }
 
-    // 3. TIME SLOTS
+    // --- 3. 30-MINUTE + ADAPTIVE DURATION ---
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const grid = document.getElementById('time-grid');
@@ -430,40 +436,53 @@
 
         const guestLimit = window.currentCapacity || 20; 
         const tableLimit = window.currentTablesLimit || 10; 
-        const startHour = window.currentOpen !== undefined ? window.currentOpen : 12;
-        const endHour = window.currentClose !== undefined ? window.currentClose : 22;
-        const STANDARD_DUR = window.currentDuration || 3;
-        const MIN_DUR = Math.max(1, STANDARD_DUR - 1);
+        
+        // Time Indices (0-47)
+        const startIdx = (window.currentOpen !== undefined ? window.currentOpen : 12) * 2;
+        const endIdx = (window.currentClose !== undefined ? window.currentClose : 22) * 2;
+        
+        // 3 Tiers of Duration
+        const dur3 = (window.currentDuration || 3) * 2; // 6 slots
+        const dur2 = Math.max(2, (window.currentDuration || 3) - 1) * 2; // 4 slots
+        const dur1 = 2; // 1 hour (2 slots) - The Fallback
 
         const isToday = dateInput === todayStr;
         const now = new Date();
-        const currentHour = now.getHours();
+        const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+        const currentIdx = Math.floor(currentTotalMinutes / 30); 
 
         const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
         const snapshot = await getDocs(q);
         
-        let guestMap = new Array(24).fill(0);
-        let tableMap = new Array(24).fill(0);
+        // 48 Slots (00:00 to 23:30)
+        let guestMap = new Array(48).fill(0);
+        let tableMap = new Array(48).fill(0);
+        
         snapshot.forEach(doc => {
             const data = doc.data();
             if(data.status !== 'Declined' && !data.archived) {
-                const arrivalHour = parseInt(data.time.split(':')[0]); 
+                const bookingStartIdx = timeToIndex(data.time); 
+                const bookingDur = data.duration || 3;
+                const bookingSlots = bookingDur * 2;
                 const guests = parseInt(data.persons) || 0;
                 const tablesUsed = Math.ceil(guests / 4);
-                const thisDuration = data.duration || 3;
-                for(let i=0; i<thisDuration; i++) {
-                    if (arrivalHour + i < 24) {
-                        guestMap[arrivalHour + i] += guests;
-                        tableMap[arrivalHour + i] += tablesUsed;
+                
+                for(let i=0; i<bookingSlots; i++) {
+                    if (bookingStartIdx + i < 48) {
+                        guestMap[bookingStartIdx + i] += guests;
+                        tableMap[bookingStartIdx + i] += tablesUsed;
                     }
                 }
             }
         });
 
-        const doesItFit = (start, dur) => {
+        const doesItFit = (start, slots) => {
             const tablesNeeded = Math.ceil(groupSize / 4);
-            for(let i=0; i<dur; i++) {
-                if(start+i < 24) {
+            // Allow overflow if late (don't strictly block midnight)
+            // if (start + slots > 48) return false; 
+
+            for(let i=0; i<slots; i++) {
+                if(start+i < 48) {
                     if((guestMap[start+i] + groupSize) > guestLimit) return false;
                     if((tableMap[start+i] + tablesNeeded) > tableLimit) return false;
                 }
@@ -472,22 +491,27 @@
         };
 
         let html = '';
-        for (let h = startHour; h <= endHour; h++) {
-            const timeString = `${h}:00`;
+        for (let idx = startIdx; idx < endIdx; idx++) {
+            const timeString = indexToTime(idx);
             let divClass = "time-slot";
             let action = "";
             let displayText = timeString;
 
-            if (isToday && h <= currentHour) {
+            if (isToday && idx <= currentIdx) {
                 html += `<div class="time-slot disabled">${timeString}</div>`;
                 continue; 
             }
 
-            if (doesItFit(h, STANDARD_DUR)) {
-                action = `onclick="selectSlot(this, '${timeString}', ${STANDARD_DUR})"`;
+            // SMART ADAPTIVE LOGIC
+            if (doesItFit(idx, dur3)) {
+                action = `onclick="selectSlot(this, '${timeString}', ${dur3/2})"`;
                 html += `<div class="${divClass}" ${action}>${displayText}</div>`;
-            } else if (doesItFit(h, MIN_DUR)) {
-                action = `onclick="selectSlot(this, '${timeString}', ${MIN_DUR})"`;
+            } else if (doesItFit(idx, dur2)) {
+                action = `onclick="selectSlot(this, '${timeString}', ${dur2/2})"`;
+                html += `<div class="${divClass} warning" ${action}>${timeString}</div>`;
+            } else if (doesItFit(idx, dur1)) {
+                // Allows 1 Hour booking for late slots
+                action = `onclick="selectSlot(this, '${timeString}', 1)"`;
                 html += `<div class="${divClass} warning" ${action}>${timeString}</div>`;
             } else {
                 html += `<div class="time-slot disabled">Full</div>`;
@@ -517,7 +541,6 @@
             const timeInp = document.getElementById('selected-time-value');
             const persInp = document.getElementById('persons');
 
-            // 1. Validation
             if(!nameInp || !nameInp.value) return alert("Please enter your name.");
             if(!numInp || !numInp.value) return alert("Please enter your phone number.");
             if(!dateInp || !dateInp.value) return alert("Please select a date.");
@@ -530,12 +553,10 @@
             const persons = persInp.value;
             const code = document.getElementById('phone-code').value;
 
-            // 2. Data Processing
             let cleanNum = num.replace(/^0+/, ''); 
             window.selectedFullPhone = (code ? code : "") + cleanNum;
             if(!window.selectedSlotDuration) window.selectedSlotDuration = 3;
 
-            // 3. Update DOM (with safety checks)
             const elLoc = document.getElementById('rev-loc');
             const elName = document.getElementById('rev-name');
             const elPhone = document.getElementById('rev-phone-display');
@@ -550,7 +571,6 @@
             if(elGuests) elGuests.innerText = persons;
             if(elDur) elDur.innerText = window.selectedSlotDuration + " Hours";
             
-            // 4. Switch
             window.switchFormStep('step1', 'step2');
 
         } catch(e) {
