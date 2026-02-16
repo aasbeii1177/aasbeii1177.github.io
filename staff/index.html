@@ -239,10 +239,12 @@
         });
     };
     
-    window.logout = () => {
+   window.logout = () => {
         if(unsubscribe) unsubscribe();
-        // Go back to main Customer App on logout
-        signOut(auth).then(() => { window.location.href = "../index.html"; }); 
+        signOut(auth).then(() => { 
+            // Stay here and show the login box again
+            window.location.reload(); 
+        });
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -521,6 +523,7 @@
 </script>
 </body>
 </html>
+
 
 
 
