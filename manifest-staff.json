@@ -1,6 +1,6 @@
 {
   "name": "Tawelty Staff",
-  "short_name": "Staff Portal",
+  "short_name": "Tawelty Staff",
   "start_url": "./manager.html",
   "display": "standalone",
   "background_color": "#172B4D",
