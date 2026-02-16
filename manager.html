@@ -241,8 +241,17 @@
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            // 1. SUPER ADMIN CHECK
+            // If the Boss logs in, send them to the Admin Panel immediately
+            if (user.email === "admin@tawelty.com") {
+                window.location.href = "admin.html";
+                return;
+            }
+
+            // 2. NORMAL MANAGER LOGIN
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
+            
             try {
                 const managerRef = doc(db, "managers", user.email);
                 const managerSnap = await getDoc(managerRef);
@@ -262,6 +271,9 @@
                         document.getElementById('max-tables').innerText = "/ " + maxTables;
                     }
                     startRealtimeListener(); 
+                } else {
+                    alert("Account not linked to a restaurant.");
+                    signOut(auth);
                 }
             } catch (error) { console.error(error); }
         } else {
