@@ -183,7 +183,11 @@
         });
     };
 
-    window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
+    window.logout = () => {
+    signOut(auth).then(() => {
+        window.location.reload(); // <--- THE FIX (Just reload the page)
+    });
+};
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -420,4 +424,5 @@
 </script>
 </body>
 </html>
+
 
