@@ -241,7 +241,8 @@
     
     window.logout = () => {
         if(unsubscribe) unsubscribe();
-        signOut(auth).then(() => { window.location.href = "index.html"; });
+        // Go back to main Customer App on logout
+        signOut(auth).then(() => { window.location.href = "../index.html"; }); 
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -520,6 +521,7 @@
 </script>
 </body>
 </html>
+
 
 
 
