@@ -1,4 +1,5 @@
 {
+  "id": "tawelty-staff-app",
   "name": "Tawelty Staff",
   "short_name": "Tawelty Staff",
   "start_url": "./manager.html",
