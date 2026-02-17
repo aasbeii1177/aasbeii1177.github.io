@@ -141,7 +141,7 @@
             </div>
         </div>
 
-       <button class="btn-logout" onclick="window.location.reload()">Lock System 🔒</button>
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
     </div>
 
     <div id="qr-modal" onclick="closeQr()">
@@ -184,10 +184,12 @@
     };
 
     window.logout = () => {
-    signOut(auth).then(() => {
-        window.location.reload(); // <--- THE FIX (Just reload the page)
-    });
-};
+        // 1. Sign out of Firebase (So we don't auto-login again)
+        signOut(auth).then(() => {
+            // 2. Go to the Staff Login Portal
+            window.location.href = "staff/"; 
+        });
+    };
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
@@ -424,5 +426,6 @@
 </script>
 </body>
 </html>
+
 
 
