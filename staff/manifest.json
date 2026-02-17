@@ -1,8 +1,9 @@
 {
-  "id": "tawelty-staff-app",
+  "id": "tawelty-staff-v2",
   "name": "Tawelty Staff",
-  "short_name": "Tawelty Staff",
-  "start_url": "./manager.html",
+  "short_name": "Staff",
+  "start_url": "/staff/index.html",
+  "scope": "/staff/",
   "display": "standalone",
   "background_color": "#172B4D",
   "theme_color": "#172B4D",
