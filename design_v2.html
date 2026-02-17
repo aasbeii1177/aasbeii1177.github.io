@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Tawelty - Premium Dining</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0F0F0F">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="logo.jpeg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <style>
+        /* --- PREMIUM DARK THEME VARIABLES --- */
+        :root {
+            --bg: #0F0F0F;
+            --surface: #1E1E1E;
+            --surface-light: #2A2A2A;
+            --primary: #FFFFFF;
+            --accent: #D4AF37; /* Gold Accent */
+            --text-main: #FFFFFF;
+            --text-sub: #A0A0A0;
+            --radius: 20px;
+            --nav-height: 80px;
+        }
+
+        /* RESET */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body {
+            font-family: 'Plus Jakarta Sans', 'Tajawal', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            padding-bottom: calc(var(--nav-height) + 20px); /* Space for Bottom Nav */
+        }
+
+        /* TYPOGRAPHY */
+        h1, h2, h3 { margin: 0; font-weight: 700; }
+        p { margin: 0; color: var(--text-sub); }
+
+        /* HEADER */
+        .app-header {
+            padding: 20px 20px 10px;
+            position: sticky;
+            top: 0;
+            background: rgba(15, 15, 15, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-text { font-size: 1.5rem; letter-spacing: -0.5px; }
+        .logo-text span { color: var(--accent); }
+
+        /* HERO CARDS (Restaurant List) */
+        .feed { padding: 10px 20px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .res-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+            cursor: pointer;
+            height: 250px;
+        }
+        .res-card:active { transform: scale(0.98); }
+        
+        .res-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+        }
+        
+        .res-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        }
+        
+        .res-name { font-size: 1.4rem; margin-bottom: 5px; }
+        .res-meta { font-size: 0.9rem; display: flex; gap: 10px; align-items: center; color: #CCC; }
+        .res-tag { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; backdrop-filter: blur(5px); }
+
+        /* BOTTOM NAVIGATION BAR */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: var(--surface);
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            padding-bottom: 15px; /* For iPhone Home Bar */
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            color: var(--text-sub);
+            font-size: 0.7rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 60px;
+        }
+        
+        .nav-item i { font-size: 1.4rem; transition: 0.2s; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active i { color: var(--accent); transform: translateY(-2px); }
+
+        /* BOTTOM SHEET (Booking Modal) */
+        .sheet-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 200;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+            backdrop-filter: blur(3px);
+        }
+        .sheet-overlay.open { opacity: 1; pointer-events: auto; }
+
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--surface);
+            border-radius: 25px 25px 0 0;
+            padding: 25px;
+            z-index: 201;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .sheet-overlay.open .bottom-sheet { transform: translateY(0); }
+
+        .sheet-handle { width: 40px; height: 5px; background: #444; border-radius: 10px; margin: 0 auto 20px; }
+
+        /* FORM ELEMENTS */
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-size: 0.85rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .form-input {
+            width: 100%;
+            background: var(--surface-light);
+            border: 1px solid #333;
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        .form-input:focus { border-color: var(--accent); }
+
+        .btn-primary {
+            width: 100%;
+            background: white;
+            color: black;
+            font-weight: 700;
+            padding: 18px;
+            border-radius: 14px;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        /* SEARCH BAR */
+        .search-container { padding: 0 20px 10px; }
+        .search-box {
+            background: var(--surface-light);
+            border-radius: 12px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-sub);
+        }
+        .search-box input { background: transparent; border: none; color: white; font-size: 1rem; width: 100%; }
+
+        /* LOADING */
+        .loader { text-align: center; padding: 40px; color: var(--text-sub); }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="logo-text">Tawelty<span>.</span></div>
+        <div style="width: 35px; height: 35px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="ri-user-smile-line" style="color:white;"></i>
+        </div>
+    </header>
+
+    <main id="main-view">
+        
+        <div id="view-home">
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="ri-search-line"></i>
+                    <input type="text" placeholder="Find a restaurant...">
+                </div>
+            </div>
+
+            <div class="feed" id="restaurant-list">
+                <div class="loader">
+                    <i class="ri-loader-4-line ri-spin" style="font-size: 2rem;"></i>
+                    <p style="margin-top:10px;">Finding best tables...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-bookings" class="hidden" style="padding: 20px;">
+            <h2 style="margin-bottom: 20px;">My Reservations</h2>
+            <div id="my-bookings-list">
+                <p style="color: #666;">No upcoming bookings.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('home')">
+            <i class="ri-home-5-fill"></i>
+            <span>Home</span>
+        </button>
+        <button class="nav-item" onclick="switchTab('bookings')">
+            <i class="ri-calendar-check-fill"></i>
+            <span>Bookings</span>
+        </button>
+        <button class="nav-item" onclick="alert('Profile coming soon!')">
+            <i class="ri-user-3-fill"></i>
+            <span>Profile</span>
+        </button>
+    </nav>
+
+    <div class="sheet-overlay" id="booking-overlay" onclick="closeBooking()">
+        <div class="bottom-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            
+            <h2 id="sheet-res-name" style="margin-bottom: 5px;">Restaurant Name</h2>
+            <p style="margin-bottom: 25px;">Reserve your table</p>
+
+            <form onsubmit="submitBooking(event)">
+                <input type="hidden" id="b-res-name">
+                
+                <div class="form-group">
+                    <label class="form-label">Your Name</label>
+                    <input type="text" id="b-name" class="form-input" placeholder="e.g. John Doe" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" id="b-phone" class="form-input" placeholder="09XX XXX XXX" required>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Date</label>
+                        <input type="date" id="b-date" class="form-input" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Time</label>
+                        <select id="b-time" class="form-input" required>
+                            </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Guests</label>
+                    <div style="display: flex; align-items: center; gap: 15px; background: var(--surface-light); padding: 10px; border-radius: 12px; border: 1px solid #333;">
+                        <button type="button" onclick="adjustGuests(-1)" style="background:none; border:none; color:white; font-size:1.5rem; padding:0 10px;">-</button>
+                        <span id="guest-count" style="font-weight:700; font-size:1.2rem; flex:1; text-align:center;">2</span>
+                        <button type="button" onclick="adjustGuests(1)" style="background:none; border:none; color:white; font-size:1.5rem; padding:0 10px;">+</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Confirm Reservation</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCIYCI18z3R0ViAQ0IRofZP9b6bjxZFCOw",
+          authDomain: "tawelty-realtime.firebaseapp.com",
+          projectId: "tawelty-realtime",
+          storageBucket: "tawelty-realtime.firebasestorage.app",
+          messagingSenderId: "127610217841",
+          appId: "1:127610217841:web:9535aedf4a06c645c9c2d0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // --- STATE ---
+        let guests = 2;
+
+        // --- INIT ---
+        window.onload = async () => {
+            const list = document.getElementById('restaurant-list');
+            try {
+                // Fetch Restaurants
+                const querySnapshot = await getDocs(collection(db, "restaurants"));
+                list.innerHTML = ""; // Clear loader
+
+                querySnapshot.forEach((doc) => {
+                    const r = doc.data();
+                    // Fallback image if none provided
+                    const img = r.image || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80";
+                    
+                    const card = document.createElement('div');
+                    card.className = "res-card";
+                    card.onclick = () => openBooking(r.name);
+                    card.innerHTML = `
+                        <img src="${img}" class="res-img" alt="${r.name}">
+                        <div class="res-overlay">
+                            <h3 class="res-name">${r.name}</h3>
+                            <div class="res-meta">
+                                <span class="res-tag">Fine Dining</span>
+                                <span><i class="ri-star-fill" style="color:var(--accent)"></i> 4.9</span>
+                                <span><i class="ri-map-pin-line"></i> Damascus</span>
+                            </div>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            } catch (e) {
+                list.innerHTML = `<p style="text-align:center; color:red;">Error loading restaurants.</p>`;
+                console.error(e);
+            }
+
+            // Init Time Select
+            const timeSelect = document.getElementById('b-time');
+            for(let i=12; i<=23; i++) {
+                const opt = document.createElement('option');
+                opt.value = i + ":00"; opt.innerText = i + ":00";
+                timeSelect.appendChild(opt);
+            }
+            // Set min date to today
+            document.getElementById('b-date').min = new Date().toISOString().split('T')[0];
+        };
+
+        // --- UI FUNCTIONS ---
+        window.switchTab = (tab) => {
+            // Reset Icons
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            // Set Active Icon
+            event.currentTarget.classList.add('active');
+            
+            // Toggle Views
+            if(tab === 'home') {
+                document.getElementById('view-home').classList.remove('hidden');
+                document.getElementById('view-bookings').classList.add('hidden');
+            } else if (tab === 'bookings') {
+                document.getElementById('view-home').classList.add('hidden');
+                document.getElementById('view-bookings').classList.remove('hidden');
+                loadMyBookings();
+            }
+        };
+
+        window.openBooking = (resName) => {
+            document.getElementById('sheet-res-name').innerText = resName;
+            document.getElementById('b-res-name').value = resName;
+            document.getElementById('booking-overlay').classList.add('open');
+            // Reset form
+            document.getElementById('guest-count').innerText = "2";
+            guests = 2;
+        };
+
+        window.closeBooking = () => {
+            document.getElementById('booking-overlay').classList.remove('open');
+        };
+
+        window.adjustGuests = (delta) => {
+            guests += delta;
+            if(guests < 1) guests = 1;
+            if(guests > 20) guests = 20;
+            document.getElementById('guest-count').innerText = guests;
+        };
+
+        window.submitBooking = async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Booking...";
+            
+            const booking = {
+                restaurant: document.getElementById('b-res-name').value,
+                name: document.getElementById('b-name').value,
+                phone: document.getElementById('b-phone').value,
+                date: document.getElementById('b-date').value,
+                time: document.getElementById('b-time').value,
+                persons: guests,
+                status: "Pending",
+                createdAt: new Date()
+            };
+
+            try {
+                await addDoc(collection(db, "reservations"), booking);
+                
+                // Save to Local Storage for "My Bookings" tab
+                let myBookings = JSON.parse(localStorage.getItem('myBookings') || "[]");
+                myBookings.push(booking);
+                localStorage.setItem('myBookings', JSON.stringify(myBookings));
+
+                closeBooking();
+                alert(`Request Sent for ${booking.restaurant}!`);
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.innerText = originalText;
+            }
+        };
+
+        window.loadMyBookings = () => {
+            const list = document.getElementById('my-bookings-list');
+            const myBookings = JSON.parse(localStorage.getItem('myBookings') || "[]");
+            
+            if(myBookings.length === 0) {
+                list.innerHTML = `<p style="text-align:center; padding:30px; color:#555;">No bookings found on this device.</p>`;
+                return;
+            }
+
+            list.innerHTML = "";
+            myBookings.reverse().forEach(b => {
+                const item = document.createElement('div');
+                item.style.cssText = "background: var(--surface); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent);";
+                item.innerHTML = `
+                    <h3 style="font-size:1.1rem; margin-bottom:5px;">${b.restaurant}</h3>
+                    <div style="font-size:0.9rem; color:#AAA;">
+                        <span>📅 ${b.date}</span> • <span>⏰ ${b.time}</span>
+                    </div>
+                    <div style="margin-top:8px; font-size:0.8rem; font-weight:700; color:var(--accent);">
+                        STATUS: ${b.status.toUpperCase()}
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        };
+    </script>
+</body>
+</html>
