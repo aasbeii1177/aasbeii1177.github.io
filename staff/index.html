@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <title>Manager Portal - Tawelty</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <script>
+   <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
+        window.addEventListener('load', () => {
+          // WE ADDED { scope: '/staff/' } HERE
+          navigator.serviceWorker.register('sw.js', { scope: '/staff/' })
+            .then(reg => console.log('Staff SW registered', reg))
+            .catch(err => console.log('Staff SW failed', err));
+        });
       }
     </script>
     
@@ -523,6 +528,7 @@
 </script>
 </body>
 </html>
+
 
 
 
