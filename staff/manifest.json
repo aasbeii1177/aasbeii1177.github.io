@@ -1,7 +1,7 @@
 {
-  "id": "tawelty-staff-v2",
+  "id": "tawelty-staff-v4",
   "name": "Tawelty Staff",
-  "short_name": "Staff",
+  "short_name": "Tawelty Staff",
   "start_url": "/staff/index.html",
   "scope": "/staff/",
   "display": "standalone",
@@ -10,12 +10,12 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "../logo.jpeg",
+      "src": "https://taweltysy.com/logo.jpeg", 
       "sizes": "192x192",
       "type": "image/jpeg"
     },
     {
-      "src": "../logo.jpeg",
+      "src": "https://taweltysy.com/logo.jpeg",
       "sizes": "512x512",
       "type": "image/jpeg"
     }
