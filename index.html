@@ -311,6 +311,11 @@
 
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
+                
+                // --- NEW: THE TRUE HIDE FUNCTION ---
+                // If the admin killed the switch, completely skip this restaurant so it never loads
+                if (data.isOpen === false) return; 
+
                 data.id = doc.id;
                 if(!data.cuisine) data.cuisine = "General";
                 if(!data.price) data.price = "$$";
@@ -319,7 +324,6 @@
                 cities.add(data.city);
                 window.allRestaurants.push(data);
             });
-
             window.allRestaurants.sort((a, b) => a.name.localeCompare(b.name));
 
             // Populate Cuisines
@@ -696,6 +700,7 @@
 </script>
 </body>
 </html>
+
 
 
 
