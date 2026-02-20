@@ -151,7 +151,11 @@
                 <p style="text-align:center; color:#ccc;">Loading list...</p>
             </div>
         </div>
-
+        <div style="margin-top: 50px; padding: 20px; border: 2px dashed var(--danger); border-radius: 12px; background: rgba(231, 76, 60, 0.05);">
+            <h3 style="color: var(--danger); margin-top: 0; text-align: left;">⚠️ Danger Zone</h3>
+            <p style="color: var(--text-sub); font-size: 0.9rem;">This will permanently delete <strong>ALL reservations</strong> from all restaurants. Use this only to clear testing data before going live.</p>
+            <button id="btn-reset-data" class="btn btn-danger" onclick="clearAllData()">🧨 Erase All Test Bookings</button>
+        </div>
       <button class="btn-logout" onclick="logout()">Sign Out</button>
     </div>
 
@@ -418,7 +422,45 @@
             loadRestaurants();
         }
     };
+// --- FACTORY RESET (DELETE ALL BOOKINGS) ---
+    window.clearAllData = async () => {
+        // 1. Double Confirmation Security
+        const userInput = prompt("⚠️ WARNING: This will permanently delete ALL reservations. Type the word RESET in all caps below to confirm:");
+        
+        if (userInput !== "RESET") {
+            alert("Action cancelled. Your data is safe.");
+            return;
+        }
 
+        const btn = document.getElementById('btn-reset-data');
+        const originalText = btn.innerText;
+        btn.innerHTML = '<div class="loader"></div> Erasing Database...';
+        btn.disabled = true;
+
+        try {
+            // 2. Find all documents in the "reservations" collection
+            const querySnapshot = await getDocs(collection(db, "reservations"));
+            let count = 0;
+            const deletePromises = [];
+
+            // 3. Queue them all up for deletion
+            querySnapshot.forEach((docSnap) => {
+                deletePromises.push(deleteDoc(doc(db, "reservations", docSnap.id)));
+                count++;
+            });
+
+            // 4. Execute the mass deletion
+            await Promise.all(deletePromises);
+            
+            showSuccess(`🧨 BOOM! ${count} test reservations were permanently deleted.`);
+        } catch (e) {
+            console.error("Error clearing data:", e);
+            alert("Error clearing data: " + e.message);
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    };
     function showSuccess(msgText) {
         const msg = document.getElementById('msg');
         msg.innerText = msgText;
@@ -445,3 +487,4 @@
 </script>
 </body>
 </html>
+
