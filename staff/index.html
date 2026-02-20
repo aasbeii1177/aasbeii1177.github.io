@@ -376,6 +376,52 @@
         }
     };
 
+    // --- NEW: PAUSE TODAY FEATURE ---
+    window.togglePauseToday = async () => {
+        if(!currentRestaurant) return;
+        const btn = document.getElementById('btn-pause-today');
+        const originalText = btn.innerText;
+        btn.innerText = "Wait...";
+        
+        try {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
+            const snap = await getDocs(q);
+            
+            if(!snap.empty) {
+                const resDoc = snap.docs[0];
+                const resId = resDoc.id;
+                let closedDates = resDoc.data().closedDates || [];
+                
+                if(closedDates.includes(todayStr)) {
+                    // RE-OPEN IT
+                    closedDates = closedDates.filter(d => d !== todayStr);
+                    await updateDoc(doc(db, "restaurants", resId), { closedDates });
+                    btn.innerText = "⏸ Pause Today";
+                    btn.style.background = "none";
+                    btn.style.color = "#FF5630";
+                    alert("Bookings RE-OPENED for today.");
+                } else {
+                    // PAUSE IT
+                    if(confirm("Stop all new online bookings for today? (Customers can still book for tomorrow)")) {
+                        closedDates.push(todayStr);
+                        await updateDoc(doc(db, "restaurants", resId), { closedDates });
+                        btn.innerText = "▶ Re-Open Today";
+                        btn.style.background = "#FF5630";
+                        btn.style.color = "white";
+                        alert("Bookings PAUSED for today.");
+                    } else {
+                        btn.innerText = originalText;
+                    }
+                }
+            }
+        } catch(e) {
+            console.error(e);
+            alert("Error updating status.");
+            btn.innerText = originalText;
+        }
+    };
+
     // --- RENDER & LOGIC ---
     window.setView = (view) => {
         window.currentView = view;
@@ -594,6 +640,7 @@
 </script>
 </body>
 </html>
+
 
 
 
