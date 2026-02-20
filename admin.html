@@ -28,9 +28,14 @@
         .res-list { margin-top: 40px; border-top: 2px dashed #eee; padding-top: 20px; }
         .res-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f0f0f0; }
         .res-info { flex-grow: 1; }
-        .res-name { font-weight: 600; font-size: 16px; }
+        .res-name { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
         .res-meta { font-size: 12px; color: #999; margin-top: 2px; }
         
+        /* NEW: STATUS BADGES */
+        .badge { font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
+        .badge-active { background: #d4edda; color: #155724; }
+        .badge-hidden { background: #f8d7da; color: #721c24; }
+
         .btn-action { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-left: 5px; }
         .btn-delete { background: #fee; color: #e74c3c; }
         .btn-edit { background: #eef2f5; color: #2980b9; }
@@ -123,6 +128,12 @@
             </div>
         </div>
 
+        <label style="color: #e74c3c;">App Visibility (Kill Switch)</label>
+        <select id="res-isopen" style="border-color: #e74c3c;">
+            <option value="true" selected>🟢 Active (Visible to Customers)</option>
+            <option value="false">🔴 Hidden (Disabled due to non-payment etc)</option>
+        </select>
+
         <div id="manager-section">
             <div class="section-title">2. Manager Login</div>
             <label>Manager Email</label><input type="email" id="mgr-email" placeholder="manager@naranj.com">
@@ -184,9 +195,7 @@
     };
 
     window.logout = () => {
-        // 1. Sign out of Firebase (So we don't auto-login again)
         signOut(auth).then(() => {
-            // 2. Go to the Staff Login Portal
             window.location.href = "staff/"; 
         });
     };
@@ -209,7 +218,7 @@
 
     async function createRestaurant() {
         const rName = document.getElementById('res-name').value;
-        const rCity = document.getElementById('res-city').value; // Get City
+        const rCity = document.getElementById('res-city').value; 
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
@@ -219,12 +228,13 @@
         const rClose = document.getElementById('res-close').value || "22";
         const rCus = document.getElementById('res-cuisine').value || "General";
         const rPri = document.getElementById('res-price').value || "$$";
+        const rIsOpen = document.getElementById('res-isopen').value === "true"; // NEW
         
         const mEmail = document.getElementById('mgr-email').value;
         const mPass = document.getElementById('mgr-pass').value;
         const btn = document.getElementById('btn-submit');
 
-        if(!rName || !rLoc || !mEmail || !mPass || !rCap) return alert("Please fill all fields.");
+        if(!rName || !rLoc || !mEmail || !mPass || !rCap) return alert("Please fill all core fields.");
 
         btn.innerHTML = '<div class="loader"></div> Creating...';
         btn.disabled = true;
@@ -241,7 +251,8 @@
                 openTime: parseInt(rOpen),
                 closeTime: parseInt(rClose),
                 cuisine: rCus, 
-                price: rPri     
+                price: rPri,
+                isOpen: rIsOpen // NEW
             });
             
             const secondaryApp = initializeApp(firebaseConfig, "Secondary");
@@ -258,7 +269,7 @@
 
     async function updateRestaurant() {
         const rName = document.getElementById('res-name').value;
-        const rCity = document.getElementById('res-city').value; // Get City
+        const rCity = document.getElementById('res-city').value; 
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
@@ -268,6 +279,7 @@
         const rClose = document.getElementById('res-close').value;
         const rCus = document.getElementById('res-cuisine').value;
         const rPri = document.getElementById('res-price').value;
+        const rIsOpen = document.getElementById('res-isopen').value === "true"; // NEW
         const btn = document.getElementById('btn-submit');
 
         if(!rName || !rLoc || !rCap || !rDur || !rTabs) return alert("All fields required.");
@@ -288,7 +300,8 @@
                 openTime: parseInt(rOpen),
                 closeTime: parseInt(rClose),
                 cuisine: rCus,
-                price: rPri
+                price: rPri,
+                isOpen: rIsOpen // NEW
             });
 
             if (rName !== editingOldName) {
@@ -311,10 +324,6 @@
         container.innerHTML = '<div class="loader"></div>';
         try {
             const resSnap = await getDocs(collection(db, "restaurants"));
-            const mgrSnap = await getDocs(collection(db, "managers"));
-            let mgrMap = {}; 
-            mgrSnap.forEach(doc => { mgrMap[doc.data().restaurant] = doc.id; });
-
             if(resSnap.empty) { container.innerHTML = '<p style="text-align:center;">No venues found.</p>'; return; }
             
             let html = '';
@@ -331,17 +340,22 @@
                 const safeCus = d.cuisine || "General"; 
                 const safePri = d.price || "$$"; 
                 const safeCity = d.city || "Damascus";
+                const isOpen = d.isOpen !== false; // NEW
 
+                // Create the badge HTML based on isOpen status
+                const badgeHtml = isOpen ? `<span class="badge badge-active">Active</span>` : `<span class="badge badge-hidden">Hidden</span>`;
+
+                // Pass isOpen as a string to the startEdit function
                 html += `
                 <div class="res-item">
                     <div class="res-info">
-                        <div class="res-name">${d.name} <span style="font-weight:normal; font-size:12px; color:#555;">(${safeCity})</span></div>
+                        <div class="res-name">${d.name} <span style="font-weight:normal; font-size:12px; color:#555;">(${safeCity})</span> ${badgeHtml}</div>
                         <div class="res-meta">${d.location} | ${safeCus} | ${safePri}</div>
                         <div class="res-meta">Hours: ${safeOpen}:00 - ${safeClose}:00 | Time: ${safeDur}h</div>
                     </div>
                     <div>
                         <button class="btn-action btn-qr" onclick="showQr('${safeName}')">📱</button>
-                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, ${safeTabs}, '${safeCus}', '${safePri}', ${safeDur}, ${safeOpen}, ${safeClose}, '${safeCity}')">✏️</button>
+                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, ${safeTabs}, '${safeCus}', '${safePri}', ${safeDur}, ${safeOpen}, ${safeClose}, '${safeCity}', ${isOpen})">✏️</button>
                         <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}', '${safeName}')">🗑️</button>
                     </div>
                 </div>`;
@@ -362,11 +376,12 @@
     
     window.closeQr = () => document.getElementById('qr-modal').style.display = 'none';
 
-    window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur, open, close, city) => {
+    // Added isOpenParam
+    window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur, open, close, city, isOpenParam) => {
         editingId = id;
         editingOldName = name;
         document.getElementById('res-name').value = name;
-        document.getElementById('res-city').value = city || "Damascus"; // Set City
+        document.getElementById('res-city').value = city || "Damascus"; 
         document.getElementById('res-location').value = loc;
         document.getElementById('res-image').value = img;
         document.getElementById('res-capacity').value = cap;
@@ -376,6 +391,9 @@
         document.getElementById('res-close').value = close;
         document.getElementById('res-cuisine').value = cus;
         document.getElementById('res-price').value = pri;
+        
+        // NEW: Set the dropdown value
+        document.getElementById('res-isopen').value = isOpenParam ? "true" : "false";
         
         document.getElementById('form-title').innerText = "Edit Venue";
         document.getElementById('btn-submit').innerText = "Save Changes";
@@ -410,7 +428,7 @@
 
     function clearInputs() {
         document.getElementById('res-name').value = "";
-        document.getElementById('res-city').value = "Damascus"; // Reset City
+        document.getElementById('res-city').value = "Damascus"; 
         document.getElementById('res-location').value = "";
         document.getElementById('res-image').value = "";
         document.getElementById('res-capacity').value = "";
@@ -420,13 +438,10 @@
         document.getElementById('res-close').value = "";
         document.getElementById('res-cuisine').value = "";
         document.getElementById('res-price').value = "$$";
+        document.getElementById('res-isopen').value = "true"; // NEW
         document.getElementById('mgr-email').value = "";
         document.getElementById('mgr-pass').value = "";
     }
 </script>
 </body>
 </html>
-
-
-
-
