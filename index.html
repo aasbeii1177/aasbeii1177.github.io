@@ -372,7 +372,7 @@
             
             let buttonHtml = isOpen ? `<span class="btn-card">Book Table</span>` : `<span class="btn-card btn-busy">🔴 Fully Booked</span>`;
             const safeClosedDates = (branch.closedDates || []).join(',');
-let clickAction = isOpen ? `onclick="openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${tables}, ${openTime}, ${closeTime}, '${safeClosedDates}')"` : `style="cursor:not-allowed; opacity:0.8;"`;
+            let clickAction = isOpen ? `onclick="openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${tables}, ${openTime}, ${closeTime}, '${safeClosedDates}')"` : `style="cursor:not-allowed; opacity:0.8;"`;
             
             html += `
             <div class="card" ${clickAction}>
@@ -410,13 +410,19 @@ let clickAction = isOpen ? `onclick="openBooking('${safeName}', '${safeImg}', ${
     }
 
     // 2. NAV
-    window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close) {
+    // Add closedDatesStr to the end of the parameters
+    window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close, closedDatesStr) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity; 
         window.currentDuration = duration;
         window.currentTablesLimit = tables || 10; 
         window.currentOpen = open; 
         window.currentClose = close; 
+        
+        // NEW: Save the closed dates to memory
+        window.currentClosedDates = closedDatesStr ? closedDatesStr.split(',') : [];
+        
+        // ... (keep the rest of the function exactly the same) 
         
         document.getElementById('selected-restaurant-title').innerText = name;
         document.getElementById('date').value = ""; 
@@ -685,6 +691,7 @@ let clickAction = isOpen ? `onclick="openBooking('${safeName}', '${safeImg}', ${
 </script>
 </body>
 </html>
+
 
 
 
