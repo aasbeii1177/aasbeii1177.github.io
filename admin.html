@@ -31,7 +31,7 @@
         .res-name { font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
         .res-meta { font-size: 12px; color: #999; margin-top: 2px; }
         
-        /* NEW: STATUS BADGES */
+        /* STATUS BADGES */
         .badge { font-size: 10px; padding: 3px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
         .badge-active { background: #d4edda; color: #155724; }
         .badge-hidden { background: #f8d7da; color: #721c24; }
@@ -162,19 +162,23 @@
             <label>Select Restaurant to Analyze</label>
             <select id="analytics-res-select" onchange="generateReport()"></select>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
                 <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
-                    <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Total Guests (Accepted)</h3>
+                    <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Accepted Bookings</h3>
+                    <div id="stat-bookings" style="font-size: 2.5rem; font-weight: 800; color: #1a1a1a;">0</div>
+                </div>
+                <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
+                    <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Total Guests</h3>
                     <div id="stat-guests" style="font-size: 2.5rem; font-weight: 800; color: #1a1a1a;">0</div>
                 </div>
                 <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
-                    <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Cancellation Rate</h3>
+                    <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Cancel Rate</h3>
                     <div id="stat-cancel" style="font-size: 2.5rem; font-weight: 800; color: #e74c3c;">0%</div>
                 </div>
             </div>
 
             <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; margin-top: 20px;">
-                <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 15px; text-align: left;">Peak Hours (Traffic)</h3>
+                <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 15px; text-align: left;">Traffic by Day of the Week</h3>
                 <canvas id="peakChart" height="150"></canvas>
             </div>
         </div>
@@ -217,6 +221,7 @@
 
     let editingId = null;
     let editingOldName = "";
+    let peakChartInstance = null;
 
     window.login = () => {
         const email = document.getElementById('email').value;
@@ -509,8 +514,6 @@
     }
 
     // --- ANALYTICS DASHBOARD LOGIC ---
-    let peakChartInstance = null;
-
     window.switchAdminView = (view) => {
         const btnVenues = document.getElementById('tab-venues');
         const btnAnalytics = document.getElementById('tab-analytics');
@@ -571,9 +574,10 @@
             const snapshot = await getDocs(q);
             
             let totalGuests = 0;
-            let totalBookings = 0;
+            let totalBookings = 0; 
+            let acceptedBookings = 0; 
             let cancelledBookings = 0;
-            let timeTracker = {};
+            let dayTracker = {}; 
 
             snapshot.forEach(doc => {
                 const data = doc.data();
@@ -582,31 +586,44 @@
                 if (data.status === "Declined" || data.archived === true) {
                     cancelledBookings++;
                 } else if (data.status === "Accepted") {
+                    acceptedBookings++;
                     totalGuests += parseInt(data.persons || 0);
                     
-                    if(data.time) {
-                        const hour = data.time.split(':')[0] + ":00";
-                        if (!timeTracker[hour]) timeTracker[hour] = 0;
-                        timeTracker[hour] += parseInt(data.persons || 0);
+                    if(data.date) {
+                        const dateObj = new Date(data.date);
+                        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                        const dayName = days[dateObj.getDay()];
+                        
+                        if (!dayTracker[dayName]) dayTracker[dayName] = 0;
+                        dayTracker[dayName] += 1;
                     }
                 }
             });
 
+            document.getElementById('stat-bookings').innerText = acceptedBookings;
             document.getElementById('stat-guests').innerText = totalGuests;
             
             let cancelRate = totalBookings > 0 ? Math.round((cancelledBookings / totalBookings) * 100) : 0;
             document.getElementById('stat-cancel').innerText = cancelRate + "%";
 
-            drawChart(timeTracker);
+            drawChart(dayTracker);
 
         } catch (e) { console.error("Error generating report:", e); }
     };
 
-    function drawChart(timeTracker) {
+    function drawChart(dayTracker) {
         const ctx = document.getElementById('peakChart').getContext('2d');
         
-        const labels = Object.keys(timeTracker).sort((a, b) => parseInt(a) - parseInt(b));
-        const data = labels.map(time => timeTracker[time]);
+        // Ensure consistent order Monday through Sunday
+        const weekOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        
+        const labels = [];
+        const data = [];
+        
+        weekOrder.forEach(day => {
+            labels.push(day);
+            data.push(dayTracker[day] || 0);
+        });
 
         if (peakChartInstance) peakChartInstance.destroy();
 
@@ -615,7 +632,7 @@
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Number of Guests',
+                    label: 'Accepted Bookings',
                     data: data,
                     backgroundColor: '#D4AF37',
                     borderRadius: 6
@@ -624,8 +641,15 @@
             options: {
                 responsive: true,
                 scales: {
-                    y: { beginAtZero: true, grid: { color: '#eee' }, ticks: { color: '#999' } },
-                    x: { grid: { display: false }, ticks: { color: '#999' } }
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: '#eee' }, 
+                        ticks: { color: '#999', stepSize: 1 } 
+                    },
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { color: '#999' } 
+                    }
                 },
                 plugins: {
                     legend: { display: false }
