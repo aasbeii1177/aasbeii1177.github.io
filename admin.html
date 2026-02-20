@@ -49,7 +49,7 @@
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #D4AF37; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .hidden { display: none; }
+        .hidden { display: none !important; }
         .error { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -146,17 +146,45 @@
         
         <div id="msg" class="success-msg">✨ Success!</div>
 
-        <div class="res-list">
+        <div style="display: flex; gap: 10px; margin-top: 40px; border-bottom: 2px solid #eee; padding-bottom: 15px;">
+            <button id="tab-venues" class="btn-primary" style="margin-top:0; padding: 10px; width: 50%;" onclick="switchAdminView('venues')">🍽️ Manage Venues</button>
+            <button id="tab-analytics" class="btn-cancel" style="display:block; margin-top:0; padding: 10px; width: 50%;" onclick="switchAdminView('analytics')">📊 Analytics & Reports</button>
+        </div>
+
+        <div id="view-venues" class="res-list" style="margin-top: 20px; border: none; padding: 0;">
             <h3>Manage Venues</h3>
             <div id="restaurants-container">
                 <p style="text-align:center; color:#ccc;">Loading list...</p>
             </div>
         </div>
-        <div style="margin-top: 50px; padding: 20px; border: 2px dashed var(--danger); border-radius: 12px; background: rgba(231, 76, 60, 0.05);">
-            <h3 style="color: var(--danger); margin-top: 0; text-align: left;">⚠️ Danger Zone</h3>
-            <p style="color: var(--text-sub); font-size: 0.9rem;">This will permanently delete <strong>ALL reservations</strong> from all restaurants. Use this only to clear testing data before going live.</p>
-            <button id="btn-reset-data" class="btn btn-danger" onclick="clearAllData()">🧨 Erase All Test Bookings</button>
+
+        <div id="view-analytics" class="hidden" style="margin-top: 20px;">
+            <label>Select Restaurant to Analyze</label>
+            <select id="analytics-res-select" onchange="generateReport()"></select>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
+                    <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Total Guests (Accepted)</h3>
+                    <div id="stat-guests" style="font-size: 2.5rem; font-weight: 800; color: #1a1a1a;">0</div>
+                </div>
+                <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
+                    <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Cancellation Rate</h3>
+                    <div id="stat-cancel" style="font-size: 2.5rem; font-weight: 800; color: #e74c3c;">0%</div>
+                </div>
+            </div>
+
+            <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; margin-top: 20px;">
+                <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 15px; text-align: left;">Peak Hours (Traffic)</h3>
+                <canvas id="peakChart" height="150"></canvas>
+            </div>
         </div>
+
+        <div style="margin-top: 50px; padding: 20px; border: 2px dashed #e74c3c; border-radius: 12px; background: rgba(231, 76, 60, 0.05);">
+            <h3 style="color: #e74c3c; margin-top: 0; text-align: left;">⚠️ Danger Zone</h3>
+            <p style="color: #666; font-size: 0.9rem;">This will permanently delete <strong>ALL reservations</strong> from all restaurants. Use this only to clear testing data before going live.</p>
+            <button id="btn-reset-data" class="btn-primary" style="background:#e74c3c;" onclick="clearAllData()">🧨 Erase All Test Bookings</button>
+        </div>
+        
       <button class="btn-logout" onclick="logout()">Sign Out</button>
     </div>
 
@@ -175,7 +203,7 @@
     import { getFirestore, collection, addDoc, doc, setDoc, getDocs, deleteDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8",
+      apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8", // PUT YOUR REAL API KEY HERE
       authDomain: "tawelty-realtime.firebaseapp.com",
       projectId: "tawelty-realtime",
       storageBucket: "tawelty-realtime.firebasestorage.app",
@@ -233,7 +261,7 @@
         const rClose = document.getElementById('res-close').value || "22";
         const rCus = document.getElementById('res-cuisine').value || "General";
         const rPri = document.getElementById('res-price').value || "$$";
-        const rIsOpen = document.getElementById('res-isopen').value === "true"; // NEW
+        const rIsOpen = document.getElementById('res-isopen').value === "true"; 
         
         const mEmail = document.getElementById('mgr-email').value;
         const mPass = document.getElementById('mgr-pass').value;
@@ -257,7 +285,7 @@
                 closeTime: parseInt(rClose),
                 cuisine: rCus, 
                 price: rPri,
-                isOpen: rIsOpen // NEW
+                isOpen: rIsOpen 
             });
             
             const secondaryApp = initializeApp(firebaseConfig, "Secondary");
@@ -284,7 +312,7 @@
         const rClose = document.getElementById('res-close').value;
         const rCus = document.getElementById('res-cuisine').value;
         const rPri = document.getElementById('res-price').value;
-        const rIsOpen = document.getElementById('res-isopen').value === "true"; // NEW
+        const rIsOpen = document.getElementById('res-isopen').value === "true";
         const btn = document.getElementById('btn-submit');
 
         if(!rName || !rLoc || !rCap || !rDur || !rTabs) return alert("All fields required.");
@@ -306,7 +334,7 @@
                 closeTime: parseInt(rClose),
                 cuisine: rCus,
                 price: rPri,
-                isOpen: rIsOpen // NEW
+                isOpen: rIsOpen 
             });
 
             if (rName !== editingOldName) {
@@ -345,12 +373,10 @@
                 const safeCus = d.cuisine || "General"; 
                 const safePri = d.price || "$$"; 
                 const safeCity = d.city || "Damascus";
-                const isOpen = d.isOpen !== false; // NEW
+                const isOpen = d.isOpen !== false; 
 
-                // Create the badge HTML based on isOpen status
                 const badgeHtml = isOpen ? `<span class="badge badge-active">Active</span>` : `<span class="badge badge-hidden">Hidden</span>`;
 
-                // Pass isOpen as a string to the startEdit function
                 html += `
                 <div class="res-item">
                     <div class="res-info">
@@ -381,7 +407,6 @@
     
     window.closeQr = () => document.getElementById('qr-modal').style.display = 'none';
 
-    // Added isOpenParam
     window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur, open, close, city, isOpenParam) => {
         editingId = id;
         editingOldName = name;
@@ -397,7 +422,6 @@
         document.getElementById('res-cuisine').value = cus;
         document.getElementById('res-price').value = pri;
         
-        // NEW: Set the dropdown value
         document.getElementById('res-isopen').value = isOpenParam ? "true" : "false";
         
         document.getElementById('form-title').innerText = "Edit Venue";
@@ -423,9 +447,9 @@
             loadRestaurants();
         }
     };
-// --- FACTORY RESET (DELETE ALL BOOKINGS) ---
+
+    // --- FACTORY RESET (DELETE ALL BOOKINGS) ---
     window.clearAllData = async () => {
-        // 1. Double Confirmation Security
         const userInput = prompt("⚠️ WARNING: This will permanently delete ALL reservations. Type the word RESET in all caps below to confirm:");
         
         if (userInput !== "RESET") {
@@ -439,18 +463,15 @@
         btn.disabled = true;
 
         try {
-            // 2. Find all documents in the "reservations" collection
             const querySnapshot = await getDocs(collection(db, "reservations"));
             let count = 0;
             const deletePromises = [];
 
-            // 3. Queue them all up for deletion
             querySnapshot.forEach((docSnap) => {
                 deletePromises.push(deleteDoc(doc(db, "reservations", docSnap.id)));
                 count++;
             });
 
-            // 4. Execute the mass deletion
             await Promise.all(deletePromises);
             
             showSuccess(`🧨 BOOM! ${count} test reservations were permanently deleted.`);
@@ -462,6 +483,7 @@
             btn.disabled = false;
         }
     };
+
     function showSuccess(msgText) {
         const msg = document.getElementById('msg');
         msg.innerText = msgText;
@@ -481,12 +503,136 @@
         document.getElementById('res-close').value = "";
         document.getElementById('res-cuisine').value = "";
         document.getElementById('res-price').value = "$$";
-        document.getElementById('res-isopen').value = "true"; // NEW
+        document.getElementById('res-isopen').value = "true"; 
         document.getElementById('mgr-email').value = "";
         document.getElementById('mgr-pass').value = "";
+    }
+
+    // --- ANALYTICS DASHBOARD LOGIC ---
+    let peakChartInstance = null;
+
+    window.switchAdminView = (view) => {
+        const btnVenues = document.getElementById('tab-venues');
+        const btnAnalytics = document.getElementById('tab-analytics');
+        
+        if (view === 'venues') {
+            document.getElementById('view-venues').classList.remove('hidden');
+            document.getElementById('view-analytics').classList.add('hidden');
+            
+            btnVenues.className = 'btn-primary';
+            btnVenues.style.background = '#1a1a1a';
+            btnVenues.style.color = 'white';
+            
+            btnAnalytics.className = 'btn-cancel';
+            btnAnalytics.style.display = 'block';
+            btnAnalytics.style.background = '#fff';
+        } else {
+            document.getElementById('view-venues').classList.add('hidden');
+            document.getElementById('view-analytics').classList.remove('hidden');
+            
+            btnAnalytics.className = 'btn-primary';
+            btnAnalytics.style.background = '#1a1a1a';
+            btnAnalytics.style.color = 'white';
+            
+            btnVenues.className = 'btn-cancel';
+            btnVenues.style.display = 'block';
+            btnVenues.style.background = '#fff';
+            
+            populateAnalyticsDropdown();
+        }
+    };
+
+    async function populateAnalyticsDropdown() {
+        const select = document.getElementById('analytics-res-select');
+        select.innerHTML = '<option value="">Loading...</option>';
+        try {
+            const snap = await getDocs(collection(db, "restaurants"));
+            let html = '<option value="ALL">All Restaurants Overview</option>';
+            snap.forEach(doc => {
+                html += `<option value="${doc.data().name}">${doc.data().name}</option>`;
+            });
+            select.innerHTML = html;
+            generateReport(); // Auto-generate for "ALL"
+        } catch(e) { console.error(e); }
+    }
+
+    window.generateReport = async () => {
+        const resName = document.getElementById('analytics-res-select').value;
+        if (!resName) return;
+
+        let q;
+        if (resName === "ALL") {
+            q = collection(db, "reservations"); 
+        } else {
+            q = query(collection(db, "reservations"), where("restaurant", "==", resName));
+        }
+
+        try {
+            const snapshot = await getDocs(q);
+            
+            let totalGuests = 0;
+            let totalBookings = 0;
+            let cancelledBookings = 0;
+            let timeTracker = {};
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                totalBookings++;
+
+                if (data.status === "Declined" || data.archived === true) {
+                    cancelledBookings++;
+                } else if (data.status === "Accepted") {
+                    totalGuests += parseInt(data.persons || 0);
+                    
+                    if(data.time) {
+                        const hour = data.time.split(':')[0] + ":00";
+                        if (!timeTracker[hour]) timeTracker[hour] = 0;
+                        timeTracker[hour] += parseInt(data.persons || 0);
+                    }
+                }
+            });
+
+            document.getElementById('stat-guests').innerText = totalGuests;
+            
+            let cancelRate = totalBookings > 0 ? Math.round((cancelledBookings / totalBookings) * 100) : 0;
+            document.getElementById('stat-cancel').innerText = cancelRate + "%";
+
+            drawChart(timeTracker);
+
+        } catch (e) { console.error("Error generating report:", e); }
+    };
+
+    function drawChart(timeTracker) {
+        const ctx = document.getElementById('peakChart').getContext('2d');
+        
+        const labels = Object.keys(timeTracker).sort((a, b) => parseInt(a) - parseInt(b));
+        const data = labels.map(time => timeTracker[time]);
+
+        if (peakChartInstance) peakChartInstance.destroy();
+
+        peakChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Number of Guests',
+                    data: data,
+                    backgroundColor: '#D4AF37',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#eee' }, ticks: { color: '#999' } },
+                    x: { grid: { display: false }, ticks: { color: '#999' } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
     }
 </script>
 </body>
 </html>
-
-
