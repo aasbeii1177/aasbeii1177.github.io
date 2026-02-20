@@ -224,7 +224,6 @@
 
     // --- NEW: RED FLAG MEMORY CACHE ---
     // This stops Firebase from doing 100 searches a minute.
-    const customerHistoryCache = {};
 
     window.onload = () => { 
         setInterval(recalculateDashboard, 10000);
@@ -336,20 +335,30 @@
         });
     }
 
-    // --- NEW: RED FLAG HISTORY CHECK ---
+    // --- UPDATED: RED FLAG HISTORY CHECK ---
     window.checkCustomerHistory = async (phone) => {
         // Skip check if no phone number was given
         if (!phone || phone.trim() === "" || phone === "N/A") return 0;
         
-        // If we already checked this number recently, use the memory
-        if (customerHistoryCache[phone] !== undefined) return customerHistoryCache[phone];
+        // We removed the cache so it gets fresh data every single time.
         
-        // Ask the database how many archived (cancelled) bookings this phone has
-        const q = query(collection(db, "reservations"), where("phone", "==", phone), where("archived", "==", true));
+        // We use only ONE 'where' to prevent Firebase Index errors
+        const q = query(collection(db, "reservations"), where("phone", "==", phone));
+        
         try {
             const snapshot = await getDocs(q);
-            customerHistoryCache[phone] = snapshot.size; // Save to memory
-            return snapshot.size;
+            let cancelCount = 0;
+            
+            // We count the cancellations manually in JavaScript
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                // If they cancelled it (archived) OR the manager declined it
+                if (data.archived === true || data.status === "Declined") {
+                    cancelCount++;
+                }
+            });
+            
+            return cancelCount;
         } catch (e) {
             console.error("Error checking history:", e);
             return 0;
@@ -574,3 +583,4 @@
 </script>
 </body>
 </html>
+
