@@ -455,12 +455,17 @@
             return;
         }
 
-        const todayStr = new Date().toISOString().split('T')[0];
+       const todayStr = new Date().toISOString().split('T')[0];
         if(dateInput < todayStr) {
             grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#e74c3c; padding:20px;'>⚠️ Past date selected.</div>";
             return;
         }
 
+        // --- NEW: CHECK IF THE RESTAURANT PAUSED THIS DATE ---
+        if(window.currentClosedDates && window.currentClosedDates.includes(dateInput)) {
+            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#e74c3c; padding:20px; font-weight:bold; font-size: 1.1rem;'>🚫 Fully booked for this date.<br><span style='font-size:0.8rem; color:#888; font-weight:normal;'>Please select another day.</span></div>";
+            return;
+        }
         grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#ccc;'><div class='loader'></div> Checking...</div>";
 
         const guestLimit = window.currentCapacity || 20; 
@@ -691,6 +696,7 @@
 </script>
 </body>
 </html>
+
 
 
 
