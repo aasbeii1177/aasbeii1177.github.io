@@ -12,9 +12,25 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#111111">
     <script>
+      <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js?v=' + new Date().getTime()).then(reg => {
+            // Watch for updates to the Service Worker
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                // If a new version is installed and ready, force the page to refresh
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log("New version found! Auto-refreshing...");
+                  window.location.reload(true); 
+                }
+              });
+            });
+          });
+        });
       }
+    </script>
     </script>
     
     <meta property="og:title" content="Tawelty - Premium Dining">
@@ -750,4 +766,5 @@
 </script>
 </body>
 </html>
+
 
