@@ -328,11 +328,11 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { initializeFirestore, collection, getDocs, addDoc, doc, getDoc, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, getDoc, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8", // PUT YOUR REAL API KEY HERE
+      apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8", // PUT YOUR REAL KEY HERE
       authDomain: "tawelty-realtime.firebaseapp.com",
       projectId: "tawelty-realtime",
       storageBucket: "tawelty-realtime.firebasestorage.app",
@@ -341,11 +341,8 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    
-    // THE MOBILE FIX: Force Firebase to use standard HTTP instead of WebSockets
-    const db = initializeFirestore(app, {
-        experimentalForceLongPolling: true
-    });
+    const db = getFirestore(app);
+    const auth = getAuth(app);
     
     const auth = getAuth(app);
 
