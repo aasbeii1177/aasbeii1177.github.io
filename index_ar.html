@@ -13,23 +13,20 @@
     <meta name="theme-color" content="#111111">
     <script>
       <script>
+      // THE NUCLEAR CACHE KILLER: 
+      // This forces the phone to unregister any stuck offline workers and reload fresh code.
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js?v=' + new Date().getTime()).then(reg => {
-            // Watch for updates to the Service Worker
-            reg.addEventListener('updatefound', () => {
-              const newWorker = reg.installing;
-              newWorker.addEventListener('statechange', () => {
-                // If a new version is installed and ready, force the page to refresh
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  console.log("New version found! Auto-refreshing...");
-                  window.location.reload(true); 
-                }
-              });
-            });
-          });
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+        
+        window.addEventListener('load', () => { 
+            navigator.serviceWorker.register('sw.js?v=' + new Date().getTime()); 
         });
       }
+    </script>
     </script>
     </script>
     
