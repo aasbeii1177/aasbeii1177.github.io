@@ -24,12 +24,15 @@ self.addEventListener('activate', (evt) => {
       return Promise.all(
         keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
       );
+    }).then(() => {
+      return self.clients.claim(); 
     })
   );
 });
 
 self.addEventListener('fetch', (evt) => {
-  if (evt.request.url.includes('firestore') || evt.request.url.includes('googleapis')) return;
+  // Never cache database requests
+  if (evt.request.url.includes('firestore') || evt.request.url.includes('googleapis') || evt.request.url.includes('firebase')) return;
   
   evt.respondWith(
     fetch(evt.request)
