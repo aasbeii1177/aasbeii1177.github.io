@@ -1,11 +1,12 @@
-// Main Customer sw.js
-const CACHE_NAME = 'tawelty-customer-v4'; // Bumped version number
+const CACHE_NAME = 'tawelty-stable-v1'; 
 const ASSETS = [
   './',
   './index.html',
+  './index_ar.html',
   './manifest.json',
   './logo.jpeg',
-  'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap'
+  'https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap',
+  'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap'
 ];
 
 self.addEventListener('install', (evt) => {
@@ -27,7 +28,6 @@ self.addEventListener('activate', (evt) => {
   );
 });
 
-// NETWORK FIRST STRATEGY
 self.addEventListener('fetch', (evt) => {
   if (evt.request.url.includes('firestore') || evt.request.url.includes('googleapis')) return;
   
