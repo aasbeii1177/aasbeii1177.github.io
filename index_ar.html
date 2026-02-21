@@ -317,8 +317,6 @@
 
     // 1. SETUP
     window.onload = async function() {
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
-
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').setAttribute('min', today);
         const loader = document.getElementById('loader-main');
@@ -332,6 +330,9 @@
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 data.id = doc.id;
+                
+                if (data.isOpen === false) return; 
+
                 if(!data.cuisine) data.cuisine = "General";
                 if(!data.price) data.price = "$$";
                 if(!data.city) data.city = "Damascus"; 
@@ -353,7 +354,6 @@
             cities.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c; 
-                // Use translation map or fallback to English
                 opt.innerText = cityTrans[c] || c; 
                 citySelect.appendChild(opt);
             });
