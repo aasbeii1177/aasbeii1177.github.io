@@ -443,17 +443,14 @@
             
             // LOGIC FOR THE 3 TABS
             if (window.currentView === 'active') {
-                // Future and Today (Active)
                 if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) {
                     allDocs.push({ id: doc.id, ...d });
                 }
             } else if (window.currentView === 'past') {
-                // Past Dates (Successful bookings)
                 if (!d.archived && d.status !== 'Declined' && d.date < todayStr) {
                     allDocs.push({ id: doc.id, ...d });
                 }
             } else if (window.currentView === 'history') {
-                // Canceled / Declined (All of them, not just today)
                 if (d.archived || d.status === 'Declined') {
                     allDocs.push({ id: doc.id, ...d });
                 }
@@ -482,7 +479,6 @@
             }
 
             let cancelCount = 0;
-            // Only check history for pending bookings to save database reads
             if (b.status === 'Pending' || window.currentView === 'active') {
                 cancelCount = await window.checkCustomerHistory(b.phone);
             }
@@ -535,11 +531,8 @@
 
             let askReviewBtn = '';
             if (b.date < todayStr && b.status === 'Accepted' && !b.isReviewed && b.phone && b.phone !== "N/A") {
-                let cleanPhone = b.phone.replace(/\D/g, ''); 
-                if(cleanPhone.startsWith('0')) cleanPhone = "963" + cleanPhone.substring(1); 
-                
-                let msg = `Hi ${b.name}, thank you for dining at ${currentRestaurant}! We would love to hear about your experience. Please visit our site, go to 'My Bookings', and leave us a quick review: https://taweltysy.com`;
-                askReviewBtn = `<button style="background:none; border:1px solid #36B37E; color:#36B37E; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; font-size:12px; font-weight:bold; width:100%;" onclick="window.open('https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}', '_blank')">📲 Ask for Review</button>`;
+                const safeNameForReview = b.name.replace(/'/g, "\\'");
+                askReviewBtn = `<button style="background:none; border:1px solid #36B37E; color:#36B37E; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; font-size:12px; font-weight:bold; width:100%;" onclick="askForReview('${b.phone}', '${safeNameForReview}')">📲 Ask for Review</button>`;
             }
             // -------------------------------------------
 
@@ -635,10 +628,18 @@
         window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
     };
 
+    window.askForReview = (phone, name) => {
+        let cleanPhone = phone.replace(/\D/g, ''); 
+        if(cleanPhone.startsWith('0')) cleanPhone = "963" + cleanPhone.substring(1); 
+        
+        let msg = `Hi ${name}, thank you for dining at ${currentRestaurant}! We would love to hear about your experience. Please visit our site, go to My Bookings, and leave us a quick review: https://taweltysy.com`;
+        
+        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+    };
+
     window.archiveBooking = async (id) => {
         if(confirm("Archive/Cancel this booking?")) { await updateDoc(doc(db, "reservations", id), { archived: true }); }
     };
 </script>
 </body>
 </html>
-
