@@ -209,6 +209,7 @@
     let maxTables = 0; 
     let openTime = 12;
     let closeTime = 22;
+    let vipThreshold = 3; // NEW: Global VIP Threshold (Updates dynamically)
     let latestSnapshot = null; 
     let unsubscribe = null; 
     window.currentView = 'active'; 
@@ -281,6 +282,8 @@
                         maxTables = d.tables || 10;
                         openTime = d.openTime || 12;
                         closeTime = d.closeTime || 22;
+                        vipThreshold = d.vipThreshold || 3; // Pull VIP rules from database
+                        
                         document.getElementById('max-guests').innerText = "/ " + maxGuests;
                         document.getElementById('max-tables').innerText = "/ " + maxTables;
                         
@@ -491,7 +494,7 @@
             }
             
             let badgesHtml = "<div class='badges-row'>";
-            if (history.successes >= 3) {
+            if (history.successes >= vipThreshold) { // DYNAMIC VIP CHECK
                 badgesHtml += `<div class="vip-badge">🌟 VIP: ${history.successes} Bookings</div>`;
             }
             if (history.cancels >= 2) {
