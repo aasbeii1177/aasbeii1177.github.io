@@ -8,9 +8,16 @@
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#111111">
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); });
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) { registration.unregister(); }
+        });
+        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js?v=' + new Date().getTime()); });
       }
     </script>
     
@@ -23,7 +30,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- TAWELTY V4.0 ARABIC: BOTTOM NAV UI --- */
+        /* --- TAWELTY V4.0 ARABIC: BOTTOM NAV UI + REVIEWS --- */
         :root { 
             --primary: #111111; 
             --gold: #D4AF37; 
@@ -64,9 +71,7 @@
         .container { max-width: 1000px; margin: 0 auto; padding: 15px; position: relative; z-index: 2; box-sizing: border-box; width: 100%; }
         
         .grid { display: grid; grid-template-columns: 1fr; gap: 20px; margin-top: 10px;}
-        @media(min-width: 600px) {
-            .grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-        }
+        @media(min-width: 600px) { .grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); } }
 
         .search-input, .filter-select, .input-field, .code-select { background: var(--input-bg); border: 2px solid transparent; padding: 14px; border-radius: 12px; font-size: 16px; outline: none; transition: 0.3s; font-family: 'Cairo', sans-serif; width: 100%; box-sizing: border-box; margin-bottom: 15px; }
         .search-input:focus, .filter-select:focus, .input-field:focus, .code-select:focus { background: white; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1); }
@@ -111,29 +116,20 @@
         .success-animation { width: 80px; height: 80px; border-radius: 50%; background: #2ECC71; color: white; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; font-size: 40px; }
         
         .my-booking-card { background:#F8F9FA; padding:20px; border-radius:12px; margin-bottom:15px; border-right:4px solid var(--gold); }
-        .btn-cancel-user { background:white; color:#e74c3c; border:1px solid #e74c3c; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px; margin-top:10px; font-family:'Cairo'; }
+        .btn-cancel-user { background:white; color:#e74c3c; border:1px solid #e74c3c; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px; margin-top:10px; font-family:'Cairo'; display:inline-block; }
+        
+        /* NEW: BUTTON STYLES FOR REVIEWS */
+        .btn-review { background: #fff9e6; color: #bfa15f; border: 1px solid #bfa15f; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px; margin-top: 10px; font-family:'Cairo'; display:inline-block; }
+        .btn-review:hover { background: #bfa15f; color: white; }
 
         /* MODALS */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 85%; max-width: 380px; margin: 15vh auto; padding: 30px; border-radius: 24px; text-align: right; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
         .modal-close { position: absolute; top: 20px; left: 20px; background: none; border: none; font-size: 1.5rem; color: #999; cursor: pointer; }
         
-        /* NEW: BOTTOM NAVIGATION BAR */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            display: flex; justify-content: space-around; align-items: center;
-            padding: 12px 0 25px 0;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
-            z-index: 1000;
-            border-top: 1px solid rgba(0,0,0,0.05);
-        }
-        .nav-tab {
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
-            color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 700;
-            transition: 0.3s; cursor: pointer; width: 33%;
-        }
+        /* BOTTOM NAVIGATION BAR */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; padding: 12px 0 25px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); z-index: 1000; border-top: 1px solid rgba(0,0,0,0.05); }
+        .nav-tab { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 700; transition: 0.3s; cursor: pointer; width: 33%; }
         .nav-tab.active { color: var(--gold); }
         .nav-icon { width: 24px; height: 24px; stroke: #888; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: 0.3s; }
         .nav-tab.active .nav-icon { stroke: var(--gold); }
@@ -256,7 +252,7 @@
     </div>
 
     <div id="search-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="text-align: right;">
             <button class="modal-close" onclick="closeSearch()">&times;</button>
             <h2 style="margin-bottom: 25px;">البحث عن مطعم</h2>
             
@@ -290,6 +286,30 @@
         </div>
     </div>
 
+    <div id="review-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeReview()">&times;</button>
+            <h2 style="margin-bottom:5px; text-align:right;">قيّم زيارتك</h2>
+            <h3 id="review-res-name" style="color:var(--gold); margin-bottom:20px; text-align:right;"></h3>
+            
+            <input type="hidden" id="review-booking-id">
+            
+            <label style="text-align:right;">التقييم</label>
+            <select id="review-rating" class="input-field">
+                <option value="5">⭐⭐⭐⭐⭐ ممتاز</option>
+                <option value="4">⭐⭐⭐⭐ جيد جداً</option>
+                <option value="3">⭐⭐⭐ متوسط</option>
+                <option value="2">⭐⭐ ضعيف</option>
+                <option value="1">⭐ سيء</option>
+            </select>
+            
+            <label style="text-align:right;">ملاحظات (اختياري)</label>
+            <textarea id="review-text" class="input-field" placeholder="أخبرنا عن تجربتك..." rows="3" style="resize:none; font-family:'Cairo';"></textarea>
+            
+            <button class="btn-primary" style="margin-top:0;" onclick="submitReview()">إرسال التقييم</button>
+        </div>
+    </div>
+
     <div class="footer">© 2026 طاولتي. جميع الحقوق محفوظة.</div>
 
     <div class="bottom-nav">
@@ -312,18 +332,63 @@
     import { getFirestore, collection, getDocs, addDoc, doc, getDoc, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8", // PUT YOUR REAL API KEY HERE
-      authDomain: "tawelty-realtime.firebaseapp.com",
-      projectId: "tawelty-realtime",
-      storageBucket: "tawelty-realtime.firebasestorage.app",
-      messagingSenderId: "127610217841",
-      appId: "1:127610217841:web:9535aedf4a06c645c9c2d0"
+    // ==========================================
+    // 1. UI & NAVIGATION FUNCTIONS (LOADED FIRST!)
+    // ==========================================
+    window.updateNavVisuals = (activeId) => {
+        document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+        if(activeId) document.getElementById(activeId).classList.add('active');
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+    window.goHome = function() { 
+        document.getElementById('booking-page').classList.remove('active-section'); 
+        document.getElementById('manage-page').classList.remove('active-section');
+        document.getElementById('home-page').classList.add('active-section'); 
+        updateNavVisuals('nav-home');
+        window.scrollTo(0,0);
+    }
+    
+    window.openManage = () => {
+        document.getElementById('home-page').classList.remove('active-section');
+        document.getElementById('booking-page').classList.remove('active-section');
+        document.getElementById('manage-page').classList.add('active-section');
+        updateNavVisuals('nav-manage');
+        window.scrollTo(0,0);
+    }
+
+    window.openSearch = () => {
+        document.getElementById('search-modal').style.display = 'block';
+        updateNavVisuals('nav-search');
+    }
+
+    window.closeSearch = () => {
+        document.getElementById('search-modal').style.display = 'none';
+        updateNavVisuals('nav-home'); 
+    }
+
+    window.switchFormStep = (hide, show) => { 
+        document.getElementById(hide).style.display = 'none'; 
+        document.getElementById(show).style.display = 'block'; 
+    }
+
+    window.toggleConfirmBtn = () => {
+        const check = document.getElementById('policy-check');
+        document.getElementById('btn-confirm-final').disabled = !check.checked;
+    }
+
+    // --- REVIEWS MODAL UI ---
+    window.openReview = (id, resName) => {
+        document.getElementById('review-booking-id').value = id;
+        document.getElementById('review-res-name').innerText = resName;
+        document.getElementById('review-modal').style.display = 'block';
+    };
+
+    window.closeReview = () => {
+        document.getElementById('review-modal').style.display = 'none';
+        document.getElementById('review-text').value = '';
+        document.getElementById('review-rating').value = '5';
+    };
+
 
     // Global Vars
     window.allRestaurants = [];
@@ -353,7 +418,25 @@
         "Hama": "حماة"
     };
 
-    // 1. SETUP
+    // ==========================================
+    // 2. FIREBASE SETUP
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8", // PUT YOUR REAL API KEY HERE
+      authDomain: "tawelty-realtime.firebaseapp.com",
+      projectId: "tawelty-realtime",
+      storageBucket: "tawelty-realtime.firebasestorage.app",
+      messagingSenderId: "127610217841",
+      appId: "1:127610217841:web:9535aedf4a06c645c9c2d0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // ==========================================
+    // 3. CORE LOGIC
+    // ==========================================
     window.onload = async function() {
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').setAttribute('min', today);
@@ -368,7 +451,6 @@
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 
-                // IMPORTANT: The Kill Switch Check
                 if (data.isOpen === false) return; 
 
                 data.id = doc.id;
@@ -469,39 +551,6 @@
         renderList(filtered);
     }
 
-    // --- BOTTOM NAVIGATION LOGIC ---
-    window.updateNavVisuals = (activeId) => {
-        document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-        if(activeId) document.getElementById(activeId).classList.add('active');
-    };
-
-    window.goHome = function() { 
-        document.getElementById('booking-page').classList.remove('active-section'); 
-        document.getElementById('manage-page').classList.remove('active-section');
-        document.getElementById('home-page').classList.add('active-section'); 
-        updateNavVisuals('nav-home');
-        window.scrollTo(0,0);
-    }
-    
-    window.openManage = () => {
-        document.getElementById('home-page').classList.remove('active-section');
-        document.getElementById('booking-page').classList.remove('active-section');
-        document.getElementById('manage-page').classList.add('active-section');
-        updateNavVisuals('nav-manage');
-        window.scrollTo(0,0);
-    }
-
-    window.openSearch = () => {
-        document.getElementById('search-modal').style.display = 'block';
-        updateNavVisuals('nav-search');
-    }
-
-    window.closeSearch = () => {
-        document.getElementById('search-modal').style.display = 'none';
-        updateNavVisuals('nav-home'); 
-    }
-
-    // 2. NAV & BOOKING
     window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close, closedDatesStr) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity; 
@@ -531,7 +580,6 @@
         window.scrollTo(0,0);
     }
 
-    // 3. 30-MINUTE + ADAPTIVE LOGIC
     window.updateTimeSlots = async () => {
         const dateInput = document.getElementById('date').value;
         const grid = document.getElementById('time-grid');
@@ -574,68 +622,73 @@
         const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
         const currentIdx = Math.floor(currentTotalMinutes / 30); 
 
-        const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
-        const snapshot = await getDocs(q);
-        
-        let guestMap = new Array(48).fill(0);
-        let tableMap = new Array(48).fill(0);
-        
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if(data.status !== 'Declined' && !data.archived) {
-                const bookingStartIdx = timeToIndex(data.time); 
-                const bookingDur = data.duration || 3;
-                const bookingSlots = bookingDur * 2;
-                const guests = parseInt(data.persons) || 0;
-                const tablesUsed = Math.ceil(guests / 4);
-                
-                for(let i=0; i<bookingSlots; i++) {
-                    if (bookingStartIdx + i < 48) {
-                        guestMap[bookingStartIdx + i] += guests;
-                        tableMap[bookingStartIdx + i] += tablesUsed;
+        try {
+            const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
+            const snapshot = await getDocs(q);
+            
+            let guestMap = new Array(48).fill(0);
+            let tableMap = new Array(48).fill(0);
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if(data.status !== 'Declined' && !data.archived) {
+                    const bookingStartIdx = timeToIndex(data.time); 
+                    const bookingDur = data.duration || 3;
+                    const bookingSlots = bookingDur * 2;
+                    const guests = parseInt(data.persons) || 0;
+                    const tablesUsed = Math.ceil(guests / 4);
+                    
+                    for(let i=0; i<bookingSlots; i++) {
+                        if (bookingStartIdx + i < 48) {
+                            guestMap[bookingStartIdx + i] += guests;
+                            tableMap[bookingStartIdx + i] += tablesUsed;
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        const doesItFit = (start, slots) => {
-            const tablesNeeded = Math.ceil(groupSize / 4);
-            
-            for(let i=0; i<slots; i++) {
-                if(start+i < 48) {
-                    if((guestMap[start+i] + groupSize) > guestLimit) return false;
-                    if((tableMap[start+i] + tablesNeeded) > tableLimit) return false;
+            const doesItFit = (start, slots) => {
+                const tablesNeeded = Math.ceil(groupSize / 4);
+                
+                for(let i=0; i<slots; i++) {
+                    if(start+i < 48) {
+                        if((guestMap[start+i] + groupSize) > guestLimit) return false;
+                        if((tableMap[start+i] + tablesNeeded) > tableLimit) return false;
+                    }
+                }
+                return true;
+            };
+
+            let html = '';
+            for (let idx = startIdx; idx < endIdx; idx++) {
+                const timeString = indexToTime(idx);
+                let divClass = "time-slot";
+                let action = "";
+                let displayText = timeString;
+
+                if (isToday && idx <= currentIdx) {
+                    html += `<div class="time-slot disabled">${timeString}</div>`;
+                    continue; 
+                }
+
+                if (doesItFit(idx, dur3)) {
+                    action = `onclick="selectSlot(this, '${timeString}', ${dur3/2})"`;
+                    html += `<div class="${divClass}" ${action}>${displayText}</div>`;
+                } else if (doesItFit(idx, dur2)) {
+                    action = `onclick="selectSlot(this, '${timeString}', ${dur2/2})"`;
+                    html += `<div class="${divClass} warning" ${action}>${timeString}</div>`;
+                } else if (doesItFit(idx, dur1)) {
+                    action = `onclick="selectSlot(this, '${timeString}', 1)"`;
+                    html += `<div class="${divClass} warning" ${action}>${timeString}</div>`;
+                } else {
+                    html += `<div class="time-slot disabled">ممتلئ</div>`;
                 }
             }
-            return true;
-        };
-
-        let html = '';
-        for (let idx = startIdx; idx < endIdx; idx++) {
-            const timeString = indexToTime(idx);
-            let divClass = "time-slot";
-            let action = "";
-            let displayText = timeString;
-
-            if (isToday && idx <= currentIdx) {
-                html += `<div class="time-slot disabled">${timeString}</div>`;
-                continue; 
-            }
-
-            if (doesItFit(idx, dur3)) {
-                action = `onclick="selectSlot(this, '${timeString}', ${dur3/2})"`;
-                html += `<div class="${divClass}" ${action}>${displayText}</div>`;
-            } else if (doesItFit(idx, dur2)) {
-                action = `onclick="selectSlot(this, '${timeString}', ${dur2/2})"`;
-                html += `<div class="${divClass} warning" ${action}>${timeString}</div>`;
-            } else if (doesItFit(idx, dur1)) {
-                action = `onclick="selectSlot(this, '${timeString}', 1)"`;
-                html += `<div class="${divClass} warning" ${action}>${timeString}</div>`;
-            } else {
-                html += `<div class="time-slot disabled">ممتلئ</div>`;
-            }
+            grid.innerHTML = html;
+        } catch (error) {
+            console.error("Firebase Error: ", error);
+            grid.innerHTML = `<div style='grid-column:1/-1; text-align:center; color:#e74c3c; padding:20px;'>⚠️ خطأ في الاتصال بالشبكة. يرجى المحاولة مرة أخرى.</div>`;
         }
-        grid.innerHTML = html;
     };
 
     window.selectSlot = function(el, time, duration) {
@@ -643,12 +696,6 @@
         el.classList.add('selected');
         document.getElementById('selected-time-value').value = time;
         window.selectedSlotDuration = duration;
-    }
-
-    // 4. CONTINUE & SUBMIT
-    window.switchFormStep = (hide, show) => { 
-        document.getElementById(hide).style.display = 'none'; 
-        document.getElementById(show).style.display = 'block'; 
     }
 
     window.goToReview = async () => {
@@ -685,11 +732,6 @@
         }
     }
 
-    window.toggleConfirmBtn = () => {
-        const check = document.getElementById('policy-check');
-        document.getElementById('btn-confirm-final').disabled = !check.checked;
-    }
-
     window.sendEmail = async function() {
         document.getElementById('step2').style.display = 'none';
         const bookingData = { 
@@ -709,6 +751,9 @@
         } catch (e) { alert("خطأ: " + e.message); document.getElementById('step2').style.display = 'block'; }
     }
     
+    // ==========================================
+    // 4. MANAGE BOOKINGS & REVIEWS
+    // ==========================================
     window.findBookings = async () => {
         const code = document.getElementById('manage-code').value;
         const num = document.getElementById('manage-phone').value;
@@ -729,9 +774,26 @@
 
             snapshot.forEach(doc => {
                 const d = doc.data();
-                if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) {
+                // Show all active and non-declined bookings
+                if (!d.archived && d.status !== 'Declined') {
                     count++;
                     
+                    const isPastBooking = d.date < todayStr;
+                    let actionHtml = '';
+
+                    // IF BOOKING IS IN THE PAST AND ACCEPTED, SHOW REVIEW BUTTON
+                    if (isPastBooking && d.status === 'Accepted') {
+                        if (d.isReviewed) {
+                            actionHtml = `<p style="color:var(--gold); font-weight:bold; margin-top:10px; font-size:14px;">⭐ تقييمك: ${d.rating}/5</p>`;
+                        } else {
+                            actionHtml = `<button class="btn-review" onclick="openReview('${doc.id}', '${d.restaurant.replace(/'/g, "\\'")}')">⭐ أضف تقييم</button>`;
+                        }
+                    } 
+                    // IF BOOKING IS IN THE FUTURE, SHOW CANCEL BUTTON
+                    else if (!isPastBooking) {
+                        actionHtml = `<button class="btn-cancel-user" onclick="cancelBookingUser('${doc.id}')">إلغاء الحجز</button>`;
+                    }
+
                     let statusArabic = d.status === 'Accepted' ? 'مؤكد ✅' : 'قيد الانتظار ⏳';
                     let statusColor = d.status === 'Accepted' ? 'green' : '#F39C12';
 
@@ -741,11 +803,11 @@
                         <p>📅 ${d.date} الساعة ${d.time}</p>
                         <p>👤 ${d.persons} ضيوف</p>
                         <p>الحالة: <strong style="color:${statusColor}">${statusArabic}</strong></p>
-                        <button class="btn-cancel-user" onclick="cancelBookingUser('${doc.id}')">إلغاء الحجز</button>
+                        ${actionHtml}
                     </div>`;
                 }
             });
-            if(count === 0) list.innerHTML = "<p style='text-align:center; color:#888;'>لا يوجد حجوزات لهذا الرقم.</p>";
+            if(count === 0) list.innerHTML = "<p style='text-align:center; color:#888;'>لا يوجد حجوزات نشطة لهذا الرقم.</p>";
             else list.innerHTML = html;
         } catch (e) { list.innerHTML = "<p style='text-align:center; color:red;'>خطأ في البحث.</p>"; }
     }
@@ -757,6 +819,26 @@
             window.findBookings();
         }
     }
+
+    window.submitReview = async () => {
+        const id = document.getElementById('review-booking-id').value;
+        const rating = document.getElementById('review-rating').value;
+        const text = document.getElementById('review-text').value;
+        
+        try {
+            await updateDoc(doc(db, "reservations", id), {
+                isReviewed: true,
+                rating: parseInt(rating),
+                reviewText: text,
+                reviewDate: new Date().toISOString()
+            });
+            alert("شكراً لملاحظاتك وتقييمك!");
+            window.closeReview();
+            window.findBookings(); // Refresh list to show the new stars
+        } catch(e) {
+            alert("خطأ أثناء الإرسال: " + e.message);
+        }
+    };
 </script>
 </body>
 </html>
