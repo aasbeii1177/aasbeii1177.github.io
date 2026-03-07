@@ -41,7 +41,7 @@
         .header h2 { font-size: 1.5rem; color: var(--text-main); }
         .btn-logout { background: none; border: none; color: red; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
 
-        /* TABS (UPDATED FOR 3 TABS TO FIT MOBILE) */
+        /* TABS */
         .view-tabs { display: flex; flex-wrap: wrap; gap: 8px; background: white; padding: 8px; border-radius: 16px; border: 1px solid var(--border); width: 100%; box-sizing: border-box; margin-bottom: 20px; align-items: center; }
         .tab-btn { background: none; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 600; color: var(--text-sub); cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
         .tab-btn.active { background: var(--text-main); color: white; }
@@ -80,8 +80,10 @@
         .actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 5px; }
         .btn-icon { background: #eee; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1rem; }
 
-        /* WARNING FLAG CSS */
-        .red-flag { background-color: #ffeaea; color: #d32f2f; border: 1px solid #d32f2f; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; width: fit-content; }
+        /* VIP & WARNING BADGES CSS */
+        .badges-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+        .red-flag { background-color: #ffeaea; color: #d32f2f; border: 1px solid #d32f2f; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; width: fit-content; }
+        .vip-badge { background-color: #fff9e6; color: #bfa15f; border: 1px solid #bfa15f; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; width: fit-content; }
 
         /* OVERLAYS */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
@@ -330,22 +332,26 @@
         });
     }
 
+    // --- VIP & WARNING HISTORY CHECKER ---
     window.checkCustomerHistory = async (phone) => {
-        if (!phone || phone.trim() === "" || phone === "N/A") return 0;
+        if (!phone || phone.trim() === "" || phone === "N/A") return { cancels: 0, successes: 0 };
         const q = query(collection(db, "reservations"), where("phone", "==", phone));
         try {
             const snapshot = await getDocs(q);
-            let cancelCount = 0;
+            let cancels = 0;
+            let successes = 0;
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if (data.archived === true || data.status === "Declined") {
-                    cancelCount++;
+                    cancels++;
+                } else if (data.status === "Accepted") {
+                    successes++;
                 }
             });
-            return cancelCount;
+            return { cancels, successes };
         } catch (e) {
             console.error("Error checking history:", e);
-            return 0;
+            return { cancels: 0, successes: 0 };
         }
     };
 
@@ -478,15 +484,21 @@
                 lastDate = b.date;
             }
 
-            let cancelCount = 0;
+            // --- VIP & RED FLAG LOGIC ---
+            let history = { cancels: 0, successes: 0 };
             if (b.status === 'Pending' || window.currentView === 'active') {
-                cancelCount = await window.checkCustomerHistory(b.phone);
+                history = await window.checkCustomerHistory(b.phone);
             }
             
-            let warningHtml = "";
-            if (cancelCount >= 2) {
-                warningHtml = `<div class="red-flag">🚩 WARNING: Cancelled ${cancelCount} times before</div>`;
+            let badgesHtml = "<div class='badges-row'>";
+            if (history.successes >= 3) {
+                badgesHtml += `<div class="vip-badge">🌟 VIP: ${history.successes} Bookings</div>`;
             }
+            if (history.cancels >= 2) {
+                badgesHtml += `<div class="red-flag">🚩 WARNING: Cancelled ${history.cancels} times</div>`;
+            }
+            badgesHtml += "</div>";
+            // -----------------------------
 
             let buttons = '';
             let cardClass = `status-${b.status}`;
@@ -544,7 +556,7 @@
                 <div class="card-meta">
                     <span>🕒 ${b.time}</span> • <span>👤 ${b.persons}</span> • <span>📞 ${b.phone}</span>
                 </div>
-                ${warningHtml} ${buttons}
+                ${badgesHtml} ${buttons}
                 ${reviewHtml}
                 ${askReviewBtn}
             </div>`;
