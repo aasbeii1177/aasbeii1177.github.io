@@ -726,10 +726,13 @@
         const escapeCSV = (str) => `"${String(str || "").replace(/"/g, '""')}"`;
 
         const rows = currentReportData.map(d => {
+            
+            let safePhone = d.phone && d.phone !== "N/A" ? `="${d.phone}"` : escapeCSV("N/A");
+
             return [
                 escapeCSV(d.restaurant),
                 escapeCSV(d.name || "Walk-in"),
-                escapeCSV(d.phone || "N/A"),
+                safePhone, // <-- Using the new safePhone variable here
                 escapeCSV(d.date || "N/A"),
                 escapeCSV(d.time || "N/A"),
                 escapeCSV(d.persons || "0"),
@@ -759,3 +762,4 @@
 </script>
 </body>
 </html>
+
