@@ -223,9 +223,6 @@
     let unsubscribe = null; 
     window.currentView = 'active'; 
 
-    // --- NEW: RED FLAG MEMORY CACHE ---
-    // This stops Firebase from doing 100 searches a minute.
-
     window.onload = () => { 
         setInterval(recalculateDashboard, 10000);
         document.getElementById('notif-sound').src = AUDIO_SRC;
@@ -287,7 +284,7 @@
                     
                     const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
                     const resSnap = await getDocs(q);
-                   // Inside your onAuthStateChanged function:
+                   
                     if(!resSnap.empty) {
                         const d = resSnap.docs[0].data();
                         maxGuests = d.capacity || 20;
@@ -297,7 +294,6 @@
                         document.getElementById('max-guests').innerText = "/ " + maxGuests;
                         document.getElementById('max-tables').innerText = "/ " + maxTables;
                         
-                        // NEW: Check if today is already paused
                         const todayStr = new Date().toISOString().split('T')[0];
                         const btnPause = document.getElementById('btn-pause-today');
                         if (d.closedDates && d.closedDates.includes(todayStr)) {
@@ -346,29 +342,18 @@
         });
     }
 
-    // --- UPDATED: RED FLAG HISTORY CHECK ---
     window.checkCustomerHistory = async (phone) => {
-        // Skip check if no phone number was given
         if (!phone || phone.trim() === "" || phone === "N/A") return 0;
-        
-        // We removed the cache so it gets fresh data every single time.
-        
-        // We use only ONE 'where' to prevent Firebase Index errors
         const q = query(collection(db, "reservations"), where("phone", "==", phone));
-        
         try {
             const snapshot = await getDocs(q);
             let cancelCount = 0;
-            
-            // We count the cancellations manually in JavaScript
             snapshot.forEach(doc => {
                 const data = doc.data();
-                // If they cancelled it (archived) OR the manager declined it
                 if (data.archived === true || data.status === "Declined") {
                     cancelCount++;
                 }
             });
-            
             return cancelCount;
         } catch (e) {
             console.error("Error checking history:", e);
@@ -376,7 +361,6 @@
         }
     };
 
-    // --- NEW: PAUSE TODAY FEATURE ---
     window.togglePauseToday = async () => {
         if(!currentRestaurant) return;
         const btn = document.getElementById('btn-pause-today');
@@ -394,7 +378,6 @@
                 let closedDates = resDoc.data().closedDates || [];
                 
                 if(closedDates.includes(todayStr)) {
-                    // RE-OPEN IT
                     closedDates = closedDates.filter(d => d !== todayStr);
                     await updateDoc(doc(db, "restaurants", resId), { closedDates });
                     btn.innerText = "⏸ Pause Today";
@@ -402,7 +385,6 @@
                     btn.style.color = "#FF5630";
                     alert("Bookings RE-OPENED for today.");
                 } else {
-                    // PAUSE IT
                     if(confirm("Stop all new online bookings for today? (Customers can still book for tomorrow)")) {
                         closedDates.push(todayStr);
                         await updateDoc(doc(db, "restaurants", resId), { closedDates });
@@ -422,7 +404,6 @@
         }
     };
 
-    // --- RENDER & LOGIC ---
     window.setView = (view) => {
         window.currentView = view;
         document.getElementById('tab-active').classList.toggle('active', view === 'active');
@@ -463,7 +444,6 @@
         else gEl.style.color = "#172B4D"; 
     }
 
-    // Notice we changed this to "async function" to handle the background check
     async function renderListFromSnapshot(snapshot) {
         const list = document.getElementById('bookings-list');
         const allDocs = [];
@@ -495,7 +475,6 @@
         let html = '';
         let lastDate = null;
 
-        // We use a for...of loop so we can "await" the history check
         for (const b of allDocs) {
             if (b.date !== lastDate) {
                 const dObj = new Date(b.date);
@@ -504,9 +483,7 @@
                 lastDate = b.date;
             }
 
-            // --- RED FLAG LOGIC CHECK ---
             let cancelCount = 0;
-            // We check history if it's a pending request, or if they are in the active list
             if (b.status === 'Pending' || window.currentView === 'active') {
                 cancelCount = await window.checkCustomerHistory(b.phone);
             }
@@ -515,7 +492,6 @@
             if (cancelCount >= 2) {
                 warningHtml = `<div class="red-flag">🚩 WARNING: Cancelled ${cancelCount} times before</div>`;
             }
-            // -----------------------------
 
             let buttons = '';
             let cardClass = `status-${b.status}`;
@@ -524,8 +500,8 @@
                 if(b.status === 'Pending') {
                     buttons = `
                         <div class="btn-decision-row">
-                            <button class="btn-decision btn-accept" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name}', 'Accepted')">Accept</button>
-                            <button class="btn-decision btn-decline" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name}', 'Declined')">Decline</button>
+                            <button class="btn-decision btn-accept" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name.replace(/'/g, "\\'")}', 'Accepted')">Accept</button>
+                            <button class="btn-decision btn-decline" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name.replace(/'/g, "\\'")}', 'Declined')">Decline</button>
                         </div>
                     `;
                 } else {
@@ -544,6 +520,30 @@
                 buttons = `<div style="font-size:0.8rem; color:#888; font-weight:bold; margin-top:5px;">❌ ${b.status}</div>`;
             }
 
+            // --- NEW: REVIEW DISPLAY & REQUEST LOGIC ---
+            let reviewHtml = '';
+            if (b.isReviewed) {
+                let stars = '⭐'.repeat(b.rating);
+                let comment = b.reviewText ? `<p style="margin:5px 0 0 0; font-size:12px; color:#555; font-style:italic;">"${b.reviewText}"</p>` : '';
+                
+                reviewHtml = `
+                <div style="background:#fff9e6; padding:10px; border-radius:8px; margin-top:10px; border:1px solid #bfa15f;">
+                    <p style="margin:0; font-size:12px; font-weight:bold; color:#bfa15f;">Customer Review:</p>
+                    <p style="margin:5px 0 0 0; font-size:14px;">${stars}</p>
+                    ${comment}
+                </div>`;
+            }
+
+            let askReviewBtn = '';
+            if (b.date < todayStr && b.status === 'Accepted' && !b.isReviewed && b.phone && b.phone !== "N/A") {
+                let cleanPhone = b.phone.replace(/\D/g, ''); 
+                if(cleanPhone.startsWith('0')) cleanPhone = "963" + cleanPhone.substring(1); 
+                
+                let msg = `Hi ${b.name}, thank you for dining at ${currentRestaurant}! We would love to hear about your experience. Please visit our site, go to 'Manage Bookings', and leave us a quick review: https://taweltysy.com`;
+                askReviewBtn = `<button style="background:none; border:1px solid #36B37E; color:#36B37E; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; font-size:12px; font-weight:bold; width:100%;" onclick="window.open('https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}', '_blank')">📲 Ask for Review</button>`;
+            }
+            // -------------------------------------------
+
             html += `
             <div class="booking-card ${cardClass}">
                 <div class="card-header">
@@ -553,6 +553,8 @@
                     <span>🕒 ${b.time}</span> • <span>👤 ${b.persons}</span> • <span>📞 ${b.phone}</span>
                 </div>
                 ${warningHtml} ${buttons}
+                ${reviewHtml}
+                ${askReviewBtn}
             </div>`;
         }
         list.innerHTML = html;
@@ -640,7 +642,3 @@
 </script>
 </body>
 </html>
-
-
-
-
