@@ -52,7 +52,6 @@
         .hidden { display: none !important; }
         .error { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; }
         
-        /* NEW: REVIEWS FEED STYLES */
         .review-card { background: #fff9e6; border: 1px solid #D4AF37; padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; }
         .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .review-name { font-weight: 700; font-size: 14px; color: #1a1a1a; }
@@ -113,7 +112,7 @@
 
         <div style="display:flex; gap:10px;">
             <div style="flex:1;">
-                <label>Max Guests (Capacity)</label>
+                <label>Max Guests</label>
                 <input type="number" id="res-capacity" placeholder="e.g. 40">
             </div>
             <div style="flex:1;">
@@ -121,19 +120,23 @@
                 <input type="number" id="res-tables" placeholder="e.g. 10">
             </div>
             <div style="flex:1;">
-                <label>Avg. Duration (Hours)</label>
-                <input type="number" id="res-duration" placeholder="e.g. 3" min="1" max="5">
+                <label>Avg Duration</label>
+                <input type="number" id="res-duration" placeholder="e.g. 3" min="1">
             </div>
         </div>
 
         <div style="display:flex; gap:10px;">
             <div style="flex:1;">
-                <label>Opens At (24h)</label>
+                <label>Opens At</label>
                 <input type="number" id="res-open" placeholder="e.g. 12" min="0" max="23">
             </div>
             <div style="flex:1;">
-                <label>Last Seating (24h)</label>
+                <label>Last Seating</label>
                 <input type="number" id="res-close" placeholder="e.g. 22" min="0" max="23">
+            </div>
+            <div style="flex:1;">
+                <label>VIP Threshold</label>
+                <input type="number" id="res-vip" placeholder="e.g. 3" value="3" min="1">
             </div>
         </div>
 
@@ -197,16 +200,13 @@
             
             <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; margin-top: 20px;">
                 <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 15px; text-align: left;">Recent Customer Reviews</h3>
-                <div id="reviews-container" style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
-                    <p style="text-align:center; color:#ccc; font-size:13px;">No reviews yet.</p>
-                </div>
+                <div id="reviews-container" style="max-height: 300px; overflow-y: auto; padding-right: 5px;"></div>
             </div>
-            
         </div>
 
         <div style="margin-top: 50px; padding: 20px; border: 2px dashed #e74c3c; border-radius: 12px; background: rgba(231, 76, 60, 0.05);">
             <h3 style="color: #e74c3c; margin-top: 0; text-align: left;">⚠️ Danger Zone</h3>
-            <p style="color: #666; font-size: 0.9rem;">This will permanently delete <strong>ALL reservations</strong> from all restaurants. Use this only to clear testing data before going live.</p>
+            <p style="color: #666; font-size: 0.9rem;">This will permanently delete <strong>ALL reservations</strong>. Use this only to clear testing data.</p>
             <button id="btn-reset-data" class="btn-primary" style="background:#e74c3c;" onclick="clearAllData()">🧨 Erase All Test Bookings</button>
         </div>
         
@@ -217,7 +217,6 @@
         <div class="qr-box" onclick="event.stopPropagation()">
             <h3 id="qr-title" style="margin-bottom:15px;"></h3>
             <img id="qr-image" class="qr-img" src="">
-            <p style="font-size:12px; color:#999;">Right-click to save</p>
             <button onclick="closeQr()" style="margin-top:10px; padding:5px 15px; border:1px solid #ddd; background:white; border-radius:5px; cursor:pointer;">Close</button>
         </div>
     </div>
@@ -255,9 +254,7 @@
     };
 
     window.logout = () => {
-        signOut(auth).then(() => {
-            window.location.href = "staff/"; 
-        });
+        signOut(auth).then(() => { window.location.href = "staff/"; });
     };
 
     onAuthStateChanged(auth, (user) => {
@@ -288,6 +285,7 @@
         const rClose = document.getElementById('res-close').value || "22";
         const rCus = document.getElementById('res-cuisine').value || "General";
         const rPri = document.getElementById('res-price').value || "$$";
+        const rVip = document.getElementById('res-vip').value || "3"; // VIP LOGIC
         const rIsOpen = document.getElementById('res-isopen').value === "true"; 
         
         const mEmail = document.getElementById('mgr-email').value;
@@ -312,6 +310,7 @@
                 closeTime: parseInt(rClose),
                 cuisine: rCus, 
                 price: rPri,
+                vipThreshold: parseInt(rVip), // SAVED TO FIREBASE
                 isOpen: rIsOpen 
             });
             
@@ -339,6 +338,7 @@
         const rClose = document.getElementById('res-close').value;
         const rCus = document.getElementById('res-cuisine').value;
         const rPri = document.getElementById('res-price').value;
+        const rVip = document.getElementById('res-vip').value || "3"; // VIP LOGIC
         const rIsOpen = document.getElementById('res-isopen').value === "true";
         const btn = document.getElementById('btn-submit');
 
@@ -361,6 +361,7 @@
                 closeTime: parseInt(rClose),
                 cuisine: rCus,
                 price: rPri,
+                vipThreshold: parseInt(rVip), // SAVED TO FIREBASE
                 isOpen: rIsOpen 
             });
 
@@ -400,6 +401,7 @@
                 const safeCus = d.cuisine || "General"; 
                 const safePri = d.price || "$$"; 
                 const safeCity = d.city || "Damascus";
+                const safeVip = d.vipThreshold || 3; // VIP LOGIC
                 const isOpen = d.isOpen !== false; 
 
                 const badgeHtml = isOpen ? `<span class="badge badge-active">Active</span>` : `<span class="badge badge-hidden">Hidden</span>`;
@@ -408,12 +410,10 @@
                 <div class="res-item">
                     <div class="res-info">
                         <div class="res-name">${d.name} <span style="font-weight:normal; font-size:12px; color:#555;">(${safeCity})</span> ${badgeHtml}</div>
-                        <div class="res-meta">${d.location} | ${safeCus} | ${safePri}</div>
-                        <div class="res-meta">Hours: ${safeOpen}:00 - ${safeClose}:00 | Time: ${safeDur}h</div>
+                        <div class="res-meta">${d.location} | VIP: ${safeVip} visits</div>
                     </div>
                     <div>
-                        <button class="btn-action btn-qr" onclick="showQr('${safeName}')">📱</button>
-                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, ${safeTabs}, '${safeCus}', '${safePri}', ${safeDur}, ${safeOpen}, ${safeClose}, '${safeCity}', ${isOpen})">✏️</button>
+                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}', '${safeName}', '${safeLoc}', '${safeImg}', ${safeCap}, ${safeTabs}, '${safeCus}', '${safePri}', ${safeDur}, ${safeOpen}, ${safeClose}, '${safeCity}', ${isOpen}, ${safeVip})">✏️</button>
                         <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}', '${safeName}')">🗑️</button>
                     </div>
                 </div>`;
@@ -422,19 +422,7 @@
         } catch(e) { console.error(e); }
     }
 
-    window.showQr = (name) => {
-        const modal = document.getElementById('qr-modal');
-        const img = document.getElementById('qr-image');
-        const title = document.getElementById('qr-title');
-        const websiteUrl = "https://taweltysy.com"; 
-        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(websiteUrl)}`;
-        title.innerText = name + " QR";
-        modal.style.display = 'flex';
-    };
-    
-    window.closeQr = () => document.getElementById('qr-modal').style.display = 'none';
-
-    window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur, open, close, city, isOpenParam) => {
+    window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur, open, close, city, isOpenParam, vipThreshold) => {
         editingId = id;
         editingOldName = name;
         document.getElementById('res-name').value = name;
@@ -448,6 +436,7 @@
         document.getElementById('res-close').value = close;
         document.getElementById('res-cuisine').value = cus;
         document.getElementById('res-price').value = pri;
+        document.getElementById('res-vip').value = vipThreshold || 3; // VIP LOGIC
         
         document.getElementById('res-isopen').value = isOpenParam ? "true" : "false";
         
@@ -475,40 +464,21 @@
         }
     };
 
-    // --- FACTORY RESET ---
     window.clearAllData = async () => {
         const userInput = prompt("⚠️ WARNING: This will permanently delete ALL reservations. Type the word RESET in all caps below to confirm:");
-        
-        if (userInput !== "RESET") {
-            alert("Action cancelled. Your data is safe.");
-            return;
-        }
+        if (userInput !== "RESET") return;
 
         const btn = document.getElementById('btn-reset-data');
-        const originalText = btn.innerText;
-        btn.innerHTML = '<div class="loader"></div> Erasing Database...';
-        btn.disabled = true;
-
+        btn.innerHTML = '<div class="loader"></div> Erasing...';
+        
         try {
             const querySnapshot = await getDocs(collection(db, "reservations"));
-            let count = 0;
             const deletePromises = [];
-
-            querySnapshot.forEach((docSnap) => {
-                deletePromises.push(deleteDoc(doc(db, "reservations", docSnap.id)));
-                count++;
-            });
-
+            querySnapshot.forEach((docSnap) => deletePromises.push(deleteDoc(doc(db, "reservations", docSnap.id))));
             await Promise.all(deletePromises);
-            
-            showSuccess(`🧨 BOOM! ${count} test reservations were permanently deleted.`);
-        } catch (e) {
-            console.error("Error clearing data:", e);
-            alert("Error clearing data: " + e.message);
-        } finally {
-            btn.innerText = originalText;
-            btn.disabled = false;
-        }
+            showSuccess(`🧨 BOOM! Deleted all reservations.`);
+        } catch (e) { alert("Error: " + e.message); } 
+        finally { btn.innerText = "🧨 Erase All Test Bookings"; }
     };
 
     function showSuccess(msgText) {
@@ -530,12 +500,13 @@
         document.getElementById('res-close').value = "";
         document.getElementById('res-cuisine').value = "";
         document.getElementById('res-price').value = "$$";
+        document.getElementById('res-vip').value = "3"; // VIP LOGIC
         document.getElementById('res-isopen').value = "true"; 
         document.getElementById('mgr-email').value = "";
         document.getElementById('mgr-pass').value = "";
     }
 
-    // --- ANALYTICS DASHBOARD LOGIC ---
+    // --- ANALYTICS LOGIC ---
     window.switchAdminView = (view) => {
         const btnVenues = document.getElementById('tab-venues');
         const btnAnalytics = document.getElementById('tab-analytics');
@@ -543,26 +514,13 @@
         if (view === 'venues') {
             document.getElementById('view-venues').classList.remove('hidden');
             document.getElementById('view-analytics').classList.add('hidden');
-            
-            btnVenues.className = 'btn-primary';
-            btnVenues.style.background = '#1a1a1a';
-            btnVenues.style.color = 'white';
-            
-            btnAnalytics.className = 'btn-cancel';
-            btnAnalytics.style.display = 'block';
-            btnAnalytics.style.background = '#fff';
+            btnVenues.className = 'btn-primary'; btnVenues.style.background = '#1a1a1a'; btnVenues.style.color = 'white';
+            btnAnalytics.className = 'btn-cancel'; btnAnalytics.style.display = 'block'; btnAnalytics.style.background = '#fff';
         } else {
             document.getElementById('view-venues').classList.add('hidden');
             document.getElementById('view-analytics').classList.remove('hidden');
-            
-            btnAnalytics.className = 'btn-primary';
-            btnAnalytics.style.background = '#1a1a1a';
-            btnAnalytics.style.color = 'white';
-            
-            btnVenues.className = 'btn-cancel';
-            btnVenues.style.display = 'block';
-            btnVenues.style.background = '#fff';
-            
+            btnAnalytics.className = 'btn-primary'; btnAnalytics.style.background = '#1a1a1a'; btnAnalytics.style.color = 'white';
+            btnVenues.className = 'btn-cancel'; btnVenues.style.display = 'block'; btnVenues.style.background = '#fff';
             populateAnalyticsDropdown();
         }
     };
@@ -573,9 +531,7 @@
         try {
             const snap = await getDocs(collection(db, "restaurants"));
             let html = '<option value="ALL">All Restaurants Overview</option>';
-            snap.forEach(doc => {
-                html += `<option value="${doc.data().name}">${doc.data().name}</option>`;
-            });
+            snap.forEach(doc => { html += `<option value="${doc.data().name}">${doc.data().name}</option>`; });
             select.innerHTML = html;
             generateReport(); 
         } catch(e) { console.error(e); }
@@ -585,176 +541,79 @@
         const resName = document.getElementById('analytics-res-select').value;
         if (!resName) return;
 
-        let q;
-        if (resName === "ALL") {
-            q = collection(db, "reservations"); 
-        } else {
-            q = query(collection(db, "reservations"), where("restaurant", "==", resName));
-        }
+        let q = resName === "ALL" ? collection(db, "reservations") : query(collection(db, "reservations"), where("restaurant", "==", resName));
 
         try {
             const snapshot = await getDocs(q);
-            
-            let totalGuests = 0;
-            let totalBookings = 0; 
-            let acceptedBookings = 0; 
-            let cancelledBookings = 0;
+            let totalGuests = 0, totalBookings = 0, acceptedBookings = 0, cancelledBookings = 0;
             let dayTracker = {}; 
-            
-            let reviewsHtml = ''; // For building the review feed
-            
-            currentReportData = []; // Clear old data
+            let reviewsHtml = ''; 
+            currentReportData = [];
 
             snapshot.forEach(doc => {
                 const data = doc.data();
-                currentReportData.push(data); // Save raw data for CSV Export
+                currentReportData.push(data);
                 totalBookings++;
 
-                if (data.status === "Declined" || data.archived === true) {
-                    cancelledBookings++;
-                } else if (data.status === "Accepted") {
+                if (data.status === "Declined" || data.archived === true) cancelledBookings++;
+                else if (data.status === "Accepted") {
                     acceptedBookings++;
                     totalGuests += parseInt(data.persons || 0);
-                    
                     if(data.date) {
                         const dateObj = new Date(data.date);
                         const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
                         const dayName = days[dateObj.getDay()];
-                        
                         if (!dayTracker[dayName]) dayTracker[dayName] = 0;
                         dayTracker[dayName] += 1;
                     }
                 }
 
-                // --- NEW: CATCH AND BUILD REVIEWS ---
                 if (data.isReviewed) {
                     let stars = '⭐'.repeat(data.rating);
                     let comment = data.reviewText ? `"${data.reviewText}"` : "No comment left.";
-                    let dateDisplay = data.date || "Unknown Date";
-                    
-                    // If viewing "ALL", show the restaurant name. If viewing a specific one, show the customer name.
                     let titleDisplay = resName === "ALL" ? `${data.restaurant} <span style="font-weight:normal; color:#999;">(${data.name})</span>` : data.name;
-
-                    reviewsHtml += `
-                    <div class="review-card">
-                        <div class="review-header">
-                            <span class="review-name">${titleDisplay}</span>
-                            <span style="font-size:10px; color:#aaa;">${dateDisplay}</span>
-                        </div>
-                        <div class="review-stars">${stars}</div>
-                        <p class="review-text">${comment}</p>
-                    </div>`;
+                    reviewsHtml += `<div class="review-card"><div class="review-header"><span class="review-name">${titleDisplay}</span><span style="font-size:10px; color:#aaa;">${data.date}</span></div><div class="review-stars">${stars}</div><p class="review-text">${comment}</p></div>`;
                 }
             });
 
-            // Update DOM Elements
             document.getElementById('stat-bookings').innerText = acceptedBookings;
             document.getElementById('stat-guests').innerText = totalGuests;
-            
-            let cancelRate = totalBookings > 0 ? Math.round((cancelledBookings / totalBookings) * 100) : 0;
-            document.getElementById('stat-cancel').innerText = cancelRate + "%";
-            
-            // Render Reviews Feed
-            const reviewsContainer = document.getElementById('reviews-container');
-            if (reviewsHtml === '') {
-                reviewsContainer.innerHTML = '<p style="text-align:center; color:#ccc; font-size:13px;">No reviews yet.</p>';
-            } else {
-                reviewsContainer.innerHTML = reviewsHtml;
-            }
+            document.getElementById('stat-cancel').innerText = (totalBookings > 0 ? Math.round((cancelledBookings / totalBookings) * 100) : 0) + "%";
+            document.getElementById('reviews-container').innerHTML = reviewsHtml === '' ? '<p style="text-align:center; color:#ccc; font-size:13px;">No reviews yet.</p>' : reviewsHtml;
 
             drawChart(dayTracker);
-
-        } catch (e) { console.error("Error generating report:", e); }
+        } catch (e) { console.error(e); }
     };
 
     function drawChart(dayTracker) {
         const ctx = document.getElementById('peakChart').getContext('2d');
-        
         const weekOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        const labels = [], data = [];
         
-        const labels = [];
-        const data = [];
-        
-        weekOrder.forEach(day => {
-            labels.push(day);
-            data.push(dayTracker[day] || 0);
-        });
+        weekOrder.forEach(day => { labels.push(day); data.push(dayTracker[day] || 0); });
 
         if (peakChartInstance) peakChartInstance.destroy();
-
-        peakChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Accepted Bookings',
-                    data: data,
-                    backgroundColor: '#D4AF37',
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        grid: { color: '#eee' }, 
-                        ticks: { color: '#999', stepSize: 1 } 
-                    },
-                    x: { 
-                        grid: { display: false }, 
-                        ticks: { color: '#999' } 
-                    }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
+        peakChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Accepted', data: data, backgroundColor: '#D4AF37', borderRadius: 6 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: '#eee' }, ticks: { color: '#999', stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#999' } } }, plugins: { legend: { display: false } } } });
     }
 
-    // --- UPDATED: CSV EXPORT LOGIC WITH REVIEWS ---
     window.exportToCSV = () => {
-        if (currentReportData.length === 0) {
-            alert("No data available to export.");
-            return;
-        }
-
-        // Added Rating and Review to headers
-        const headers = ["Restaurant", "Customer Name", "Phone", "Date", "Time", "Guests", "Status", "Duration (Hours)", "Rating (Stars)", "Review Comment"];
-        
+        if (currentReportData.length === 0) return alert("No data available to export.");
+        const headers = ["Restaurant", "Customer Name", "Phone", "Date", "Time", "Guests", "Status", "Duration", "Rating", "Comment"];
         const escapeCSV = (str) => `"${String(str || "").replace(/"/g, '""')}"`;
-
-        const rows = currentReportData.map(d => {
-            
-            let safePhone = d.phone && d.phone !== "N/A" ? `="${d.phone}"` : escapeCSV("N/A");
-
-            return [
-                escapeCSV(d.restaurant),
-                escapeCSV(d.name || "Walk-in"),
-                safePhone, // <-- Using the new safePhone variable here
-                escapeCSV(d.date || "N/A"),
-                escapeCSV(d.time || "N/A"),
-                escapeCSV(d.persons || "0"),
-                escapeCSV(d.archived ? "Archived/Cancelled" : (d.status || "Unknown")),
-                escapeCSV(d.duration || "3"),
-                escapeCSV(d.isReviewed ? d.rating : "N/A"),
-                escapeCSV(d.isReviewed ? d.reviewText : "N/A")
-            ].join(",");
-        });
-
-        const csvContent = [headers.join(","), ...rows].join("\n");
         
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const rows = currentReportData.map(d => [
+            escapeCSV(d.restaurant), escapeCSV(d.name || "Walk-in"), 
+            d.phone && d.phone !== "N/A" ? `="${d.phone}"` : escapeCSV("N/A"), 
+            escapeCSV(d.date), escapeCSV(d.time), escapeCSV(d.persons), 
+            escapeCSV(d.archived ? "Archived/Cancelled" : d.status), escapeCSV(d.duration), 
+            escapeCSV(d.isReviewed ? d.rating : "N/A"), escapeCSV(d.isReviewed ? d.reviewText : "N/A")
+        ].join(","));
+
+        const blob = new Blob([[headers.join(","), ...rows].join("\n")], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        
         const resName = document.getElementById('analytics-res-select').value;
-        const fileName = `Tawelty_Report_${resName === "ALL" ? "All_Venues" : resName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
-
-        link.setAttribute("href", url);
-        link.setAttribute("download", fileName);
-        link.style.visibility = 'hidden';
+        link.setAttribute("href", URL.createObjectURL(blob));
+        link.setAttribute("download", `Tawelty_Report_${resName === "ALL" ? "All" : resName.replace(/\s+/g, '_')}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -762,4 +621,3 @@
 </script>
 </body>
 </html>
-
