@@ -51,6 +51,14 @@
 
         .hidden { display: none !important; }
         .error { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; }
+        
+        /* NEW: REVIEWS FEED STYLES */
+        .review-card { background: #fff9e6; border: 1px solid #D4AF37; padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; }
+        .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .review-name { font-weight: 700; font-size: 14px; color: #1a1a1a; }
+        .review-res { font-size: 12px; color: #D4AF37; font-weight: 800; }
+        .review-stars { font-size: 14px; margin-bottom: 5px; }
+        .review-text { font-size: 13px; color: #555; font-style: italic; margin: 0; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -186,6 +194,14 @@
                 <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 15px; text-align: left;">Traffic by Day of the Week</h3>
                 <canvas id="peakChart" height="150"></canvas>
             </div>
+            
+            <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; margin-top: 20px;">
+                <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 15px; text-align: left;">Recent Customer Reviews</h3>
+                <div id="reviews-container" style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                    <p style="text-align:center; color:#ccc; font-size:13px;">No reviews yet.</p>
+                </div>
+            </div>
+            
         </div>
 
         <div style="margin-top: 50px; padding: 20px; border: 2px dashed #e74c3c; border-radius: 12px; background: rgba(231, 76, 60, 0.05);">
@@ -227,7 +243,7 @@
     let editingId = null;
     let editingOldName = "";
     let peakChartInstance = null;
-    let currentReportData = []; // NEW: Stores data for the CSV Export
+    let currentReportData = []; 
 
     window.login = () => {
         const email = document.getElementById('email').value;
@@ -585,6 +601,8 @@
             let cancelledBookings = 0;
             let dayTracker = {}; 
             
+            let reviewsHtml = ''; // For building the review feed
+            
             currentReportData = []; // Clear old data
 
             snapshot.forEach(doc => {
@@ -607,13 +625,42 @@
                         dayTracker[dayName] += 1;
                     }
                 }
+
+                // --- NEW: CATCH AND BUILD REVIEWS ---
+                if (data.isReviewed) {
+                    let stars = '⭐'.repeat(data.rating);
+                    let comment = data.reviewText ? `"${data.reviewText}"` : "No comment left.";
+                    let dateDisplay = data.date || "Unknown Date";
+                    
+                    // If viewing "ALL", show the restaurant name. If viewing a specific one, show the customer name.
+                    let titleDisplay = resName === "ALL" ? `${data.restaurant} <span style="font-weight:normal; color:#999;">(${data.name})</span>` : data.name;
+
+                    reviewsHtml += `
+                    <div class="review-card">
+                        <div class="review-header">
+                            <span class="review-name">${titleDisplay}</span>
+                            <span style="font-size:10px; color:#aaa;">${dateDisplay}</span>
+                        </div>
+                        <div class="review-stars">${stars}</div>
+                        <p class="review-text">${comment}</p>
+                    </div>`;
+                }
             });
 
+            // Update DOM Elements
             document.getElementById('stat-bookings').innerText = acceptedBookings;
             document.getElementById('stat-guests').innerText = totalGuests;
             
             let cancelRate = totalBookings > 0 ? Math.round((cancelledBookings / totalBookings) * 100) : 0;
             document.getElementById('stat-cancel').innerText = cancelRate + "%";
+            
+            // Render Reviews Feed
+            const reviewsContainer = document.getElementById('reviews-container');
+            if (reviewsHtml === '') {
+                reviewsContainer.innerHTML = '<p style="text-align:center; color:#ccc; font-size:13px;">No reviews yet.</p>';
+            } else {
+                reviewsContainer.innerHTML = reviewsHtml;
+            }
 
             drawChart(dayTracker);
 
@@ -623,7 +670,6 @@
     function drawChart(dayTracker) {
         const ctx = document.getElementById('peakChart').getContext('2d');
         
-        // Ensure consistent order Monday through Sunday
         const weekOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
         
         const labels = [];
@@ -667,20 +713,18 @@
         });
     }
 
-    // --- NEW: CSV EXPORT LOGIC ---
+    // --- UPDATED: CSV EXPORT LOGIC WITH REVIEWS ---
     window.exportToCSV = () => {
         if (currentReportData.length === 0) {
             alert("No data available to export.");
             return;
         }
 
-        // 1. Create the Headers
-        const headers = ["Restaurant", "Customer Name", "Phone", "Date", "Time", "Guests", "Status", "Duration (Hours)"];
+        // Added Rating and Review to headers
+        const headers = ["Restaurant", "Customer Name", "Phone", "Date", "Time", "Guests", "Status", "Duration (Hours)", "Rating (Stars)", "Review Comment"];
         
-        // Helper function to safely wrap text in quotes so commas don't break the CSV
         const escapeCSV = (str) => `"${String(str || "").replace(/"/g, '""')}"`;
 
-        // 2. Map the data into rows
         const rows = currentReportData.map(d => {
             return [
                 escapeCSV(d.restaurant),
@@ -690,14 +734,14 @@
                 escapeCSV(d.time || "N/A"),
                 escapeCSV(d.persons || "0"),
                 escapeCSV(d.archived ? "Archived/Cancelled" : (d.status || "Unknown")),
-                escapeCSV(d.duration || "3")
+                escapeCSV(d.duration || "3"),
+                escapeCSV(d.isReviewed ? d.rating : "N/A"),
+                escapeCSV(d.isReviewed ? d.reviewText : "N/A")
             ].join(",");
         });
 
-        // 3. Combine headers and rows
         const csvContent = [headers.join(","), ...rows].join("\n");
         
-        // 4. Create the downloadable file
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
