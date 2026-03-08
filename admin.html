@@ -58,6 +58,9 @@
         .review-res { font-size: 12px; color: #D4AF37; font-weight: 800; }
         .review-stars { font-size: 14px; margin-bottom: 5px; }
         .review-text { font-size: 13px; color: #555; font-style: italic; margin: 0; }
+        
+        /* Control Panel */
+        .control-panel { background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin-bottom: 20px; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -171,19 +174,19 @@
 
         <div id="view-analytics" class="hidden" style="margin-top: 20px;">
             
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
-                <div style="flex-grow: 1; min-width: 150px;">
+            <div class="control-panel">
+                <div style="flex-grow: 1; min-width: 140px;">
                     <label style="margin-top: 0;">Select Restaurant</label>
                     <select id="analytics-res-select" onchange="generateReport()" style="margin-top: 5px;"></select>
                 </div>
-                <div style="flex-grow: 1; min-width: 150px;">
-                    <label style="margin-top: 0;">Filter by Month (Leave empty for All-Time)</label>
-                    <input type="month" id="analytics-month" onchange="generateReport()" style="margin-top: 5px; font-family: inherit;">
+                <div style="flex-grow: 1; min-width: 140px;">
+                    <label style="margin-top: 0;">Filter by Period</label>
+                    <select id="analytics-month" onchange="generateReport()" style="margin-top: 5px;"></select>
                 </div>
-                <button class="btn-primary" style="width: auto; padding: 12px 20px; margin: 0; background: #2ecc71; color: white;" onclick="exportToCSV()">📥 Export CSV</button>
+                <button class="btn-primary" style="width: auto; padding: 12px 25px; margin: 0; background: #2ecc71; color: white;" onclick="exportToCSV()">📥 Export CSV</button>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
                 <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
                     <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Accepted Bookings</h3>
                     <div id="stat-bookings" style="font-size: 2.5rem; font-weight: 800; color: #1a1a1a;">0</div>
@@ -526,9 +529,34 @@
             document.getElementById('view-analytics').classList.remove('hidden');
             btnAnalytics.className = 'btn-primary'; btnAnalytics.style.background = '#1a1a1a'; btnAnalytics.style.color = 'white';
             btnVenues.className = 'btn-cancel'; btnVenues.style.display = 'block'; btnVenues.style.background = '#fff';
+            
             populateAnalyticsDropdown();
+            populateMonthDropdown(); // Generate the months dynamically!
         }
     };
+
+    // --- NEW: POPULATES THE MONTH DROPDOWN DYNAMICALLY ---
+    function populateMonthDropdown() {
+        const select = document.getElementById('analytics-month');
+        let html = '<option value="">All-Time (Everything)</option>';
+
+        const today = new Date();
+        let currentYear = today.getFullYear();
+        let currentMonth = today.getMonth(); 
+
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        // Generates the last 24 months as options
+        for (let i = 0; i < 24; i++) {
+            let d = new Date(currentYear, currentMonth - i, 1);
+            let y = d.getFullYear();
+            let m = d.getMonth();
+            let valStr = `${y}-${String(m + 1).padStart(2, '0')}`; // Formats as "YYYY-MM"
+            let displayStr = `${monthNames[m]} ${y}`;
+            html += `<option value="${valStr}">${displayStr}</option>`;
+        }
+        select.innerHTML = html;
+    }
 
     async function populateAnalyticsDropdown() {
         const select = document.getElementById('analytics-res-select');
@@ -544,7 +572,7 @@
 
     window.generateReport = async () => {
         const resName = document.getElementById('analytics-res-select').value;
-        const selectedMonth = document.getElementById('analytics-month').value; // NEW: Gets "YYYY-MM"
+        const selectedMonth = document.getElementById('analytics-month').value; // e.g., "2026-03"
         if (!resName) return;
 
         let q = resName === "ALL" ? collection(db, "reservations") : query(collection(db, "reservations"), where("restaurant", "==", resName));
@@ -559,10 +587,10 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 
-                // --- NEW: Filter by selected month ---
+                // --- Filter by selected month from the Dropdown ---
                 if (selectedMonth && data.date) {
-                    const bookingMonth = data.date.substring(0, 7); // Extracts "YYYY-MM"
-                    if (bookingMonth !== selectedMonth) return; // Skip if it doesn't match the filter
+                    const bookingMonth = data.date.substring(0, 7); 
+                    if (bookingMonth !== selectedMonth) return; 
                 }
 
                 currentReportData.push(data);
@@ -615,7 +643,6 @@
         const escapeCSV = (str) => `"${String(str || "").replace(/"/g, '""')}"`;
         
         const rows = currentReportData.map(d => {
-            // FIX: Force Excel to format phone as text string
             let safePhone = d.phone && d.phone !== "N/A" ? `="${d.phone}"` : escapeCSV("N/A");
             return [
                 escapeCSV(d.restaurant), escapeCSV(d.name || "Walk-in"), 
