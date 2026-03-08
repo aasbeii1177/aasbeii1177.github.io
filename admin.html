@@ -175,6 +175,18 @@
         
         <div id="msg" class="success-msg">✨ Success!</div>
 
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px dashed #eee;">
+            <h2 style="margin-bottom: 10px; text-align:left; font-size:1.2rem;">Global App Settings</h2>
+            <label>Main Background Image (Homepage Hero)</label>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="hero-image-text" placeholder="Upload image below ->" readonly style="flex:1;">
+                <input type="file" id="hero-file-input" accept="image/*" style="display:none;" onchange="handleHeroImageUpload(event)">
+                <button class="btn-cancel" style="width:auto; margin:0; display:block; background:#f0f0f0; color:#333; font-weight:bold; border:2px solid #ddd;" onclick="document.getElementById('hero-file-input').click()">📁 Change Picture</button>
+            </div>
+            <p id="hero-upload-status" style="font-size:11px; color:#2ecc71; margin-top:5px; display:none;">✅ Image compressed and attached!</p>
+            <button class="btn-primary" style="background:#2ecc71; margin-top: 15px;" onclick="saveHomepageSettings()">✨ Save Global Background</button>
+        </div>
+
         <div style="display: flex; gap: 10px; margin-top: 40px; border-bottom: 2px solid #eee; padding-bottom: 15px;">
             <button id="tab-venues" class="btn-primary" style="margin-top:0; padding: 10px; width: 50%;" onclick="switchAdminView('venues')">🍽️ Manage Venues</button>
             <button id="tab-analytics" class="btn-cancel" style="display:block; margin-top:0; padding: 10px; width: 50%;" onclick="switchAdminView('analytics')">📊 Analytics & Reports</button>
@@ -299,7 +311,7 @@
         }
     });
 
-    // --- NEW: MAGIC COMPRESSION FUNCTION ---
+    // --- RESTAURANT IMAGE UPLOAD ---
     window.handleImageUpload = (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -315,29 +327,76 @@
             img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                // We shrink it to max 600px wide to make sure it easily fits in the free database!
                 const MAX_WIDTH = 600; 
                 let scaleSize = 1;
-                
-                if (img.width > MAX_WIDTH) {
-                    scaleSize = MAX_WIDTH / img.width;
-                }
-                
+                if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
                 canvas.width = img.width * scaleSize;
                 canvas.height = img.height * scaleSize;
-
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                // Convert to JPEG at 70% quality (Makes it incredibly tiny but looks great on phones)
                 const base64String = canvas.toDataURL('image/jpeg', 0.7);
 
-                // Hide the long string from the user so it doesn't break the UI, but store it securely
                 document.getElementById('res-image').value = base64String;
-                
                 document.getElementById('upload-status').innerText = "✅ Image compressed and attached!";
                 document.getElementById('upload-status').style.color = "#2ecc71";
             }
+        }
+    };
+
+    // --- NEW: HOMEPAGE HERO IMAGE UPLOAD ---
+    let tempHeroBase64 = null; 
+
+    window.handleHeroImageUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        document.getElementById('hero-upload-status').innerText = "⏳ Compressing image...";
+        document.getElementById('hero-upload-status').style.color = "#FFAB00";
+        document.getElementById('hero-upload-status').style.display = "block";
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1920; // High-res for hero background
+                let scaleSize = 1;
+                if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
+                canvas.width = img.width * scaleSize;
+                canvas.height = img.height * scaleSize;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                const base64String = canvas.toDataURL('image/jpeg', 0.8);
+                tempHeroBase64 = base64String;
+
+                document.getElementById('hero-image-text').value = "(New image attached to save!)";
+                document.getElementById('hero-upload-status').innerText = "✅ Image compressed and attached!";
+                document.getElementById('hero-upload-status').style.color = "#2ecc71";
+            }
+        }
+    };
+
+    window.saveHomepageSettings = async () => {
+        if (!tempHeroBase64) return alert("Please upload a new background image first.");
+        const btn = document.querySelector('button[onclick="saveHomepageSettings()"]');
+        btn.innerText = "Wait... updating Homepage";
+        try {
+            await setDoc(doc(db, "app_settings", "homepage"), { 
+                backgroundImage: tempHeroBase64,
+                updatedAt: new Date()
+            });
+            showSuccess("✨ Homepage picture updated globally!");
+            document.getElementById('hero-image-text').value = "";
+            document.getElementById('hero-upload-status').style.display = "none";
+            tempHeroBase64 = null; 
+        } catch (e) {
+            console.error("Error updating settings:", e);
+            alert("Error: " + e.message);
+        } finally {
+            btn.innerText = "✨ Save Global Background";
         }
     };
 
@@ -350,7 +409,7 @@
         const rName = document.getElementById('res-name').value;
         const rCity = document.getElementById('res-city').value; 
         const rLoc = document.getElementById('res-location').value;
-        const rImg = document.getElementById('res-image').value; // Will grab either a link or the secret Base64 string!
+        const rImg = document.getElementById('res-image').value; 
         const rCap = document.getElementById('res-capacity').value;
         const rTabs = document.getElementById('res-tables').value || "10";
         const rDur = document.getElementById('res-duration').value || "3";
@@ -502,7 +561,6 @@
         document.getElementById('res-city').value = city || "Damascus"; 
         document.getElementById('res-location').value = loc;
         
-        // If it's a huge base64 string, don't fill up the textbox visually, just store it.
         if (img.length > 500) {
             document.getElementById('res-image').value = img;
             document.getElementById('upload-status').innerText = "✅ Saved Image Attached";
