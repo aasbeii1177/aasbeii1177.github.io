@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Admin Portal - Tawelty</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
     <style>
         /* --- PREMIUM ADMIN THEME --- */
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #EEF2F5; margin: 0; padding: 40px 20px; color: #333; }
@@ -59,8 +59,18 @@
         .review-stars { font-size: 14px; margin-bottom: 5px; }
         .review-text { font-size: 13px; color: #555; font-style: italic; margin: 0; }
         
-        /* Control Panel */
-        .control-panel { background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin-bottom: 20px; }
+        /* NEW: CUSTOM CALENDAR WIDGET CSS */
+        .month-picker-box { background: #fafafa; border: 1px solid #eee; border-radius: 12px; padding: 20px; margin-top: 15px; width: 100%; box-sizing: border-box; }
+        .year-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .year-selector { font-size: 1.4rem; font-weight: 800; border: none; background: transparent; cursor: pointer; outline: none; color: #1a1a1a; padding: 0; margin: 0; width: auto; font-family: inherit; }
+        .all-time-btn { font-size: 0.85rem; background: #eee; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 700; color: #555; transition: 0.2s; }
+        .all-time-btn:hover { background: #e0e0e0; }
+        .all-time-btn.active { background: #D4AF37; color: white; }
+        
+        .month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .month-btn { padding: 12px 5px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #555; transition: 0.2s; font-family: inherit; }
+        .month-btn:hover { border-color: #1a1a1a; }
+        .month-btn.active { background: #1a1a1a; color: white; border-color: #1a1a1a; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -174,19 +184,24 @@
 
         <div id="view-analytics" class="hidden" style="margin-top: 20px;">
             
-            <div class="control-panel">
-                <div style="flex-grow: 1; min-width: 140px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px;">
+                <div style="flex-grow: 1; min-width: 200px;">
                     <label style="margin-top: 0;">Select Restaurant</label>
                     <select id="analytics-res-select" onchange="generateReport()" style="margin-top: 5px;"></select>
-                </div>
-                <div style="flex-grow: 1; min-width: 140px;">
-                    <label style="margin-top: 0;">Filter by Period</label>
-                    <select id="analytics-month" onchange="generateReport()" style="margin-top: 5px;"></select>
                 </div>
                 <button class="btn-primary" style="width: auto; padding: 12px 25px; margin: 0; background: #2ecc71; color: white;" onclick="exportToCSV()">📥 Export CSV</button>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+            <div class="month-picker-box">
+                <div class="year-header">
+                    <select id="picker-year" class="year-selector" onchange="changePickerYear()"></select>
+                    <button id="btn-all-time" class="all-time-btn" onclick="selectAllTime()">All-Time Data</button>
+                </div>
+                <div id="month-grid" class="month-grid"></div>
+                <input type="hidden" id="analytics-month-hidden" value="">
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
                 <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
                     <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Accepted Bookings</h3>
                     <div id="stat-bookings" style="font-size: 2.5rem; font-weight: 800; color: #1a1a1a;">0</div>
@@ -251,6 +266,10 @@
     let editingOldName = "";
     let peakChartInstance = null;
     let currentReportData = []; 
+
+    // --- CUSTOM CALENDAR VARIABLES ---
+    let currentFilterYear = new Date().getFullYear();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     window.login = () => {
         const email = document.getElementById('email').value;
@@ -514,6 +533,59 @@
         document.getElementById('mgr-pass').value = "";
     }
 
+    // --- CUSTOM CALENDAR LOGIC ---
+    function initCustomMonthPicker() {
+        const yearSelect = document.getElementById('picker-year');
+        const currentYear = new Date().getFullYear();
+        let yearHtml = '';
+        
+        // Generate options for this year, next year, and 3 past years
+        for (let y = currentYear + 1; y >= currentYear - 3; y--) {
+            yearHtml += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
+        }
+        yearSelect.innerHTML = yearHtml;
+        currentFilterYear = currentYear;
+        
+        // Set default state to "All Time"
+        document.getElementById('analytics-month-hidden').value = "";
+        renderMonthGrid();
+    }
+
+    window.changePickerYear = () => {
+        currentFilterYear = parseInt(document.getElementById('picker-year').value);
+        renderMonthGrid();
+    };
+
+    window.renderMonthGrid = () => {
+        const grid = document.getElementById('month-grid');
+        const hiddenInput = document.getElementById('analytics-month-hidden').value; // Format: "YYYY-MM"
+        let html = '';
+        
+        for(let i=0; i<12; i++) {
+            let mStr = String(i+1).padStart(2, '0');
+            let valStr = `${currentFilterYear}-${mStr}`;
+            let isActive = (hiddenInput === valStr);
+            
+            html += `<button class="month-btn ${isActive ? 'active' : ''}" onclick="selectFilterMonth('${valStr}')">${monthNames[i]}</button>`;
+        }
+        grid.innerHTML = html;
+        
+        // Toggle All-Time Button state
+        document.getElementById('btn-all-time').classList.toggle('active', hiddenInput === "");
+    };
+
+    window.selectFilterMonth = (valStr) => {
+        document.getElementById('analytics-month-hidden').value = valStr;
+        renderMonthGrid(); // Update buttons visual
+        generateReport();  // Fetch data
+    };
+
+    window.selectAllTime = () => {
+        document.getElementById('analytics-month-hidden').value = "";
+        renderMonthGrid(); // Update buttons visual
+        generateReport();  // Fetch data
+    };
+
     // --- ANALYTICS LOGIC ---
     window.switchAdminView = (view) => {
         const btnVenues = document.getElementById('tab-venues');
@@ -531,32 +603,9 @@
             btnVenues.className = 'btn-cancel'; btnVenues.style.display = 'block'; btnVenues.style.background = '#fff';
             
             populateAnalyticsDropdown();
-            populateMonthDropdown(); // Generate the months dynamically!
+            initCustomMonthPicker(); // INITIALIZE THE CUSTOM CALENDAR WIDGET
         }
     };
-
-    // --- NEW: POPULATES THE MONTH DROPDOWN DYNAMICALLY ---
-    function populateMonthDropdown() {
-        const select = document.getElementById('analytics-month');
-        let html = '<option value="">All-Time (Everything)</option>';
-
-        const today = new Date();
-        let currentYear = today.getFullYear();
-        let currentMonth = today.getMonth(); 
-
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-        // Generates the last 24 months as options
-        for (let i = 0; i < 24; i++) {
-            let d = new Date(currentYear, currentMonth - i, 1);
-            let y = d.getFullYear();
-            let m = d.getMonth();
-            let valStr = `${y}-${String(m + 1).padStart(2, '0')}`; // Formats as "YYYY-MM"
-            let displayStr = `${monthNames[m]} ${y}`;
-            html += `<option value="${valStr}">${displayStr}</option>`;
-        }
-        select.innerHTML = html;
-    }
 
     async function populateAnalyticsDropdown() {
         const select = document.getElementById('analytics-res-select');
@@ -572,7 +621,7 @@
 
     window.generateReport = async () => {
         const resName = document.getElementById('analytics-res-select').value;
-        const selectedMonth = document.getElementById('analytics-month').value; // e.g., "2026-03"
+        const selectedMonth = document.getElementById('analytics-month-hidden').value; // GET FROM CUSTOM WIDGET
         if (!resName) return;
 
         let q = resName === "ALL" ? collection(db, "reservations") : query(collection(db, "reservations"), where("restaurant", "==", resName));
@@ -587,7 +636,7 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 
-                // --- Filter by selected month from the Dropdown ---
+                // --- Filter by selected month ---
                 if (selectedMonth && data.date) {
                     const bookingMonth = data.date.substring(0, 7); 
                     if (bookingMonth !== selectedMonth) return; 
@@ -656,7 +705,7 @@
         const blob = new Blob([[headers.join(","), ...rows].join("\n")], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const resName = document.getElementById('analytics-res-select').value;
-        const selectedMonth = document.getElementById('analytics-month').value || "All_Time";
+        const selectedMonth = document.getElementById('analytics-month-hidden').value || "All_Time";
         
         link.setAttribute("href", URL.createObjectURL(blob));
         link.setAttribute("download", `Tawelty_Report_${resName === "ALL" ? "All" : resName.replace(/\s+/g, '_')}_${selectedMonth}.csv`);
