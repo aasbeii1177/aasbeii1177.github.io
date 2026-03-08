@@ -59,7 +59,7 @@
         .review-stars { font-size: 14px; margin-bottom: 5px; }
         .review-text { font-size: 13px; color: #555; font-style: italic; margin: 0; }
         
-        /* NEW: CUSTOM CALENDAR WIDGET CSS */
+        /* Control Panel */
         .month-picker-box { background: #fafafa; border: 1px solid #eee; border-radius: 12px; padding: 20px; margin-top: 15px; width: 100%; box-sizing: border-box; }
         .year-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         .year-selector { font-size: 1.4rem; font-weight: 800; border: none; background: transparent; cursor: pointer; outline: none; color: #1a1a1a; padding: 0; margin: 0; width: auto; font-family: inherit; }
@@ -105,10 +105,15 @@
         <label>Area / Location</label>
         <input type="text" id="res-location" placeholder="e.g. Old City">
         
-        <label>Image Link</label>
-        <input type="text" id="res-image" placeholder="https://...">
-        
+        <label>Restaurant Image</label>
         <div style="display:flex; gap:10px;">
+            <input type="text" id="res-image" placeholder="Paste link OR click Upload ->" style="flex:1;">
+            <input type="file" id="image-file-input" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+            <button class="btn-cancel" style="width:auto; margin:0; display:block; background:#f0f0f0; color:#333; font-weight:bold; border:2px solid #ddd;" onclick="document.getElementById('image-file-input').click()">📁 Upload from Device</button>
+        </div>
+        <p id="upload-status" style="font-size:11px; color:#2ecc71; margin-top:5px; display:none;">✅ Image compressed and attached!</p>
+        
+        <div style="display:flex; gap:10px; margin-top:15px;">
             <div style="flex:1;">
                 <label>Cuisine</label>
                 <input type="text" id="res-cuisine" placeholder="e.g. Syrian">
@@ -267,7 +272,6 @@
     let peakChartInstance = null;
     let currentReportData = []; 
 
-    // --- CUSTOM CALENDAR VARIABLES ---
     let currentFilterYear = new Date().getFullYear();
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -295,6 +299,48 @@
         }
     });
 
+    // --- NEW: MAGIC COMPRESSION FUNCTION ---
+    window.handleImageUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        document.getElementById('upload-status').innerText = "⏳ Compressing image...";
+        document.getElementById('upload-status').style.color = "#FFAB00";
+        document.getElementById('upload-status').style.display = "block";
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                // We shrink it to max 600px wide to make sure it easily fits in the free database!
+                const MAX_WIDTH = 600; 
+                let scaleSize = 1;
+                
+                if (img.width > MAX_WIDTH) {
+                    scaleSize = MAX_WIDTH / img.width;
+                }
+                
+                canvas.width = img.width * scaleSize;
+                canvas.height = img.height * scaleSize;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // Convert to JPEG at 70% quality (Makes it incredibly tiny but looks great on phones)
+                const base64String = canvas.toDataURL('image/jpeg', 0.7);
+
+                // Hide the long string from the user so it doesn't break the UI, but store it securely
+                document.getElementById('res-image').value = base64String;
+                
+                document.getElementById('upload-status').innerText = "✅ Image compressed and attached!";
+                document.getElementById('upload-status').style.color = "#2ecc71";
+            }
+        }
+    };
+
     window.handleSubmit = async () => {
         if (editingId) updateRestaurant();
         else createRestaurant();
@@ -304,7 +350,7 @@
         const rName = document.getElementById('res-name').value;
         const rCity = document.getElementById('res-city').value; 
         const rLoc = document.getElementById('res-location').value;
-        const rImg = document.getElementById('res-image').value;
+        const rImg = document.getElementById('res-image').value; // Will grab either a link or the secret Base64 string!
         const rCap = document.getElementById('res-capacity').value;
         const rTabs = document.getElementById('res-tables').value || "10";
         const rDur = document.getElementById('res-duration').value || "3";
@@ -455,7 +501,18 @@
         document.getElementById('res-name').value = name;
         document.getElementById('res-city').value = city || "Damascus"; 
         document.getElementById('res-location').value = loc;
-        document.getElementById('res-image').value = img;
+        
+        // If it's a huge base64 string, don't fill up the textbox visually, just store it.
+        if (img.length > 500) {
+            document.getElementById('res-image').value = img;
+            document.getElementById('upload-status').innerText = "✅ Saved Image Attached";
+            document.getElementById('upload-status').style.display = "block";
+            document.getElementById('upload-status').style.color = "#888";
+        } else {
+            document.getElementById('res-image').value = img;
+            document.getElementById('upload-status').style.display = "none";
+        }
+
         document.getElementById('res-capacity').value = cap;
         document.getElementById('res-tables').value = tabs;
         document.getElementById('res-duration').value = dur;
@@ -464,7 +521,6 @@
         document.getElementById('res-cuisine').value = cus;
         document.getElementById('res-price').value = pri;
         document.getElementById('res-vip').value = vipThreshold || 3; 
-        
         document.getElementById('res-isopen').value = isOpenParam ? "true" : "false";
         
         document.getElementById('form-title').innerText = "Edit Venue";
@@ -520,6 +576,7 @@
         document.getElementById('res-city').value = "Damascus"; 
         document.getElementById('res-location').value = "";
         document.getElementById('res-image').value = "";
+        document.getElementById('upload-status').style.display = "none";
         document.getElementById('res-capacity').value = "";
         document.getElementById('res-tables').value = "";
         document.getElementById('res-duration').value = "";
@@ -533,20 +590,17 @@
         document.getElementById('mgr-pass').value = "";
     }
 
-    // --- CUSTOM CALENDAR LOGIC ---
     function initCustomMonthPicker() {
         const yearSelect = document.getElementById('picker-year');
         const currentYear = new Date().getFullYear();
         let yearHtml = '';
         
-        // Generate options for this year, next year, and 3 past years
         for (let y = currentYear + 1; y >= currentYear - 3; y--) {
             yearHtml += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y}</option>`;
         }
         yearSelect.innerHTML = yearHtml;
         currentFilterYear = currentYear;
         
-        // Set default state to "All Time"
         document.getElementById('analytics-month-hidden').value = "";
         renderMonthGrid();
     }
@@ -558,7 +612,7 @@
 
     window.renderMonthGrid = () => {
         const grid = document.getElementById('month-grid');
-        const hiddenInput = document.getElementById('analytics-month-hidden').value; // Format: "YYYY-MM"
+        const hiddenInput = document.getElementById('analytics-month-hidden').value; 
         let html = '';
         
         for(let i=0; i<12; i++) {
@@ -570,23 +624,21 @@
         }
         grid.innerHTML = html;
         
-        // Toggle All-Time Button state
         document.getElementById('btn-all-time').classList.toggle('active', hiddenInput === "");
     };
 
     window.selectFilterMonth = (valStr) => {
         document.getElementById('analytics-month-hidden').value = valStr;
-        renderMonthGrid(); // Update buttons visual
-        generateReport();  // Fetch data
+        renderMonthGrid(); 
+        generateReport();  
     };
 
     window.selectAllTime = () => {
         document.getElementById('analytics-month-hidden').value = "";
-        renderMonthGrid(); // Update buttons visual
-        generateReport();  // Fetch data
+        renderMonthGrid(); 
+        generateReport();  
     };
 
-    // --- ANALYTICS LOGIC ---
     window.switchAdminView = (view) => {
         const btnVenues = document.getElementById('tab-venues');
         const btnAnalytics = document.getElementById('tab-analytics');
@@ -603,7 +655,7 @@
             btnVenues.className = 'btn-cancel'; btnVenues.style.display = 'block'; btnVenues.style.background = '#fff';
             
             populateAnalyticsDropdown();
-            initCustomMonthPicker(); // INITIALIZE THE CUSTOM CALENDAR WIDGET
+            initCustomMonthPicker(); 
         }
     };
 
@@ -621,7 +673,7 @@
 
     window.generateReport = async () => {
         const resName = document.getElementById('analytics-res-select').value;
-        const selectedMonth = document.getElementById('analytics-month-hidden').value; // GET FROM CUSTOM WIDGET
+        const selectedMonth = document.getElementById('analytics-month-hidden').value; 
         if (!resName) return;
 
         let q = resName === "ALL" ? collection(db, "reservations") : query(collection(db, "reservations"), where("restaurant", "==", resName));
@@ -636,7 +688,6 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 
-                // --- Filter by selected month ---
                 if (selectedMonth && data.date) {
                     const bookingMonth = data.date.substring(0, 7); 
                     if (bookingMonth !== selectedMonth) return; 
