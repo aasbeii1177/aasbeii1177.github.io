@@ -15,7 +15,7 @@
         .section-title { font-size: 14px; font-weight: 800; color: #D4AF37; text-transform: uppercase; letter-spacing: 1px; margin-top: 30px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 15px; }
 
         label { font-size: 12px; font-weight: 700; color: #95A5A6; display: block; margin-bottom: 5px; margin-top: 15px; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: 0.3s; background:white; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: 0.3s; background:white; font-family: inherit; }
         input:focus, select:focus { border-color: #D4AF37; outline: none; background: #fafafa; }
         
         .btn-primary { width: 100%; padding: 16px; background: #1a1a1a; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 30px; transition: 0.2s; }
@@ -170,10 +170,15 @@
         </div>
 
         <div id="view-analytics" class="hidden" style="margin-top: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
-                <div style="flex-grow: 1; margin-right: 15px;">
-                    <label style="margin-top: 0;">Select Restaurant to Analyze</label>
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                <div style="flex-grow: 1; min-width: 150px;">
+                    <label style="margin-top: 0;">Select Restaurant</label>
                     <select id="analytics-res-select" onchange="generateReport()" style="margin-top: 5px;"></select>
+                </div>
+                <div style="flex-grow: 1; min-width: 150px;">
+                    <label style="margin-top: 0;">Filter by Month (Leave empty for All-Time)</label>
+                    <input type="month" id="analytics-month" onchange="generateReport()" style="margin-top: 5px; font-family: inherit;">
                 </div>
                 <button class="btn-primary" style="width: auto; padding: 12px 20px; margin: 0; background: #2ecc71; color: white;" onclick="exportToCSV()">📥 Export CSV</button>
             </div>
@@ -199,7 +204,7 @@
             </div>
             
             <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; margin-top: 20px;">
-                <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 15px; text-align: left;">Recent Customer Reviews</h3>
+                <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 15px; text-align: left;">Customer Reviews</h3>
                 <div id="reviews-container" style="max-height: 300px; overflow-y: auto; padding-right: 5px;"></div>
             </div>
         </div>
@@ -285,7 +290,7 @@
         const rClose = document.getElementById('res-close').value || "22";
         const rCus = document.getElementById('res-cuisine').value || "General";
         const rPri = document.getElementById('res-price').value || "$$";
-        const rVip = document.getElementById('res-vip').value || "3"; // VIP LOGIC
+        const rVip = document.getElementById('res-vip').value || "3"; 
         const rIsOpen = document.getElementById('res-isopen').value === "true"; 
         
         const mEmail = document.getElementById('mgr-email').value;
@@ -310,7 +315,7 @@
                 closeTime: parseInt(rClose),
                 cuisine: rCus, 
                 price: rPri,
-                vipThreshold: parseInt(rVip), // SAVED TO FIREBASE
+                vipThreshold: parseInt(rVip), 
                 isOpen: rIsOpen 
             });
             
@@ -338,7 +343,7 @@
         const rClose = document.getElementById('res-close').value;
         const rCus = document.getElementById('res-cuisine').value;
         const rPri = document.getElementById('res-price').value;
-        const rVip = document.getElementById('res-vip').value || "3"; // VIP LOGIC
+        const rVip = document.getElementById('res-vip').value || "3"; 
         const rIsOpen = document.getElementById('res-isopen').value === "true";
         const btn = document.getElementById('btn-submit');
 
@@ -361,7 +366,7 @@
                 closeTime: parseInt(rClose),
                 cuisine: rCus,
                 price: rPri,
-                vipThreshold: parseInt(rVip), // SAVED TO FIREBASE
+                vipThreshold: parseInt(rVip), 
                 isOpen: rIsOpen 
             });
 
@@ -401,7 +406,7 @@
                 const safeCus = d.cuisine || "General"; 
                 const safePri = d.price || "$$"; 
                 const safeCity = d.city || "Damascus";
-                const safeVip = d.vipThreshold || 3; // VIP LOGIC
+                const safeVip = d.vipThreshold || 3; 
                 const isOpen = d.isOpen !== false; 
 
                 const badgeHtml = isOpen ? `<span class="badge badge-active">Active</span>` : `<span class="badge badge-hidden">Hidden</span>`;
@@ -436,7 +441,7 @@
         document.getElementById('res-close').value = close;
         document.getElementById('res-cuisine').value = cus;
         document.getElementById('res-price').value = pri;
-        document.getElementById('res-vip').value = vipThreshold || 3; // VIP LOGIC
+        document.getElementById('res-vip').value = vipThreshold || 3; 
         
         document.getElementById('res-isopen').value = isOpenParam ? "true" : "false";
         
@@ -500,7 +505,7 @@
         document.getElementById('res-close').value = "";
         document.getElementById('res-cuisine').value = "";
         document.getElementById('res-price').value = "$$";
-        document.getElementById('res-vip').value = "3"; // VIP LOGIC
+        document.getElementById('res-vip').value = "3"; 
         document.getElementById('res-isopen').value = "true"; 
         document.getElementById('mgr-email').value = "";
         document.getElementById('mgr-pass').value = "";
@@ -539,6 +544,7 @@
 
     window.generateReport = async () => {
         const resName = document.getElementById('analytics-res-select').value;
+        const selectedMonth = document.getElementById('analytics-month').value; // NEW: Gets "YYYY-MM"
         if (!resName) return;
 
         let q = resName === "ALL" ? collection(db, "reservations") : query(collection(db, "reservations"), where("restaurant", "==", resName));
@@ -552,6 +558,13 @@
 
             snapshot.forEach(doc => {
                 const data = doc.data();
+                
+                // --- NEW: Filter by selected month ---
+                if (selectedMonth && data.date) {
+                    const bookingMonth = data.date.substring(0, 7); // Extracts "YYYY-MM"
+                    if (bookingMonth !== selectedMonth) return; // Skip if it doesn't match the filter
+                }
+
                 currentReportData.push(data);
                 totalBookings++;
 
@@ -579,7 +592,7 @@
             document.getElementById('stat-bookings').innerText = acceptedBookings;
             document.getElementById('stat-guests').innerText = totalGuests;
             document.getElementById('stat-cancel').innerText = (totalBookings > 0 ? Math.round((cancelledBookings / totalBookings) * 100) : 0) + "%";
-            document.getElementById('reviews-container').innerHTML = reviewsHtml === '' ? '<p style="text-align:center; color:#ccc; font-size:13px;">No reviews yet.</p>' : reviewsHtml;
+            document.getElementById('reviews-container').innerHTML = reviewsHtml === '' ? '<p style="text-align:center; color:#ccc; font-size:13px;">No reviews found for this period.</p>' : reviewsHtml;
 
             drawChart(dayTracker);
         } catch (e) { console.error(e); }
@@ -601,19 +614,25 @@
         const headers = ["Restaurant", "Customer Name", "Phone", "Date", "Time", "Guests", "Status", "Duration", "Rating", "Comment"];
         const escapeCSV = (str) => `"${String(str || "").replace(/"/g, '""')}"`;
         
-        const rows = currentReportData.map(d => [
-            escapeCSV(d.restaurant), escapeCSV(d.name || "Walk-in"), 
-            d.phone && d.phone !== "N/A" ? `="${d.phone}"` : escapeCSV("N/A"), 
-            escapeCSV(d.date), escapeCSV(d.time), escapeCSV(d.persons), 
-            escapeCSV(d.archived ? "Archived/Cancelled" : d.status), escapeCSV(d.duration), 
-            escapeCSV(d.isReviewed ? d.rating : "N/A"), escapeCSV(d.isReviewed ? d.reviewText : "N/A")
-        ].join(","));
+        const rows = currentReportData.map(d => {
+            // FIX: Force Excel to format phone as text string
+            let safePhone = d.phone && d.phone !== "N/A" ? `="${d.phone}"` : escapeCSV("N/A");
+            return [
+                escapeCSV(d.restaurant), escapeCSV(d.name || "Walk-in"), 
+                safePhone, 
+                escapeCSV(d.date || "N/A"), escapeCSV(d.time || "N/A"), escapeCSV(d.persons || "0"), 
+                escapeCSV(d.archived ? "Archived/Cancelled" : (d.status || "Unknown")), escapeCSV(d.duration || "3"), 
+                escapeCSV(d.isReviewed ? d.rating : "N/A"), escapeCSV(d.isReviewed ? d.reviewText : "N/A")
+            ].join(",")
+        });
 
         const blob = new Blob([[headers.join(","), ...rows].join("\n")], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const resName = document.getElementById('analytics-res-select').value;
+        const selectedMonth = document.getElementById('analytics-month').value || "All_Time";
+        
         link.setAttribute("href", URL.createObjectURL(blob));
-        link.setAttribute("download", `Tawelty_Report_${resName === "ALL" ? "All" : resName.replace(/\s+/g, '_')}.csv`);
+        link.setAttribute("download", `Tawelty_Report_${resName === "ALL" ? "All" : resName.replace(/\s+/g, '_')}_${selectedMonth}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
