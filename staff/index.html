@@ -61,10 +61,13 @@
         /* BOOKING LIST */
         .date-header { position: sticky; top: 0; z-index: 10; background: rgba(244, 245, 247, 0.95); backdrop-filter: blur(5px); padding: 15px 0; margin: 10px 0; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; color: var(--text-sub); border-bottom: 2px solid var(--border); }
         
-        .booking-card { background: var(--surface); padding: 15px; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; position: relative; }
+        .booking-card { background: var(--surface); padding: 15px; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; position: relative; transition: 0.3s; }
         
+        /* CARD STATUS COLORS */
         .status-Pending { border-left: 6px solid #FFAB00; }
         .status-Accepted { border-left: 6px solid #36B37E; }
+        .status-Seated { border-left: 6px solid #0052CC; background: #f4f6ff; }
+        .status-No-Show { opacity: 0.7; border-left: 6px solid #BF2600; background: #fff5f5; }
         .status-Declined { opacity: 0.7; border-left: 6px solid #555; background: #fafafa; }
         .status-History { opacity: 0.7; border-left: 6px solid #FF5630; background: #fff5f5; }
 
@@ -73,7 +76,7 @@
         .card-meta { font-size: 0.9rem; color: #555; display: flex; gap: 10px; margin-top: 5px; font-weight: 500; }
         .btn-decision-row { display: flex; gap: 10px; margin-top: 5px; }
         
-        .btn-decision { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+        .btn-decision { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
         .btn-accept { background: #E3FCEF; color: #006644; }
         .btn-decline { background: #FFEBE6; color: #BF2600; }
 
@@ -82,8 +85,9 @@
 
         /* VIP & WARNING BADGES CSS */
         .badges-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
-        .red-flag { background-color: #ffeaea; color: #d32f2f; border: 1px solid #d32f2f; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; width: fit-content; }
         .vip-badge { background-color: #fff9e6; color: #bfa15f; border: 1px solid #bfa15f; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; width: fit-content; }
+        .yellow-flag { background-color: #fffde7; color: #f39c12; border: 1px solid #f39c12; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; width: fit-content; }
+        .red-flag { background-color: #ffeaea; color: #d32f2f; border: 1px solid #d32f2f; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; width: fit-content; }
 
         /* OVERLAYS */
         .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
@@ -209,7 +213,7 @@
     let maxTables = 0; 
     let openTime = 12;
     let closeTime = 22;
-    let vipThreshold = 3; // NEW: Global VIP Threshold (Updates dynamically)
+    let vipThreshold = 3; 
     let latestSnapshot = null; 
     let unsubscribe = null; 
     window.currentView = 'active'; 
@@ -282,7 +286,7 @@
                         maxTables = d.tables || 10;
                         openTime = d.openTime || 12;
                         closeTime = d.closeTime || 22;
-                        vipThreshold = d.vipThreshold || 3; // Pull VIP rules from database
+                        vipThreshold = d.vipThreshold || 3;
                         
                         document.getElementById('max-guests').innerText = "/ " + maxGuests;
                         document.getElementById('max-tables').innerText = "/ " + maxTables;
@@ -335,26 +339,42 @@
         });
     }
 
-    // --- VIP & WARNING HISTORY CHECKER ---
+    // --- NEW: SMART CRM HISTORY CHECKER (90-DAY DECAY) ---
     window.checkCustomerHistory = async (phone) => {
-        if (!phone || phone.trim() === "" || phone === "N/A") return { cancels: 0, successes: 0 };
+        if (!phone || phone.trim() === "" || phone === "N/A") return { cancels: 0, noShows: 0, successes: 0 };
         const q = query(collection(db, "reservations"), where("phone", "==", phone));
         try {
             const snapshot = await getDocs(q);
             let cancels = 0;
+            let noShows = 0;
             let successes = 0;
+
+            // Calculate the 90-days-ago cutoff date!
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            const cutoffDateStr = ninetyDaysAgo.toISOString().split('T')[0];
+
             snapshot.forEach(doc => {
                 const data = doc.data();
-                if (data.archived === true || data.status === "Declined") {
-                    cancels++;
-                } else if (data.status === "Accepted") {
+                
+                // Good behavior (VIP) is counted for a lifetime
+                if (data.status === "Accepted" || data.status === "Seated") {
                     successes++;
                 }
+
+                // Bad behavior is ONLY counted if it happened in the last 90 days
+                if (data.date && data.date >= cutoffDateStr) {
+                    if (data.status === "No-Show") {
+                        noShows++;
+                    } else if (data.archived === true || data.status === "Declined") {
+                        cancels++;
+                    }
+                }
             });
-            return { cancels, successes };
+            return { cancels, noShows, successes };
         } catch (e) {
             console.error("Error checking history:", e);
-            return { cancels: 0, successes: 0 };
+            return { cancels: 0, noShows: 0, successes: 0 };
         }
     };
 
@@ -382,7 +402,7 @@
                     btn.style.color = "#FF5630";
                     alert("Bookings RE-OPENED for today.");
                 } else {
-                    if(confirm("Stop all new online bookings for today? (Customers can still book for tomorrow)")) {
+                    if(confirm("Stop all new online bookings for today?")) {
                         closedDates.push(todayStr);
                         await updateDoc(doc(db, "restaurants", resId), { closedDates });
                         btn.innerText = "▶ Re-Open Today";
@@ -423,7 +443,8 @@
 
         latestSnapshot.forEach(doc => {
             const data = doc.data();
-            if (data.date === todayStr && !data.archived && data.status !== 'Declined') {
+            // ONLY count them in Live capacity if they are Accepted or Seated! (No-Shows are excluded)
+            if (data.date === todayStr && !data.archived && (data.status === 'Accepted' || data.status === 'Seated')) {
                 const startHour = parseInt(data.time.split(':')[0]);
                 const endHour = startHour + (data.duration || 3);
                 if (currentHour >= startHour && currentHour < endHour) {
@@ -450,8 +471,8 @@
         snapshot.forEach(doc => { 
             const d = doc.data();
             
-            // LOGIC FOR THE 3 TABS
             if (window.currentView === 'active') {
+                // Keep No-Show visible on the Live tab so managers can see they dealt with it!
                 if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) {
                     allDocs.push({ id: doc.id, ...d });
                 }
@@ -487,38 +508,57 @@
                 lastDate = b.date;
             }
 
-            // --- VIP & RED FLAG LOGIC ---
-            let history = { cancels: 0, successes: 0 };
+            // --- NEW: SMART BADGE LOGIC ---
+            let history = { cancels: 0, noShows: 0, successes: 0 };
             if (b.status === 'Pending' || window.currentView === 'active') {
                 history = await window.checkCustomerHistory(b.phone);
             }
             
             let badgesHtml = "<div class='badges-row'>";
-            if (history.successes >= vipThreshold) { // DYNAMIC VIP CHECK
-                badgesHtml += `<div class="vip-badge">🌟 VIP: ${history.successes} Bookings</div>`;
+            
+            // VIP Badge (Lifetime)
+            if (history.successes >= vipThreshold) { 
+                badgesHtml += `<div class="vip-badge">🌟 VIP: ${history.successes} Visits</div>`;
             }
-            if (history.cancels >= 2) {
-                badgesHtml += `<div class="red-flag">🚩 WARNING: Cancelled ${history.cancels} times</div>`;
+            
+            // Penalty Badges (Last 90 Days)
+            if (history.noShows >= 2) {
+                badgesHtml += `<div class="red-flag">🚩 RED FLAG: ${history.noShows} No-Shows (90 Days)</div>`;
+            } else if (history.cancels >= 3) {
+                badgesHtml += `<div class="yellow-flag">🟨 CAUTION: ${history.cancels} Cancels (90 Days)</div>`;
             }
+            
             badgesHtml += "</div>";
             // -----------------------------
 
             let buttons = '';
             let cardClass = `status-${b.status}`;
+            const safeName = b.name.replace(/'/g, "\\'");
+            const safePhone = (b.phone || "").replace(/'/g, "\\'");
             
             if (window.currentView === 'active' || window.currentView === 'past') {
                 if(b.status === 'Pending') {
                     buttons = `
                         <div class="btn-decision-row">
-                            <button class="btn-decision btn-accept" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name.replace(/'/g, "\\'")}', 'Accepted')">Accept</button>
-                            <button class="btn-decision btn-decline" onclick="handleDecision('${b.id}', '${b.phone}', '${b.name.replace(/'/g, "\\'")}', 'Declined')">Decline</button>
+                            <button class="btn-decision btn-accept" onclick="updateBookingStatus('${b.id}', 'Accepted', true, '${safePhone}', '${safeName}')">Accept</button>
+                            <button class="btn-decision btn-decline" onclick="updateBookingStatus('${b.id}', 'Declined', true, '${safePhone}', '${safeName}')">Decline</button>
                         </div>
                     `;
+                } else if (b.status === 'Accepted' && b.date === todayStr && window.currentView === 'active') {
+                    // NEW: The Arrival/Ghost buttons for today!
+                    buttons = `
+                        <div class="btn-decision-row">
+                            <button class="btn-decision" style="background:#E3FCEF; color:#006644;" onclick="updateBookingStatus('${b.id}', 'Seated', false)">✅ Seated</button>
+                            <button class="btn-decision" style="background:#FFEBE6; color:#BF2600;" onclick="updateBookingStatus('${b.id}', 'No-Show', false)">🚫 No-Show</button>
+                        </div>
+                    `;
+                } else if (b.status === 'Seated') {
+                    buttons = `<div style="font-size:0.8rem; color:#0052CC; font-weight:bold; margin-top:5px;">✅ IN RESTAURANT (SEATED)</div>`;
+                } else if (b.status === 'No-Show') {
+                    buttons = `<div style="font-size:0.8rem; color:#BF2600; font-weight:bold; margin-top:5px;">🚫 CUSTOMER NO-SHOW</div>`;
                 } else {
                     buttons = `<div style="font-size:0.8rem; color:#36B37E; font-weight:bold; margin-top:5px;">✅ ACCEPTED</div>`;
                 }
-                const safeName = b.name.replace(/'/g, "\\'");
-                const safePhone = (b.phone || "").replace(/'/g, "\\'");
 
                 buttons += `
                     <div class="actions">
@@ -530,7 +570,7 @@
                 buttons = `<div style="font-size:0.8rem; color:#888; font-weight:bold; margin-top:5px;">❌ ${b.status}</div>`;
             }
 
-            // --- REVIEW DISPLAY & REQUEST LOGIC ---
+            // --- REVIEW DISPLAY ---
             let reviewHtml = '';
             if (b.isReviewed) {
                 let stars = '⭐'.repeat(b.rating);
@@ -545,11 +585,10 @@
             }
 
             let askReviewBtn = '';
-            if (b.date < todayStr && b.status === 'Accepted' && !b.isReviewed && b.phone && b.phone !== "N/A") {
+            if (b.date < todayStr && (b.status === 'Accepted' || b.status === 'Seated') && !b.isReviewed && b.phone && b.phone !== "N/A") {
                 const safeNameForReview = b.name.replace(/'/g, "\\'");
                 askReviewBtn = `<button style="background:none; border:1px solid #36B37E; color:#36B37E; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; font-size:12px; font-weight:bold; width:100%;" onclick="askForReview('${b.phone}', '${safeNameForReview}')">📲 Ask for Review</button>`;
             }
-            // -------------------------------------------
 
             html += `
             <div class="booking-card ${cardClass}">
@@ -635,12 +674,26 @@
         finally { btn.innerText = originalText; }
     };
 
-    window.handleDecision = async (id, phone, name, status) => {
-        await updateDoc(doc(db, "reservations", id), { status: status });
-        let cleanPhone = phone.replace(/\D/g, ''); 
-        if(cleanPhone.startsWith('0')) cleanPhone = "963" + cleanPhone.substring(1); 
-        let message = status === "Accepted" ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅` : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌`;
-        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+    // --- NEW: UNIFIED STATUS UPDATER ---
+    window.updateBookingStatus = async (id, newStatus, sendWhatsappMsg = false, phone = "", name = "") => {
+        // Confirmation for No-Show to prevent accidents
+        if (newStatus === 'No-Show') {
+            if (!confirm("Mark as No-Show? This will penalize the customer and remove them from the live capacity.")) return;
+        }
+
+        try {
+            await updateDoc(doc(db, "reservations", id), { status: newStatus });
+            
+            // Only send WhatsApp message if it's an initial Accept/Decline action
+            if (sendWhatsappMsg && phone) {
+                let cleanPhone = phone.replace(/\D/g, ''); 
+                if(cleanPhone.startsWith('0')) cleanPhone = "963" + cleanPhone.substring(1); 
+                let message = newStatus === "Accepted" ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅` : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌`;
+                window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+            }
+        } catch(e) {
+            alert("Error updating status: " + e.message);
+        }
     };
 
     window.askForReview = (phone, name) => {
