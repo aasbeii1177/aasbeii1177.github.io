@@ -39,12 +39,7 @@
         .btn-action { border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-left: 5px; }
         .btn-delete { background: #fee; color: #e74c3c; }
         .btn-edit { background: #eef2f5; color: #2980b9; }
-        .btn-qr { background: #e8f6f3; color: #1abc9c; } 
-
-        #qr-modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999; justify-content:center; align-items:center; }
-        .qr-box { background:white; padding:30px; border-radius:15px; text-align:center; max-width:300px; }
-        .qr-img { width: 200px; height: 200px; margin-bottom: 15px; }
-
+        
         .success-msg { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px; display: none; }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid #D4AF37; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -71,6 +66,12 @@
         .month-btn { padding: 12px 5px; background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #555; transition: 0.2s; font-family: inherit; }
         .month-btn:hover { border-color: #1a1a1a; }
         .month-btn.active { background: #1a1a1a; color: white; border-color: #1a1a1a; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        /* NEW: Stats Boxes UI */
+        .stat-box { background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .stat-box h3 { color: #999; font-size: 0.8rem; margin-bottom: 5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-num { font-size: 2.2rem; font-weight: 800; color: #1a1a1a; line-height: 1.2; }
+        .stat-sub { font-size: 12px; font-weight: 700; color: #888; margin-top: 5px; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -218,23 +219,42 @@
                 <input type="hidden" id="analytics-month-hidden" value="">
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
-                <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
-                    <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Accepted Bookings</h3>
-                    <div id="stat-bookings" style="font-size: 2.5rem; font-weight: 800; color: #1a1a1a;">0</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 20px;">
+                
+                <div class="stat-box" style="border-bottom: 3px solid #1a1a1a;">
+                    <h3>Total Bookings</h3>
+                    <div id="stat-total" class="stat-num">0</div>
+                    <div class="stat-sub">Overall Demand</div>
                 </div>
-                <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
-                    <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Total Guests</h3>
-                    <div id="stat-guests" style="font-size: 2.5rem; font-weight: 800; color: #1a1a1a;">0</div>
+
+                <div class="stat-box" style="border-bottom: 3px solid #36B37E;">
+                    <h3>Successfully Seated</h3>
+                    <div id="stat-seated" class="stat-num" style="color: #36B37E;">0</div>
+                    <div id="stat-guests" class="stat-sub">0 Guests</div>
                 </div>
-                <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
-                    <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 5px;">Cancel Rate</h3>
-                    <div id="stat-cancel" style="font-size: 2.5rem; font-weight: 800; color: #e74c3c;">0%</div>
+
+                <div class="stat-box" style="border-bottom: 3px solid #0052CC;">
+                    <h3>Upcoming</h3>
+                    <div id="stat-upcoming" class="stat-num" style="color: #0052CC;">0</div>
+                    <div class="stat-sub">Accepted / Future</div>
                 </div>
+
+                <div class="stat-box" style="border-bottom: 3px solid #BF2600;">
+                    <h3>No-Shows</h3>
+                    <div id="stat-noshow" class="stat-num" style="color: #BF2600;">0</div>
+                    <div class="stat-sub">Ghosted</div>
+                </div>
+
+                <div class="stat-box" style="border-bottom: 3px solid #f39c12;">
+                    <h3>Cancellations</h3>
+                    <div id="stat-cancel" class="stat-num" style="color: #f39c12;">0</div>
+                    <div class="stat-sub">Declined / Archived</div>
+                </div>
+
             </div>
 
             <div style="background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; margin-top: 20px;">
-                <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 15px; text-align: left;">Traffic by Day of the Week</h3>
+                <h3 style="color: #999; font-size: 0.9rem; margin-bottom: 15px; text-align: left;">Traffic by Day of the Week (Seated + Upcoming)</h3>
                 <canvas id="peakChart" height="150"></canvas>
             </div>
             
@@ -251,14 +271,6 @@
         </div>
         
       <button class="btn-logout" onclick="logout()">Sign Out</button>
-    </div>
-
-    <div id="qr-modal" onclick="closeQr()">
-        <div class="qr-box" onclick="event.stopPropagation()">
-            <h3 id="qr-title" style="margin-bottom:15px;"></h3>
-            <img id="qr-image" class="qr-img" src="">
-            <button onclick="closeQr()" style="margin-top:10px; padding:5px 15px; border:1px solid #ddd; background:white; border-radius:5px; cursor:pointer;">Close</button>
-        </div>
     </div>
 
 <script type="module">
@@ -311,15 +323,12 @@
         }
     });
 
-    // --- RESTAURANT IMAGE UPLOAD ---
     window.handleImageUpload = (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
         document.getElementById('upload-status').innerText = "⏳ Compressing image...";
         document.getElementById('upload-status').style.color = "#FFAB00";
         document.getElementById('upload-status').style.display = "block";
-
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (e) => {
@@ -343,13 +352,10 @@
         }
     };
 
-    // --- NEW: HOMEPAGE HERO IMAGE UPLOAD ---
     let tempHeroBase64 = null; 
-
     window.handleHeroImageUpload = (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
         document.getElementById('hero-upload-status').innerText = "⏳ Compressing image...";
         document.getElementById('hero-upload-status').style.color = "#FFAB00";
         document.getElementById('hero-upload-status').style.display = "block";
@@ -361,7 +367,7 @@
             img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 1920; // High-res for hero background
+                const MAX_WIDTH = 1920; 
                 let scaleSize = 1;
                 if (img.width > MAX_WIDTH) { scaleSize = MAX_WIDTH / img.width; }
                 canvas.width = img.width * scaleSize;
@@ -729,6 +735,7 @@
         } catch(e) { console.error(e); }
     }
 
+    // --- NEW: PINPOINT ACCURATE REPORT LOGIC ---
     window.generateReport = async () => {
         const resName = document.getElementById('analytics-res-select').value;
         const selectedMonth = document.getElementById('analytics-month-hidden').value; 
@@ -738,7 +745,14 @@
 
         try {
             const snapshot = await getDocs(q);
-            let totalGuests = 0, totalBookings = 0, acceptedBookings = 0, cancelledBookings = 0;
+            
+            let totalBookings = 0;
+            let seatedBookings = 0;
+            let seatedGuests = 0;
+            let upcomingAccepted = 0;
+            let noShows = 0;
+            let cancellations = 0;
+
             let dayTracker = {}; 
             let reviewsHtml = ''; 
             currentReportData = [];
@@ -746,18 +760,41 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 
+                // Filter by selected month
                 if (selectedMonth && data.date) {
                     const bookingMonth = data.date.substring(0, 7); 
                     if (bookingMonth !== selectedMonth) return; 
                 }
 
                 currentReportData.push(data);
+                
+                // 1. Total Demand (Every booking)
                 totalBookings++;
 
-                if (data.status === "Declined" || data.archived === true) cancelledBookings++;
+                // 2. Sort into specific buckets based on final status
+                if (data.archived === true || data.status === "Declined") {
+                    cancellations++;
+                } 
+                else if (data.status === "No-Show") {
+                    noShows++;
+                } 
+                else if (data.status === "Seated" || data.status === "Finished") {
+                    seatedBookings++;
+                    seatedGuests += parseInt(data.persons || 0);
+                    
+                    // Chart data for actual/expected visitors
+                    if(data.date) {
+                        const dateObj = new Date(data.date);
+                        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                        const dayName = days[dateObj.getDay()];
+                        if (!dayTracker[dayName]) dayTracker[dayName] = 0;
+                        dayTracker[dayName] += 1;
+                    }
+                } 
                 else if (data.status === "Accepted") {
-                    acceptedBookings++;
-                    totalGuests += parseInt(data.persons || 0);
+                    upcomingAccepted++;
+                    
+                    // Chart data for expected visitors
                     if(data.date) {
                         const dateObj = new Date(data.date);
                         const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -767,6 +804,7 @@
                     }
                 }
 
+                // Reviews
                 if (data.isReviewed) {
                     let stars = '⭐'.repeat(data.rating);
                     let comment = data.reviewText ? `"${data.reviewText}"` : "No comment left.";
@@ -775,9 +813,14 @@
                 }
             });
 
-            document.getElementById('stat-bookings').innerText = acceptedBookings;
-            document.getElementById('stat-guests').innerText = totalGuests;
-            document.getElementById('stat-cancel').innerText = (totalBookings > 0 ? Math.round((cancelledBookings / totalBookings) * 100) : 0) + "%";
+            // Update UI Boxes
+            document.getElementById('stat-total').innerText = totalBookings;
+            document.getElementById('stat-seated').innerText = seatedBookings;
+            document.getElementById('stat-guests').innerText = `${seatedGuests} Guests`;
+            document.getElementById('stat-upcoming').innerText = upcomingAccepted;
+            document.getElementById('stat-noshow').innerText = noShows;
+            document.getElementById('stat-cancel').innerText = cancellations;
+
             document.getElementById('reviews-container').innerHTML = reviewsHtml === '' ? '<p style="text-align:center; color:#ccc; font-size:13px;">No reviews found for this period.</p>' : reviewsHtml;
 
             drawChart(dayTracker);
@@ -792,7 +835,7 @@
         weekOrder.forEach(day => { labels.push(day); data.push(dayTracker[day] || 0); });
 
         if (peakChartInstance) peakChartInstance.destroy();
-        peakChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Accepted', data: data, backgroundColor: '#D4AF37', borderRadius: 6 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: '#eee' }, ticks: { color: '#999', stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#999' } } }, plugins: { legend: { display: false } } } });
+        peakChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Reservations', data: data, backgroundColor: '#D4AF37', borderRadius: 6 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: '#eee' }, ticks: { color: '#999', stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#999' } } }, plugins: { legend: { display: false } } } });
     }
 
     window.exportToCSV = () => {
