@@ -67,6 +67,7 @@
         .status-Pending { border-left: 6px solid #FFAB00; }
         .status-Accepted { border-left: 6px solid #36B37E; }
         .status-Seated { border-left: 6px solid #0052CC; background: #f4f6ff; }
+        .status-Finished { border-left: 6px solid #8792A2; background: #fdfdfd; opacity: 0.85; }
         .status-No-Show { opacity: 0.7; border-left: 6px solid #BF2600; background: #fff5f5; }
         .status-Declined { opacity: 0.7; border-left: 6px solid #555; background: #fafafa; }
         .status-History { opacity: 0.7; border-left: 6px solid #FF5630; background: #fff5f5; }
@@ -339,7 +340,7 @@
         });
     }
 
-    // --- NEW: SMART CRM HISTORY CHECKER (90-DAY DECAY) ---
+    // --- SMART CRM HISTORY CHECKER ---
     window.checkCustomerHistory = async (phone) => {
         if (!phone || phone.trim() === "" || phone === "N/A") return { cancels: 0, noShows: 0, successes: 0 };
         const q = query(collection(db, "reservations"), where("phone", "==", phone));
@@ -349,7 +350,6 @@
             let noShows = 0;
             let successes = 0;
 
-            // Calculate the 90-days-ago cutoff date!
             const ninetyDaysAgo = new Date();
             ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
             const cutoffDateStr = ninetyDaysAgo.toISOString().split('T')[0];
@@ -357,12 +357,11 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 
-                // Good behavior (VIP) is counted for a lifetime
-                if (data.status === "Accepted" || data.status === "Seated") {
+                // Add Finished to the success count!
+                if (data.status === "Accepted" || data.status === "Seated" || data.status === "Finished") {
                     successes++;
                 }
 
-                // Bad behavior is ONLY counted if it happened in the last 90 days
                 if (data.date && data.date >= cutoffDateStr) {
                     if (data.status === "No-Show") {
                         noShows++;
@@ -443,7 +442,8 @@
 
         latestSnapshot.forEach(doc => {
             const data = doc.data();
-            // ONLY count them in Live capacity if they are Accepted or Seated! (No-Shows are excluded)
+            // ONLY count them in Live capacity if they are Accepted or Seated!
+            // If they are marked "Finished", they will NOT be counted here, instantly freeing up space!
             if (data.date === todayStr && !data.archived && (data.status === 'Accepted' || data.status === 'Seated')) {
                 const startHour = parseInt(data.time.split(':')[0]);
                 const endHour = startHour + (data.duration || 3);
@@ -472,7 +472,6 @@
             const d = doc.data();
             
             if (window.currentView === 'active') {
-                // Keep No-Show visible on the Live tab so managers can see they dealt with it!
                 if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) {
                     allDocs.push({ id: doc.id, ...d });
                 }
@@ -508,7 +507,6 @@
                 lastDate = b.date;
             }
 
-            // --- NEW: SMART BADGE LOGIC ---
             let history = { cancels: 0, noShows: 0, successes: 0 };
             if (b.status === 'Pending' || window.currentView === 'active') {
                 history = await window.checkCustomerHistory(b.phone);
@@ -516,12 +514,10 @@
             
             let badgesHtml = "<div class='badges-row'>";
             
-            // VIP Badge (Lifetime)
             if (history.successes >= vipThreshold) { 
                 badgesHtml += `<div class="vip-badge">🌟 VIP: ${history.successes} Visits</div>`;
             }
             
-            // Penalty Badges (Last 90 Days)
             if (history.noShows >= 2) {
                 badgesHtml += `<div class="red-flag">🚩 RED FLAG: ${history.noShows} No-Shows (90 Days)</div>`;
             } else if (history.cancels >= 3) {
@@ -529,7 +525,6 @@
             }
             
             badgesHtml += "</div>";
-            // -----------------------------
 
             let buttons = '';
             let cardClass = `status-${b.status}`;
@@ -545,15 +540,24 @@
                         </div>
                     `;
                 } else if (b.status === 'Accepted' && b.date === todayStr && window.currentView === 'active') {
-                    // NEW: The Arrival/Ghost buttons for today!
                     buttons = `
                         <div class="btn-decision-row">
                             <button class="btn-decision" style="background:#E3FCEF; color:#006644;" onclick="updateBookingStatus('${b.id}', 'Seated', false)">✅ Seated</button>
                             <button class="btn-decision" style="background:#FFEBE6; color:#BF2600;" onclick="updateBookingStatus('${b.id}', 'No-Show', false)">🚫 No-Show</button>
                         </div>
                     `;
+                } else if (b.status === 'Seated' && b.date === todayStr && window.currentView === 'active') {
+                    // NEW: The Finished button appears once they are Seated!
+                    buttons = `
+                        <div class="btn-decision-row">
+                            <button class="btn-decision" style="background:#f4f5f7; color:#5E6C84; border: 1px solid #DFE1E6; width:100%;" onclick="updateBookingStatus('${b.id}', 'Finished', false)">🏁 Mark as Finished (Clear Table)</button>
+                        </div>
+                    `;
                 } else if (b.status === 'Seated') {
                     buttons = `<div style="font-size:0.8rem; color:#0052CC; font-weight:bold; margin-top:5px;">✅ IN RESTAURANT (SEATED)</div>`;
+                } else if (b.status === 'Finished') {
+                    // NEW: Completed visual state
+                    buttons = `<div style="font-size:0.8rem; color:#5E6C84; font-weight:bold; margin-top:5px;">🏁 COMPLETED</div>`;
                 } else if (b.status === 'No-Show') {
                     buttons = `<div style="font-size:0.8rem; color:#BF2600; font-weight:bold; margin-top:5px;">🚫 CUSTOMER NO-SHOW</div>`;
                 } else {
@@ -570,7 +574,6 @@
                 buttons = `<div style="font-size:0.8rem; color:#888; font-weight:bold; margin-top:5px;">❌ ${b.status}</div>`;
             }
 
-            // --- REVIEW DISPLAY ---
             let reviewHtml = '';
             if (b.isReviewed) {
                 let stars = '⭐'.repeat(b.rating);
@@ -585,7 +588,7 @@
             }
 
             let askReviewBtn = '';
-            if (b.date < todayStr && (b.status === 'Accepted' || b.status === 'Seated') && !b.isReviewed && b.phone && b.phone !== "N/A") {
+            if (b.date < todayStr && (b.status === 'Accepted' || b.status === 'Seated' || b.status === 'Finished') && !b.isReviewed && b.phone && b.phone !== "N/A") {
                 const safeNameForReview = b.name.replace(/'/g, "\\'");
                 askReviewBtn = `<button style="background:none; border:1px solid #36B37E; color:#36B37E; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; font-size:12px; font-weight:bold; width:100%;" onclick="askForReview('${b.phone}', '${safeNameForReview}')">📲 Ask for Review</button>`;
             }
@@ -674,17 +677,18 @@
         finally { btn.innerText = originalText; }
     };
 
-    // --- NEW: UNIFIED STATUS UPDATER ---
     window.updateBookingStatus = async (id, newStatus, sendWhatsappMsg = false, phone = "", name = "") => {
-        // Confirmation for No-Show to prevent accidents
         if (newStatus === 'No-Show') {
             if (!confirm("Mark as No-Show? This will penalize the customer and remove them from the live capacity.")) return;
+        }
+        
+        if (newStatus === 'Finished') {
+            if (!confirm("Mark this table as Finished? This will instantly free up the live capacity for walk-ins.")) return;
         }
 
         try {
             await updateDoc(doc(db, "reservations", id), { status: newStatus });
             
-            // Only send WhatsApp message if it's an initial Accept/Decline action
             if (sendWhatsappMsg && phone) {
                 let cleanPhone = phone.replace(/\D/g, ''); 
                 if(cleanPhone.startsWith('0')) cleanPhone = "963" + cleanPhone.substring(1); 
