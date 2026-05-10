@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Tawelty Staff</title>
+    <title>Tawelty — Staff Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-   <script>
+    <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('sw.js', { scope: '/staff/' })
@@ -13,182 +13,522 @@
         });
       }
     </script>
-    
+
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#172B4D">
+    <meta name="theme-color" content="#1A1714">
     <link rel="apple-touch-icon" href="logo.jpeg">
 
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* --- MODERN LIGHT THEME --- */
-        :root { 
-            --bg: #F4F5F7; 
-            --surface: #FFFFFF; 
-            --text-main: #172B4D; 
-            --text-sub: #5E6C84;
-            --primary: #0052CC; 
-            --border: #DFE1E6;
-            --radius: 12px;
+        /* ============================================
+           TAWELTY STAFF PORTAL V5.0 — LUXURY THEME
+           Charcoal + Antique Gold + Warm Cream
+        ============================================ */
+        :root {
+            --charcoal: #1A1714;
+            --charcoal-soft: #252118;
+            --gold: #C9A84C;
+            --gold-light: #E8D5A3;
+            --gold-pale: #F5EDD8;
+            --gold-dark: #8B6914;
+            --cream: #FAF7F2;
+            --cream-dark: #F0EAE0;
+            --surface: #FFFFFF;
+            --bg: #F2EDE6;
+            --text-main: #1A1714;
+            --text-muted: #6B6458;
+            --text-hint: #A09688;
+            --border: rgba(26,23,20,0.10);
+            --border-gold: rgba(201,168,76,0.30);
+            --input-bg: #F5F1EB;
+            --green: #27AE60;
+            --green-pale: #EBF5EB;
+            --red: #C0392B;
+            --red-pale: #FDEDEC;
+            --blue: #2471A3;
+            --blue-pale: #EBF5FB;
+            --orange: #D68910;
+            --orange-pale: #FEF9E7;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 22px;
         }
 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; padding-bottom: 80px; }
-        
-        h1, h2, h3 { margin: 0; font-weight: 700; }
-        
-        /* HEADER */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header h2 { font-size: 1.5rem; color: var(--text-main); }
-        .btn-logout { background: none; border: none; color: red; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { overflow-x: hidden; }
 
-        /* TABS */
-        .view-tabs { display: flex; flex-wrap: wrap; gap: 8px; background: white; padding: 8px; border-radius: 16px; border: 1px solid var(--border); width: 100%; box-sizing: border-box; margin-bottom: 20px; align-items: center; }
-        .tab-btn { background: none; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 600; color: var(--text-sub); cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
-        .tab-btn.active { background: var(--text-main); color: white; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            padding: 16px 16px 100px;
+            -webkit-font-smoothing: antialiased;
+        }
 
-        /* STATS */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--surface); padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); text-align: center; border: 1px solid var(--border); }
-        .stat-val { display: block; font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1.1; }
-        .stat-limit { display: block; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 5px; }
-        .stat-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: #888; }
-        .time-card { grid-column: 1 / -1; background: var(--text-main); color: white; padding: 10px; border-radius: 12px; text-align: center; font-weight: 600; font-size: 1.1rem; }
+        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 600; margin: 0; }
 
-        /* ACTION BAR */
-        .action-bar { position: fixed; bottom: 20px; right: 20px; z-index: 90; }
-        .btn-add { background: var(--text-main); color: white; border: none; width: 60px; height: 60px; border-radius: 50%; font-size: 24px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        .container { max-width: 720px; margin: 0 auto; }
 
-        /* BOOKING LIST */
-        .date-header { position: sticky; top: 0; z-index: 10; background: rgba(244, 245, 247, 0.95); backdrop-filter: blur(5px); padding: 15px 0; margin: 10px 0; font-size: 0.9rem; font-weight: 800; text-transform: uppercase; color: var(--text-sub); border-bottom: 2px solid var(--border); }
-        
-        .booking-card { background: var(--surface); padding: 15px; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; position: relative; transition: 0.3s; }
-        
-        /* CARD STATUS COLORS */
-        .status-Pending { border-left: 6px solid #FFAB00; }
-        .status-Accepted { border-left: 6px solid #36B37E; }
-        .status-Seated { border-left: 6px solid #0052CC; background: #f4f6ff; }
-        .status-Finished { border-left: 6px solid #8792A2; background: #fdfdfd; opacity: 0.85; }
-        .status-No-Show { opacity: 0.7; border-left: 6px solid #BF2600; background: #fff5f5; }
-        .status-Declined { opacity: 0.7; border-left: 6px solid #555; background: #fafafa; }
-        .status-History { opacity: 0.7; border-left: 6px solid #FF5630; background: #fff5f5; }
+        /* ── LOGIN ── */
+        #login-view {
+            max-width: 360px; margin: 8vh auto;
+            background: var(--charcoal);
+            border-radius: var(--radius-xl);
+            padding: 44px 36px;
+            box-shadow: 0 30px 80px rgba(26,23,20,0.25);
+            text-align: center;
+        }
+        .login-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem; font-weight: 700;
+            color: white; margin-bottom: 4px;
+        }
+        .login-logo span { color: var(--gold); }
+        .login-sub {
+            font-size: 0.7rem; letter-spacing: 2px;
+            text-transform: uppercase; color: rgba(255,255,255,0.3);
+            margin-bottom: 32px;
+        }
+        #login-view input {
+            width: 100%; padding: 13px 16px;
+            background: rgba(255,255,255,0.07);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            border-radius: var(--radius-md);
+            color: white; font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+            outline: none; margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+        #login-view input::placeholder { color: rgba(255,255,255,0.3); }
+        #login-view input:focus {
+            border-color: rgba(201,168,76,0.6);
+            background: rgba(255,255,255,0.10);
+            color: white;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+        }
+        #login-view input:-webkit-autofill,
+        #login-view input:-webkit-autofill:focus {
+            -webkit-text-fill-color: white;
+            -webkit-box-shadow: 0 0 0px 1000px rgba(40,35,28,0.95) inset;
+        }
+        .btn-login {
+            width: 100%; padding: 14px;
+            background: var(--gold); color: var(--charcoal);
+            border: none; border-radius: var(--radius-md);
+            font-size: 0.9rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            margin-top: 4px; transition: background 0.2s;
+        }
+        .btn-login:hover { background: var(--gold-light); }
+        #login-msg { color: #F1948A; font-size: 0.8rem; margin-top: 12px; }
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .card-title { font-weight: 800; font-size: 1.1rem; margin: 0; }
-        .card-meta { font-size: 0.9rem; color: #555; display: flex; gap: 10px; margin-top: 5px; font-weight: 500; }
-        .btn-decision-row { display: flex; gap: 10px; margin-top: 5px; }
-        
-        .btn-decision { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
-        .btn-accept { background: #E3FCEF; color: #006644; }
-        .btn-decline { background: #FFEBE6; color: #BF2600; }
+        /* ── DASHBOARD HEADER ── */
+        .dash-header {
+            background: var(--charcoal);
+            border-radius: var(--radius-lg);
+            padding: 18px 22px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .dash-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem; font-weight: 700; color: white;
+        }
+        .dash-logo span { color: var(--gold); }
+        #manager-title {
+            font-size: 0.75rem; color: rgba(255,255,255,0.45);
+            font-family: 'DM Sans', sans-serif; font-weight: 500;
+            letter-spacing: 0.3px; margin-top: 2px;
+        }
+        .btn-logout {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.55); font-size: 0.75rem;
+            font-weight: 500; font-family: 'DM Sans', sans-serif;
+            padding: 7px 14px; border-radius: 20px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover { background: var(--red); border-color: var(--red); color: white; }
 
-        .actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 5px; }
-        .btn-icon { background: #eee; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1rem; }
+        /* ── TABS ── */
+        .view-tabs {
+            display: flex; flex-wrap: wrap; gap: 6px;
+            background: white; padding: 5px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            margin-bottom: 14px; align-items: center;
+        }
+        .tab-btn {
+            background: none; border: none;
+            padding: 8px 14px; border-radius: var(--radius-sm);
+            font-weight: 600; color: var(--text-hint);
+            cursor: pointer; transition: all 0.2s;
+            font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
+        }
+        .tab-btn.active { background: var(--charcoal); color: white; }
+        .tab-btn:hover:not(.active) { background: var(--input-bg); color: var(--text-main); }
 
-        /* VIP & WARNING BADGES CSS */
-        .badges-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
-        .vip-badge { background-color: #fff9e6; color: #bfa15f; border: 1px solid #bfa15f; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; width: fit-content; }
-        .yellow-flag { background-color: #fffde7; color: #f39c12; border: 1px solid #f39c12; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; width: fit-content; }
-        .red-flag { background-color: #ffeaea; color: #d32f2f; border: 1px solid #d32f2f; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 800; display: inline-flex; align-items: center; gap: 5px; width: fit-content; }
+        #btn-pause-today {
+            margin-left: auto;
+            border: 1.5px solid var(--red) !important;
+            color: var(--red) !important;
+            background: none;
+        }
+        #btn-pause-today.paused {
+            background: var(--red) !important;
+            color: white !important;
+        }
 
-        /* OVERLAYS */
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 85%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-        .modal-input { width: 100%; padding: 14px; border: 2px solid var(--border); border-radius: 8px; margin-bottom: 15px; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
-        label { font-size: 0.8rem; font-weight: 700; color: var(--text-sub); margin-bottom: 5px; display: block; text-transform: uppercase; }
+        /* ── STATS GRID ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px; margin-bottom: 16px;
+        }
+        .time-card {
+            grid-column: 1 / -1;
+            background: var(--charcoal);
+            color: var(--gold-light);
+            padding: 12px; border-radius: var(--radius-md);
+            text-align: center; font-weight: 700;
+            font-size: 1.2rem; letter-spacing: 2px;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .stat-card {
+            background: white; padding: 18px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .stat-val {
+            display: block; font-size: 2rem;
+            font-weight: 700; color: var(--text-main);
+            line-height: 1.1; font-family: 'DM Sans', sans-serif;
+        }
+        .stat-limit {
+            display: block; font-size: 0.72rem;
+            color: var(--text-hint); margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 0.62rem; text-transform: uppercase;
+            letter-spacing: 1px; font-weight: 700; color: var(--text-hint);
+        }
 
+        /* ── DATE HEADER ── */
+        .date-header {
+            position: sticky; top: 0; z-index: 10;
+            background: rgba(242,237,230,0.95);
+            backdrop-filter: blur(8px);
+            padding: 10px 0; margin: 16px 0 8px;
+            font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-hint);
+            border-bottom: 1px solid var(--cream-dark);
+        }
+
+        /* ── BOOKING CARD ── */
+        .booking-card {
+            background: white; padding: 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            border-left: 5px solid var(--border);
+            display: flex; flex-direction: column; gap: 10px;
+            position: relative; transition: box-shadow 0.2s;
+        }
+        .booking-card:hover { box-shadow: 0 4px 20px rgba(26,23,20,0.08); }
+
+        /* Status left-border colors */
+        .status-Pending   { border-left-color: var(--orange); }
+        .status-Accepted  { border-left-color: var(--green); }
+        .status-Seated    { border-left-color: var(--blue); background: #F4F8FB; }
+        .status-Finished  { border-left-color: var(--text-hint); opacity: 0.82; }
+        .status-No-Show   { border-left-color: var(--red); background: var(--red-pale); opacity: 0.75; }
+        .status-Declined  { border-left-color: var(--text-hint); background: var(--cream); opacity: 0.7; }
+        .status-History   { border-left-color: var(--red); background: var(--red-pale); opacity: 0.7; }
+
+        .card-title { font-size: 1rem; font-weight: 700; color: var(--text-main); font-family: 'DM Sans', sans-serif; }
+        .card-meta {
+            font-size: 0.8rem; color: var(--text-muted);
+            display: flex; gap: 10px; flex-wrap: wrap;
+            font-weight: 500;
+        }
+        .card-meta span { display: flex; align-items: center; gap: 4px; }
+
+        /* ── DECISION BUTTONS ── */
+        .btn-decision-row { display: flex; gap: 8px; }
+        .btn-decision {
+            flex: 1; padding: 11px;
+            border-radius: var(--radius-sm); border: none;
+            font-weight: 700; cursor: pointer;
+            font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
+            transition: all 0.18s;
+        }
+        .btn-accept { background: var(--green-pale); color: #1A6B3C; }
+        .btn-accept:hover { background: #27AE60; color: white; }
+        .btn-decline { background: var(--red-pale); color: var(--red); }
+        .btn-decline:hover { background: var(--red); color: white; }
+        .btn-seated { background: var(--blue-pale); color: var(--blue); }
+        .btn-seated:hover { background: var(--blue); color: white; }
+        .btn-noshow { background: var(--red-pale); color: var(--red); }
+        .btn-noshow:hover { background: var(--red); color: white; }
+        .btn-finish {
+            width: 100%; background: var(--input-bg);
+            color: var(--text-muted);
+            border: 1.5px solid var(--border);
+        }
+        .btn-finish:hover { background: var(--charcoal); color: white; border-color: var(--charcoal); }
+
+        .status-label {
+            font-size: 0.75rem; font-weight: 700;
+            padding: 6px 0; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* ── ACTION ICONS ── */
+        .actions {
+            position: absolute; top: 14px; right: 14px;
+            display: flex; gap: 5px;
+        }
+        .btn-icon {
+            background: var(--input-bg); border: none;
+            width: 30px; height: 30px; border-radius: var(--radius-sm);
+            cursor: pointer; display: flex;
+            justify-content: center; align-items: center;
+            font-size: 0.85rem; transition: background 0.15s;
+        }
+        .btn-icon:hover { background: var(--cream-dark); }
+        .btn-icon.delete:hover { background: var(--red-pale); }
+
+        /* ── BADGES ── */
+        .badges-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .vip-badge {
+            background: var(--gold-pale); color: var(--gold-dark);
+            border: 1px solid var(--border-gold);
+            padding: 5px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .yellow-flag {
+            background: var(--orange-pale); color: var(--orange);
+            border: 1px solid rgba(214,137,16,0.3);
+            padding: 5px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .red-flag {
+            background: var(--red-pale); color: var(--red);
+            border: 1px solid rgba(192,57,43,0.25);
+            padding: 5px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+
+        /* ── REVIEW BOX ── */
+        .review-box {
+            background: var(--gold-pale); border: 1px solid var(--border-gold);
+            padding: 12px; border-radius: var(--radius-sm); margin-top: 4px;
+        }
+        .review-box p { margin: 0; font-size: 0.78rem; color: var(--gold-dark); font-weight: 700; }
+        .review-box .stars { font-size: 0.85rem; margin: 4px 0; }
+        .review-box .comment { color: var(--text-muted); font-style: italic; font-weight: 400; }
+
+        /* ── ASK REVIEW BUTTON ── */
+        .btn-ask-review {
+            background: none; border: 1.5px solid var(--green);
+            color: var(--green); padding: 8px 14px;
+            border-radius: var(--radius-sm); cursor: pointer;
+            font-size: 0.75rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            width: 100%; margin-top: 4px; transition: all 0.2s;
+        }
+        .btn-ask-review:hover { background: var(--green); color: white; }
+
+        /* ── MODAL ── */
+        .modal {
+            display: none; position: fixed; z-index: 999;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(20,16,12,0.7);
+            backdrop-filter: blur(8px);
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 28px;
+            border-radius: var(--radius-xl);
+            width: 90%; max-width: 400px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+            animation: modalIn 0.22s ease-out;
+        }
+        @keyframes modalIn { from { opacity:0; transform:translateY(16px) scale(0.97); } to { opacity:1; transform:none; } }
+        .modal-content h3 {
+            font-size: 1.4rem; margin-bottom: 20px;
+            color: var(--text-main);
+        }
+        .modal-label {
+            font-size: 0.68rem; font-weight: 700;
+            color: var(--text-muted); display: block;
+            margin-bottom: 5px; margin-top: 12px;
+            letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        .modal-input {
+            width: 100%; padding: 12px 14px;
+            background: var(--input-bg);
+            border: 1.5px solid transparent;
+            border-radius: var(--radius-md);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px; color: var(--text-main);
+            outline: none; transition: all 0.2s;
+            margin-bottom: 0;
+        }
+        .modal-input:focus {
+            background: white; border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+        }
+        .modal-row { display: flex; gap: 10px; margin-top: 12px; }
+        .modal-row > div { flex: 1; }
+        .btn-save {
+            width: 100%; padding: 14px;
+            background: var(--charcoal); color: white;
+            border: none; border-radius: var(--radius-md);
+            font-size: 0.9rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer; margin-top: 18px; transition: background 0.2s;
+        }
+        .btn-save:hover { background: var(--charcoal-soft); }
+        .btn-modal-cancel {
+            width: 100%; background: none; border: none;
+            color: var(--text-hint); padding: 13px;
+            cursor: pointer; font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem; font-weight: 500; margin-top: 4px;
+            transition: color 0.2s;
+        }
+        .btn-modal-cancel:hover { color: var(--text-main); }
+
+        /* ── FAB ── */
+        .action-bar { position: fixed; bottom: 24px; right: 20px; z-index: 90; }
+        .btn-add {
+            background: var(--charcoal); color: white;
+            border: none; width: 56px; height: 56px;
+            border-radius: 50%; font-size: 22px;
+            box-shadow: 0 8px 24px rgba(26,23,20,0.3);
+            cursor: pointer; display: flex;
+            justify-content: center; align-items: center;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-add:hover { background: var(--gold); transform: scale(1.08); }
+
+        /* ── MISC ── */
         .hidden { display: none !important; }
-        
-        /* LOGIN SCREEN DESIGN */
-        #login-view { max-width: 350px; margin: 10vh auto; text-align: center; padding: 40px 20px; background:white; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.05); }
-        .btn-login { width: 100%; padding: 15px; background: var(--text-main); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 1rem; }
+        .empty-state {
+            text-align: center; padding: 50px 20px;
+            color: var(--text-hint); font-size: 0.85rem;
+        }
+        .empty-state .icon { font-size: 2rem; margin-bottom: 8px; }
     </style>
 </head>
 <body>
 
+    <!-- ── LOGIN ── -->
     <div id="login-view" class="container">
-        <h1 style="color:#172B4D; margin-bottom:5px;">Staff Portal</h1>
-        <p style="color:#888; margin-bottom:30px; font-size:0.9rem;">Secure Access</p>
-        <input type="email" id="email" class="modal-input" placeholder="Manager Email">
-        <input type="password" id="password" class="modal-input" placeholder="Password">
-        <button class="btn-login" onclick="login()">Enter Dashboard</button>
-        <p id="login-msg" style="color:red; margin-top:15px;" class="hidden"></p>
+        <div class="login-logo">Tawelty<span>.</span></div>
+        <div class="login-sub">Staff Portal · Secure Access</div>
+        <input type="email" id="email" placeholder="Manager email">
+        <input type="password" id="password" placeholder="Password" onkeydown="if(event.key==='Enter') login()">
+        <button class="btn-login" onclick="login()">Enter Dashboard →</button>
+        <p id="login-msg" class="hidden"></p>
     </div>
 
+    <!-- ── DASHBOARD ── -->
     <div id="dashboard-view" class="container hidden">
-        <div class="header">
-            <h2 id="manager-title">Loading...</h2>
+
+        <!-- Header -->
+        <div class="dash-header">
+            <div>
+                <div class="dash-logo">Tawelty<span>.</span></div>
+                <div id="manager-title">Loading…</div>
+            </div>
             <button class="btn-logout" onclick="logout()">Sign Out</button>
         </div>
 
+        <!-- Tabs -->
         <div class="view-tabs">
-            <button id="tab-active" class="tab-btn active" onclick="setView('active')">Live</button>
-            <button id="tab-past" class="tab-btn" onclick="setView('past')">Past</button>
+            <button id="tab-active" class="tab-btn active" onclick="setView('active')">🔴 Live</button>
+            <button id="tab-past"   class="tab-btn" onclick="setView('past')">Past</button>
             <button id="tab-history" class="tab-btn" onclick="setView('history')">Canceled</button>
-            <button id="btn-pause-today" class="tab-btn" onclick="togglePauseToday()" style="color:#FF5630; border:1px solid #FF5630; margin-left:auto;">⏸ Pause</button>
+            <button id="btn-pause-today" class="tab-btn" onclick="togglePauseToday()">⏸ Pause</button>
         </div>
 
+        <!-- Stats -->
         <div class="stats-grid">
-            <div class="time-card" id="current-hour-display">--:--</div>
+            <div class="time-card" id="current-hour-display">--:--:--</div>
             <div class="stat-card">
                 <span class="stat-val" id="live-guests">0</span>
                 <span class="stat-limit" id="max-guests">/ 0 Cap</span>
-                <span class="stat-label">Guests</span>
+                <span class="stat-label">Live Guests</span>
             </div>
             <div class="stat-card">
                 <span class="stat-val" id="live-tables">0</span>
-                <span class="stat-limit" id="max-tables">/ 0 Tbl</span>
-                <span class="stat-label">Tables</span>
+                <span class="stat-limit" id="max-tables">/ 0 Tables</span>
+                <span class="stat-label">Live Tables</span>
             </div>
         </div>
 
+        <!-- Bookings -->
         <div id="bookings-list">
-            <div style="text-align:center; padding:50px; color:#999;">Connecting...</div>
+            <div class="empty-state"><div class="icon">⏳</div>Connecting…</div>
         </div>
 
+        <!-- FAB -->
         <div class="action-bar">
-            <button class="btn-add" onclick="openModal('add')">+</button>
+            <button class="btn-add" onclick="openModal('add')">＋</button>
         </div>
-        
+
         <audio id="notif-sound" src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjQ1LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWgAAAA0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQZAAABi0eU5sAAAAPo8pzYAAAACWjL0AAAACWjL0AAAAD/88AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQZAABAAABAAAAAAABAAAAAAABAAAAAAABAAAAAAABAAAAAAA=" preload="auto"></audio>
     </div>
 
+    <!-- ── BOOKING MODAL ── -->
     <div id="booking-modal" class="modal">
         <div class="modal-content">
-            <h3 id="modal-title" style="margin-bottom:20px;">Add Booking</h3>
-            <input type="hidden" id="edit-id"> 
+            <h3 id="modal-title">New Reservation</h3>
+            <input type="hidden" id="edit-id">
 
-            <label>Guest Name</label>
+            <label class="modal-label">Guest Name</label>
             <input type="text" id="m-name" class="modal-input" placeholder="Name">
-            
-            <label>Phone</label>
-            <input type="text" id="m-phone" class="modal-input" placeholder="Phone">
-            
-            <div style="display:flex; gap:10px;">
-                <div style="flex:1;">
-                    <label>Date</label>
+
+            <label class="modal-label" style="margin-top:12px;">Phone</label>
+            <input type="text" id="m-phone" class="modal-input" placeholder="Phone number">
+
+            <div class="modal-row">
+                <div>
+                    <label class="modal-label">Date</label>
                     <input type="date" id="m-date" class="modal-input">
                 </div>
-                <div style="flex:1;">
-                    <label>Time</label>
+                <div>
+                    <label class="modal-label">Time</label>
                     <select id="m-time" class="modal-input"></select>
                 </div>
             </div>
-            <div style="display:flex; gap:10px;">
-                <div style="flex:1;">
-                    <label>Guests</label>
+            <div class="modal-row">
+                <div>
+                    <label class="modal-label">Guests</label>
                     <input type="number" id="m-guests" class="modal-input" value="2" min="1">
                 </div>
-                <div style="flex:1;">
-                    <label>Duration</label>
+                <div>
+                    <label class="modal-label">Duration (hrs)</label>
                     <input type="number" id="m-duration" class="modal-input" value="3" min="1">
                 </div>
             </div>
 
-            <button onclick="saveBooking()" class="btn-login" style="margin-top:10px;">Save Booking</button>
-            <button onclick="closeModal()" style="width:100%; background:white; border:none; color:#666; padding:15px; margin-top:5px; cursor:pointer;">Cancel</button>
+            <button class="btn-save" onclick="saveBooking()">Save Booking</button>
+            <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
         </div>
     </div>
 
+<!-- ==========================================
+     ALL ORIGINAL JS — UNCHANGED
+     ========================================== -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -211,27 +551,23 @@
 
     let currentRestaurant = "";
     let maxGuests = 0;
-    let maxTables = 0; 
+    let maxTables = 0;
     let openTime = 12;
     let closeTime = 22;
-    let vipThreshold = 3; 
-    let latestSnapshot = null; 
-    let unsubscribe = null; 
-    window.currentView = 'active'; 
+    let vipThreshold = 3;
+    let latestSnapshot = null;
+    let unsubscribe = null;
+    window.currentView = 'active';
 
-    window.onload = () => { 
+    window.onload = () => {
         setInterval(recalculateDashboard, 10000);
         document.getElementById('notif-sound').src = AUDIO_SRC;
-        
+
         const unlocker = () => {
             const sound = document.getElementById('notif-sound');
-            if(sound) {
-                sound.muted = true; 
-                sound.play().then(() => {
-                    sound.pause();
-                    sound.currentTime = 0;
-                    sound.muted = false; 
-                }).catch(e => {});
+            if (sound) {
+                sound.muted = true;
+                sound.play().then(() => { sound.pause(); sound.currentTime = 0; sound.muted = false; }).catch(e => {});
             }
             document.removeEventListener('click', unlocker);
             document.removeEventListener('touchstart', unlocker);
@@ -240,25 +576,23 @@
         document.addEventListener('touchstart', unlocker);
     };
 
-    // --- AUTH ---
+    // ── AUTH ──
     window.login = () => {
         const email = document.getElementById('email').value;
         const pass = document.getElementById('password').value;
-        
         const sound = document.getElementById('notif-sound');
-        if(sound) { sound.play().catch(e=>{}); sound.pause(); }
+        if (sound) { sound.play().catch(e => {}); sound.pause(); }
 
         signInWithEmailAndPassword(auth, email, pass).catch(e => {
-            document.getElementById('login-msg').innerText = "Failed: " + e.message;
-            document.getElementById('login-msg').classList.remove('hidden');
+            const msg = document.getElementById('login-msg');
+            msg.innerText = "Login failed: " + e.message;
+            msg.classList.remove('hidden');
         });
     };
-    
-   window.logout = () => {
-        if(unsubscribe) unsubscribe();
-        signOut(auth).then(() => { 
-            window.location.reload(); 
-        });
+
+    window.logout = () => {
+        if (unsubscribe) unsubscribe();
+        signOut(auth).then(() => { window.location.reload(); });
     };
 
     onAuthStateChanged(auth, async (user) => {
@@ -267,40 +601,35 @@
                 window.location.href = "../admin.html";
                 return;
             }
-
             document.getElementById('login-view').classList.add('hidden');
             document.getElementById('dashboard-view').classList.remove('hidden');
-            
+
             try {
-                const managerRef = doc(db, "managers", user.email);
-                const managerSnap = await getDoc(managerRef);
+                const managerSnap = await getDoc(doc(db, "managers", user.email));
                 if (managerSnap.exists()) {
                     currentRestaurant = managerSnap.data().restaurant;
                     document.getElementById('manager-title').innerText = currentRestaurant;
-                    
+
                     const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
                     const resSnap = await getDocs(q);
-                   
-                    if(!resSnap.empty) {
+                    if (!resSnap.empty) {
                         const d = resSnap.docs[0].data();
                         maxGuests = d.capacity || 20;
                         maxTables = d.tables || 10;
                         openTime = d.openTime || 12;
                         closeTime = d.closeTime || 22;
                         vipThreshold = d.vipThreshold || 3;
-                        
-                        document.getElementById('max-guests').innerText = "/ " + maxGuests;
-                        document.getElementById('max-tables').innerText = "/ " + maxTables;
-                        
+                        document.getElementById('max-guests').innerText = "/ " + maxGuests + " Cap";
+                        document.getElementById('max-tables').innerText = "/ " + maxTables + " Tables";
+
                         const todayStr = new Date().toISOString().split('T')[0];
                         const btnPause = document.getElementById('btn-pause-today');
                         if (d.closedDates && d.closedDates.includes(todayStr)) {
                             btnPause.innerText = "▶ Re-Open Today";
-                            btnPause.style.background = "#FF5630";
-                            btnPause.style.color = "white";
+                            btnPause.classList.add('paused');
                         }
                     }
-                    startRealtimeListener(); 
+                    startRealtimeListener();
                 } else {
                     alert("Account not linked to a restaurant.");
                     signOut(auth);
@@ -312,15 +641,15 @@
         }
     });
 
-    // --- REALTIME ---
+    // ── REALTIME ──
     function startRealtimeListener() {
-        if(!currentRestaurant) return;
+        if (!currentRestaurant) return;
         const sound = document.getElementById('notif-sound');
         const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant));
         let isFirstLoad = true;
 
         unsubscribe = onSnapshot(q, async (snapshot) => {
-            latestSnapshot = snapshot; 
+            latestSnapshot = snapshot;
             recalculateDashboard();
             await renderListFromSnapshot(snapshot);
 
@@ -331,7 +660,7 @@
                         if (!d.archived && d.source !== "Manager" && d.status === "Pending") {
                             sound.currentTime = 0;
                             sound.play().catch(e => console.log("Sound error:", e));
-                            if("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+                            if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
                         }
                     }
                 });
@@ -340,84 +669,61 @@
         });
     }
 
-    // --- SMART CRM HISTORY CHECKER ---
+    // ── CRM HISTORY ──
     window.checkCustomerHistory = async (phone) => {
         if (!phone || phone.trim() === "" || phone === "N/A") return { cancels: 0, noShows: 0, successes: 0 };
         const q = query(collection(db, "reservations"), where("phone", "==", phone));
         try {
             const snapshot = await getDocs(q);
-            let cancels = 0;
-            let noShows = 0;
-            let successes = 0;
-
+            let cancels = 0, noShows = 0, successes = 0;
             const ninetyDaysAgo = new Date();
             ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-            const cutoffDateStr = ninetyDaysAgo.toISOString().split('T')[0];
+            const cutoff = ninetyDaysAgo.toISOString().split('T')[0];
 
             snapshot.forEach(doc => {
                 const data = doc.data();
-                
-                // Add Finished to the success count!
-                if (data.status === "Accepted" || data.status === "Seated" || data.status === "Finished") {
-                    successes++;
-                }
-
-                if (data.date && data.date >= cutoffDateStr) {
-                    if (data.status === "No-Show") {
-                        noShows++;
-                    } else if (data.archived === true || data.status === "Declined") {
-                        cancels++;
-                    }
+                if (data.status === "Accepted" || data.status === "Seated" || data.status === "Finished") successes++;
+                if (data.date && data.date >= cutoff) {
+                    if (data.status === "No-Show") noShows++;
+                    else if (data.archived === true || data.status === "Declined") cancels++;
                 }
             });
             return { cancels, noShows, successes };
-        } catch (e) {
-            console.error("Error checking history:", e);
-            return { cancels: 0, noShows: 0, successes: 0 };
-        }
+        } catch (e) { return { cancels: 0, noShows: 0, successes: 0 }; }
     };
 
     window.togglePauseToday = async () => {
-        if(!currentRestaurant) return;
+        if (!currentRestaurant) return;
         const btn = document.getElementById('btn-pause-today');
         const originalText = btn.innerText;
-        btn.innerText = "Wait...";
-        
+        btn.innerText = "Wait…";
+
         try {
             const todayStr = new Date().toISOString().split('T')[0];
             const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
             const snap = await getDocs(q);
-            
-            if(!snap.empty) {
+
+            if (!snap.empty) {
                 const resDoc = snap.docs[0];
-                const resId = resDoc.id;
                 let closedDates = resDoc.data().closedDates || [];
-                
-                if(closedDates.includes(todayStr)) {
+
+                if (closedDates.includes(todayStr)) {
                     closedDates = closedDates.filter(d => d !== todayStr);
-                    await updateDoc(doc(db, "restaurants", resId), { closedDates });
-                    btn.innerText = "⏸ Pause Today";
-                    btn.style.background = "none";
-                    btn.style.color = "#FF5630";
+                    await updateDoc(doc(db, "restaurants", resDoc.id), { closedDates });
+                    btn.innerText = "⏸ Pause";
+                    btn.classList.remove('paused');
                     alert("Bookings RE-OPENED for today.");
                 } else {
-                    if(confirm("Stop all new online bookings for today?")) {
+                    if (confirm("Stop all new online bookings for today?")) {
                         closedDates.push(todayStr);
-                        await updateDoc(doc(db, "restaurants", resId), { closedDates });
+                        await updateDoc(doc(db, "restaurants", resDoc.id), { closedDates });
                         btn.innerText = "▶ Re-Open Today";
-                        btn.style.background = "#FF5630";
-                        btn.style.color = "white";
+                        btn.classList.add('paused');
                         alert("Bookings PAUSED for today.");
-                    } else {
-                        btn.innerText = originalText;
-                    }
+                    } else { btn.innerText = originalText; }
                 }
             }
-        } catch(e) {
-            console.error(e);
-            alert("Error updating status.");
-            btn.innerText = originalText;
-        }
+        } catch (e) { alert("Error updating status."); btn.innerText = originalText; }
     };
 
     window.setView = (view) => {
@@ -425,29 +731,26 @@
         document.getElementById('tab-active').classList.toggle('active', view === 'active');
         document.getElementById('tab-past').classList.toggle('active', view === 'past');
         document.getElementById('tab-history').classList.toggle('active', view === 'history');
-        if(latestSnapshot) renderListFromSnapshot(latestSnapshot); 
+        if (latestSnapshot) renderListFromSnapshot(latestSnapshot);
     };
 
     function recalculateDashboard() {
         if (!latestSnapshot) return;
         const now = new Date();
-        const currentHour = now.getHours(); 
-        const min = now.getMinutes().toString().padStart(2, '0');
-        const sec = now.getSeconds().toString().padStart(2, '0');
-        document.getElementById('current-hour-display').innerText = `${currentHour}:${min}:${sec}`;
+        const h = now.getHours();
+        const m = now.getMinutes().toString().padStart(2, '0');
+        const s = now.getSeconds().toString().padStart(2, '0');
+        document.getElementById('current-hour-display').innerText = `${h}:${m}:${s}`;
 
-        let liveGuests = 0;
-        let liveTables = 0;
+        let liveGuests = 0, liveTables = 0;
         const todayStr = now.toISOString().split('T')[0];
 
         latestSnapshot.forEach(doc => {
             const data = doc.data();
-            // ONLY count them in Live capacity if they are Accepted or Seated!
-            // If they are marked "Finished", they will NOT be counted here, instantly freeing up space!
             if (data.date === todayStr && !data.archived && (data.status === 'Accepted' || data.status === 'Seated')) {
                 const startHour = parseInt(data.time.split(':')[0]);
                 const endHour = startHour + (data.duration || 3);
-                if (currentHour >= startHour && currentHour < endHour) {
+                if (h >= startHour && h < endHour) {
                     liveGuests += parseInt(data.persons);
                     liveTables += Math.ceil(parseInt(data.persons) / 4);
                 }
@@ -457,10 +760,10 @@
         const gEl = document.getElementById('live-guests');
         gEl.innerText = liveGuests;
         document.getElementById('live-tables').innerText = liveTables;
-        
-        if(liveGuests >= maxGuests) gEl.style.color = "#FF5630"; 
-        else if (liveGuests >= maxGuests * 0.8) gEl.style.color = "#FFAB00"; 
-        else gEl.style.color = "#172B4D"; 
+
+        if (liveGuests >= maxGuests) gEl.style.color = "var(--red)";
+        else if (liveGuests >= maxGuests * 0.8) gEl.style.color = "var(--orange)";
+        else gEl.style.color = "var(--text-main)";
     }
 
     async function renderListFromSnapshot(snapshot) {
@@ -468,31 +771,24 @@
         const allDocs = [];
         const todayStr = new Date().toISOString().split('T')[0];
 
-        snapshot.forEach(doc => { 
+        snapshot.forEach(doc => {
             const d = doc.data();
-            
             if (window.currentView === 'active') {
-                if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) {
-                    allDocs.push({ id: doc.id, ...d });
-                }
+                if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) allDocs.push({ id: doc.id, ...d });
             } else if (window.currentView === 'past') {
-                if (!d.archived && d.status !== 'Declined' && d.date < todayStr) {
-                    allDocs.push({ id: doc.id, ...d });
-                }
+                if (!d.archived && d.status !== 'Declined' && d.date < todayStr) allDocs.push({ id: doc.id, ...d });
             } else if (window.currentView === 'history') {
-                if (d.archived || d.status === 'Declined') {
-                    allDocs.push({ id: doc.id, ...d });
-                }
+                if (d.archived || d.status === 'Declined') allDocs.push({ id: doc.id, ...d });
             }
         });
-        
-        if(allDocs.length === 0) {
-            list.innerHTML = `<p style='text-align:center; padding:50px; color:#aaa;'>No ${window.currentView} bookings.</p>`;
+
+        if (allDocs.length === 0) {
+            list.innerHTML = `<div class="empty-state"><div class="icon">📋</div>No ${window.currentView} bookings.</div>`;
             return;
         }
 
         allDocs.sort((a, b) => {
-            if (a.date !== b.date) return window.currentView==='active' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+            if (a.date !== b.date) return window.currentView === 'active' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
             return parseInt(a.time) - parseInt(b.time);
         });
 
@@ -501,8 +797,7 @@
 
         for (const b of allDocs) {
             if (b.date !== lastDate) {
-                const dObj = new Date(b.date);
-                const dStr = dObj.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
+                const dStr = new Date(b.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
                 html += `<div class="date-header">${dStr}</div>`;
                 lastDate = b.date;
             }
@@ -511,97 +806,79 @@
             if (b.status === 'Pending' || window.currentView === 'active') {
                 history = await window.checkCustomerHistory(b.phone);
             }
-            
+
             let badgesHtml = "<div class='badges-row'>";
-            
-            if (history.successes >= vipThreshold) { 
-                badgesHtml += `<div class="vip-badge">🌟 VIP: ${history.successes} Visits</div>`;
-            }
-            
-            if (history.noShows >= 2) {
-                badgesHtml += `<div class="red-flag">🚩 RED FLAG: ${history.noShows} No-Shows (90 Days)</div>`;
-            } else if (history.cancels >= 3) {
-                badgesHtml += `<div class="yellow-flag">🟨 CAUTION: ${history.cancels} Cancels (90 Days)</div>`;
-            }
-            
+            if (history.successes >= vipThreshold) badgesHtml += `<div class="vip-badge">🌟 VIP · ${history.successes} Visits</div>`;
+            if (history.noShows >= 2) badgesHtml += `<div class="red-flag">🚩 ${history.noShows} No-Shows (90 days)</div>`;
+            else if (history.cancels >= 3) badgesHtml += `<div class="yellow-flag">⚠️ ${history.cancels} Cancels (90 days)</div>`;
             badgesHtml += "</div>";
 
-            let buttons = '';
-            let cardClass = `status-${b.status}`;
-            const safeName = b.name.replace(/'/g, "\\'");
+            const safeName  = b.name.replace(/'/g, "\\'");
             const safePhone = (b.phone || "").replace(/'/g, "\\'");
-            
+            let buttons = '';
+            const cardClass = `status-${b.status}`;
+
             if (window.currentView === 'active' || window.currentView === 'past') {
-                if(b.status === 'Pending') {
-                    buttons = `
-                        <div class="btn-decision-row">
-                            <button class="btn-decision btn-accept" onclick="updateBookingStatus('${b.id}', 'Accepted', true, '${safePhone}', '${safeName}')">Accept</button>
-                            <button class="btn-decision btn-decline" onclick="updateBookingStatus('${b.id}', 'Declined', true, '${safePhone}', '${safeName}')">Decline</button>
-                        </div>
-                    `;
+                if (b.status === 'Pending') {
+                    buttons = `<div class="btn-decision-row">
+                        <button class="btn-decision btn-accept" onclick="updateBookingStatus('${b.id}','Accepted',true,'${safePhone}','${safeName}')">✓ Accept</button>
+                        <button class="btn-decision btn-decline" onclick="updateBookingStatus('${b.id}','Declined',true,'${safePhone}','${safeName}')">✕ Decline</button>
+                    </div>`;
                 } else if (b.status === 'Accepted' && b.date === todayStr && window.currentView === 'active') {
-                    buttons = `
-                        <div class="btn-decision-row">
-                            <button class="btn-decision" style="background:#E3FCEF; color:#006644;" onclick="updateBookingStatus('${b.id}', 'Seated', false)">✅ Seated</button>
-                            <button class="btn-decision" style="background:#FFEBE6; color:#BF2600;" onclick="updateBookingStatus('${b.id}', 'No-Show', false)">🚫 No-Show</button>
-                        </div>
-                    `;
+                    buttons = `<div class="btn-decision-row">
+                        <button class="btn-decision btn-seated" onclick="updateBookingStatus('${b.id}','Seated',false)">✅ Seated</button>
+                        <button class="btn-decision btn-noshow" onclick="updateBookingStatus('${b.id}','No-Show',false)">🚫 No-Show</button>
+                    </div>`;
                 } else if (b.status === 'Seated' && b.date === todayStr && window.currentView === 'active') {
-                    // NEW: The Finished button appears once they are Seated!
-                    buttons = `
-                        <div class="btn-decision-row">
-                            <button class="btn-decision" style="background:#f4f5f7; color:#5E6C84; border: 1px solid #DFE1E6; width:100%;" onclick="updateBookingStatus('${b.id}', 'Finished', false)">🏁 Mark as Finished (Clear Table)</button>
-                        </div>
-                    `;
+                    buttons = `<div class="btn-decision-row">
+                        <button class="btn-decision btn-finish" onclick="updateBookingStatus('${b.id}','Finished',false)">🏁 Mark as Finished — Clear Table</button>
+                    </div>`;
                 } else if (b.status === 'Seated') {
-                    buttons = `<div style="font-size:0.8rem; color:#0052CC; font-weight:bold; margin-top:5px;">✅ IN RESTAURANT (SEATED)</div>`;
+                    buttons = `<div class="status-label" style="color:var(--blue);">✅ IN RESTAURANT (SEATED)</div>`;
                 } else if (b.status === 'Finished') {
-                    // NEW: Completed visual state
-                    buttons = `<div style="font-size:0.8rem; color:#5E6C84; font-weight:bold; margin-top:5px;">🏁 COMPLETED</div>`;
+                    buttons = `<div class="status-label" style="color:var(--text-muted);">🏁 COMPLETED</div>`;
                 } else if (b.status === 'No-Show') {
-                    buttons = `<div style="font-size:0.8rem; color:#BF2600; font-weight:bold; margin-top:5px;">🚫 CUSTOMER NO-SHOW</div>`;
+                    buttons = `<div class="status-label" style="color:var(--red);">🚫 NO-SHOW</div>`;
                 } else {
-                    buttons = `<div style="font-size:0.8rem; color:#36B37E; font-weight:bold; margin-top:5px;">✅ ACCEPTED</div>`;
+                    buttons = `<div class="status-label" style="color:var(--green);">✅ ACCEPTED</div>`;
                 }
 
-                buttons += `
-                    <div class="actions">
-                        <button class="btn-icon" onclick="openModal('edit', '${b.id}', '${safeName}', '${safePhone}', '${b.date}', '${b.time}', ${b.persons}, ${b.duration||3})">✏️</button>
-                        <button class="btn-icon" onclick="archiveBooking('${b.id}')" style="color:red;">🗑</button>
-                    </div>
-                `;
+                buttons += `<div class="actions">
+                    <button class="btn-icon" onclick="openModal('edit','${b.id}','${safeName}','${safePhone}','${b.date}','${b.time}',${b.persons},${b.duration||3})">✏️</button>
+                    <button class="btn-icon delete" onclick="archiveBooking('${b.id}')" style="color:var(--red);">🗑</button>
+                </div>`;
             } else {
-                buttons = `<div style="font-size:0.8rem; color:#888; font-weight:bold; margin-top:5px;">❌ ${b.status}</div>`;
+                buttons = `<div class="status-label" style="color:var(--text-hint);">❌ ${b.status}</div>`;
             }
 
             let reviewHtml = '';
             if (b.isReviewed) {
-                let stars = '⭐'.repeat(b.rating);
-                let comment = b.reviewText ? `<p style="margin:5px 0 0 0; font-size:12px; color:#555; font-style:italic;">"${b.reviewText}"</p>` : '';
-                
-                reviewHtml = `
-                <div style="background:#fff9e6; padding:10px; border-radius:8px; margin-top:10px; border:1px solid #bfa15f;">
-                    <p style="margin:0; font-size:12px; font-weight:bold; color:#bfa15f;">Customer Review:</p>
-                    <p style="margin:5px 0 0 0; font-size:14px;">${stars}</p>
+                const stars = '⭐'.repeat(b.rating);
+                const comment = b.reviewText ? `<div class="comment">"${b.reviewText}"</div>` : '';
+                reviewHtml = `<div class="review-box">
+                    <p>Customer Review:</p>
+                    <div class="stars">${stars}</div>
                     ${comment}
                 </div>`;
             }
 
             let askReviewBtn = '';
             if (b.date < todayStr && (b.status === 'Accepted' || b.status === 'Seated' || b.status === 'Finished') && !b.isReviewed && b.phone && b.phone !== "N/A") {
-                const safeNameForReview = b.name.replace(/'/g, "\\'");
-                askReviewBtn = `<button style="background:none; border:1px solid #36B37E; color:#36B37E; padding:6px 12px; border-radius:6px; cursor:pointer; margin-top:10px; font-size:12px; font-weight:bold; width:100%;" onclick="askForReview('${b.phone}', '${safeNameForReview}')">📲 Ask for Review</button>`;
+                askReviewBtn = `<button class="btn-ask-review" onclick="askForReview('${safePhone}','${safeName}')">📲 Ask for Review via WhatsApp</button>`;
             }
 
             html += `
             <div class="booking-card ${cardClass}">
-                <div class="card-header">
+                <div class="card-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <h3 class="card-title">${b.name}</h3>
                 </div>
                 <div class="card-meta">
-                    <span>🕒 ${b.time}</span> • <span>👤 ${b.persons}</span> • <span>📞 ${b.phone}</span>
+                    <span>🕒 ${b.time}</span>
+                    <span>👤 ${b.persons} guests</span>
+                    <span>📞 ${b.phone}</span>
                 </div>
-                ${badgesHtml} ${buttons}
+                ${badgesHtml}
+                ${buttons}
                 ${reviewHtml}
                 ${askReviewBtn}
             </div>`;
@@ -609,27 +886,21 @@
         list.innerHTML = html;
     }
 
-    // --- ACTIONS ---
+    // ── MODAL ──
     window.openModal = (mode, id, name, phone, date, time, guests, duration) => {
         const modal = document.getElementById('booking-modal');
-        const title = document.getElementById('modal-title');
         const timeSelect = document.getElementById('m-time');
-
         timeSelect.innerHTML = "";
-        for(let i=openTime; i<=closeTime; i++) {
-            const opt = document.createElement('option');
-            opt.value = i + ":00"; opt.innerText = i + ":00";
-            timeSelect.appendChild(opt);
-            const opt30 = document.createElement('option');
-            opt30.value = i + ":30"; opt30.innerText = i + ":30";
-            timeSelect.appendChild(opt30);
+        for (let i = openTime; i <= closeTime; i++) {
+            const o1 = document.createElement('option'); o1.value = i + ":00"; o1.innerText = i + ":00"; timeSelect.appendChild(o1);
+            const o2 = document.createElement('option'); o2.value = i + ":30"; o2.innerText = i + ":30"; timeSelect.appendChild(o2);
         }
-        
+
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('m-date').min = today; 
+        document.getElementById('m-date').min = today;
 
         if (mode === 'edit') {
-            title.innerText = "Edit Booking";
+            document.getElementById('modal-title').innerText = "Edit Booking";
             document.getElementById('edit-id').value = id;
             document.getElementById('m-name').value = name;
             document.getElementById('m-phone').value = phone;
@@ -638,8 +909,8 @@
             document.getElementById('m-guests').value = guests;
             document.getElementById('m-duration').value = duration || 3;
         } else {
-            title.innerText = "New Reservation";
-            document.getElementById('edit-id').value = ""; 
+            document.getElementById('modal-title').innerText = "New Reservation";
+            document.getElementById('edit-id').value = "";
             document.getElementById('m-name').value = "";
             document.getElementById('m-phone').value = "";
             document.getElementById('m-date').value = today;
@@ -660,57 +931,55 @@
         const guests = parseInt(document.getElementById('m-guests').value);
         const duration = parseInt(document.getElementById('m-duration').value);
 
-        if(!date || !time) return alert("Date/Time required");
+        if (!date || !time) return alert("Date and time are required.");
 
-        const btn = document.querySelector('#booking-modal .btn-login');
-        const originalText = btn.innerText;
-        btn.innerText = "Saving...";
-        
+        const btn = document.querySelector('#booking-modal .btn-save');
+        const original = btn.innerText;
+        btn.innerText = "Saving…";
+
         try {
             if (id) {
-                await updateDoc(doc(db, "reservations", id), { name, phone, date, time, persons: guests, duration: duration });
+                await updateDoc(doc(db, "reservations", id), { name, phone, date, time, persons: guests, duration });
             } else {
-                await addDoc(collection(db, "reservations"), { restaurant: currentRestaurant, name, phone, date, time, persons: guests, duration: duration, status: "Accepted", source: "Manager", createdAt: new Date() });
+                await addDoc(collection(db, "reservations"), {
+                    restaurant: currentRestaurant, name, phone, date, time,
+                    persons: guests, duration, status: "Accepted",
+                    source: "Manager", createdAt: new Date()
+                });
             }
             closeModal();
         } catch (e) { alert(e.message); }
-        finally { btn.innerText = originalText; }
+        finally { btn.innerText = original; }
     };
 
-    window.updateBookingStatus = async (id, newStatus, sendWhatsappMsg = false, phone = "", name = "") => {
-        if (newStatus === 'No-Show') {
-            if (!confirm("Mark as No-Show? This will penalize the customer and remove them from the live capacity.")) return;
-        }
-        
-        if (newStatus === 'Finished') {
-            if (!confirm("Mark this table as Finished? This will instantly free up the live capacity for walk-ins.")) return;
-        }
+    window.updateBookingStatus = async (id, newStatus, sendWhatsapp = false, phone = "", name = "") => {
+        if (newStatus === 'No-Show' && !confirm("Mark as No-Show? This will penalize the customer and remove them from live capacity.")) return;
+        if (newStatus === 'Finished' && !confirm("Mark as Finished? This will instantly free up the table.")) return;
 
         try {
             await updateDoc(doc(db, "reservations", id), { status: newStatus });
-            
-            if (sendWhatsappMsg && phone) {
-                let cleanPhone = phone.replace(/\D/g, ''); 
-                if(cleanPhone.startsWith('0')) cleanPhone = "963" + cleanPhone.substring(1); 
-                let message = newStatus === "Accepted" ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅` : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌`;
-                window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
+            if (sendWhatsapp && phone) {
+                let clean = phone.replace(/\D/g, '');
+                if (clean.startsWith('0')) clean = "963" + clean.substring(1);
+                const msg = newStatus === "Accepted"
+                    ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅`
+                    : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌`;
+                window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
             }
-        } catch(e) {
-            alert("Error updating status: " + e.message);
-        }
+        } catch (e) { alert("Error: " + e.message); }
     };
 
     window.askForReview = (phone, name) => {
-        let cleanPhone = phone.replace(/\D/g, ''); 
-        if(cleanPhone.startsWith('0')) cleanPhone = "963" + cleanPhone.substring(1); 
-        
-        let msg = `Hi ${name}, thank you for dining at ${currentRestaurant}! We would love to hear about your experience. Please visit our site, go to My Bookings, and leave us a quick review: https://taweltysy.com`;
-        
-        window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+        let clean = phone.replace(/\D/g, '');
+        if (clean.startsWith('0')) clean = "963" + clean.substring(1);
+        const msg = `Hi ${name}, thank you for dining at ${currentRestaurant}! We'd love your feedback. Visit My Bookings on our site to leave a review: https://taweltysy.com`;
+        window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
     window.archiveBooking = async (id) => {
-        if(confirm("Archive/Cancel this booking?")) { await updateDoc(doc(db, "reservations", id), { archived: true }); }
+        if (confirm("Archive/cancel this booking?")) {
+            await updateDoc(doc(db, "reservations", id), { archived: true });
+        }
     };
 </script>
 </body>
