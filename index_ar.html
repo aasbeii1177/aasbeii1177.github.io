@@ -1192,6 +1192,14 @@
             }
             grid.innerHTML = html;
 
+            // أظهر تلميحاً عند وجود أوقات ممتلئة
+            if (html.includes('openWaitlist')) {
+                const hint = document.createElement('div');
+                hint.style.cssText = 'grid-column:1/-1; text-align:center; font-size:0.75rem; color:var(--gold-dark); margin-top:6px;';
+                hint.innerHTML = `💡 الأوقات المُعلَّمة بـ <strong>⏳ ممتلئ</strong> محجوزة — اضغط عليها للانضمام لقائمة الانتظار.`;
+                grid.appendChild(hint);
+            }
+
             // أظهر رسالة التواصل فقط عند وجود أوقات محجوزة من المدير
             if (hasManagerBlock) {
                 const notice = document.createElement('div');
