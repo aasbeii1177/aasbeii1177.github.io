@@ -808,13 +808,7 @@
         } catch (e) { alert("Error updating status."); btn.innerText = originalText; }
     };
 
-    window.setView = (view) => {
-        window.currentView = view;
-        document.getElementById('tab-active').classList.toggle('active', view === 'active');
-        document.getElementById('tab-past').classList.toggle('active', view === 'past');
-        document.getElementById('tab-history').classList.toggle('active', view === 'history');
-        if (latestSnapshot) renderListFromSnapshot(latestSnapshot);
-    };
+    // setView is defined below alongside the blocked dates feature
 
     function recalculateDashboard() {
         if (!latestSnapshot) return;
@@ -1067,12 +1061,11 @@
     // ==========================================
     // BLOCKED DATES & SLOTS FEATURE
     // ==========================================
-    let blockType = 'full'; // 'full' or 'slots'
+    let blockType = 'full';
     let selectedBlockSlots = new Set();
     let currentResDocId = null;
     let currentResData = null;
 
-    // Load restaurant doc ID once after login
     async function loadResDoc() {
         if (!currentRestaurant) return;
         const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
@@ -1090,16 +1083,12 @@
         const slotPicker = document.getElementById('slot-picker');
 
         if (type === 'full') {
-            btnFull.classList.add('active');
-            btnFull.style.borderColor = 'var(--charcoal)';
-            btnSlots.classList.remove('active');
-            btnSlots.style.borderColor = 'var(--border)';
+            btnFull.classList.add('active');   btnFull.style.borderColor = 'var(--charcoal)';
+            btnSlots.classList.remove('active'); btnSlots.style.borderColor = 'var(--border)';
             slotPicker.classList.add('hidden');
         } else {
-            btnSlots.classList.add('active');
-            btnSlots.style.borderColor = 'var(--charcoal)';
-            btnFull.classList.remove('active');
-            btnFull.style.borderColor = 'var(--border)';
+            btnSlots.classList.add('active');  btnSlots.style.borderColor = 'var(--charcoal)';
+            btnFull.classList.remove('active'); btnFull.style.borderColor = 'var(--border)';
             slotPicker.classList.remove('hidden');
             renderBlockSlotGrid();
         }
@@ -1117,10 +1106,7 @@
             grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-hint); font-size:0.82rem; padding:10px;">Select a date first</div>`;
             return;
         }
-
-        // Get already-blocked slots for this date
         const blockedSlots = (currentResData && currentResData.blockedSlots && currentResData.blockedSlots[dateVal]) || [];
-
         let html = '';
         for (let h = openTime; h < closeTime; h++) {
             for (let m of ['00', '30']) {
@@ -1146,25 +1132,20 @@
     window.saveBlock = async () => {
         const dateVal = document.getElementById('block-date').value;
         if (!dateVal) return alert("Please select a date first.");
-        if (!currentResDocId) return alert("Restaurant not loaded yet.");
+        if (!currentResDocId) { await loadResDoc(); if (!currentResDocId) return alert("Restaurant not loaded yet."); }
 
         const resRef = doc(db, "restaurants", currentResDocId);
 
         if (blockType === 'full') {
             let closedDates = currentResData.closedDates || [];
-            if (closedDates.includes(dateVal)) {
-                showBlockMsg("This date is already fully blocked.");
-                return;
-            }
+            if (closedDates.includes(dateVal)) { showBlockMsg("This date is already fully blocked."); return; }
             closedDates.push(dateVal);
-            // Also remove any slot blocks for this date since full day covers it
             let blockedSlots = { ...(currentResData.blockedSlots || {}) };
             delete blockedSlots[dateVal];
             await updateDoc(resRef, { closedDates, blockedSlots });
             currentResData.closedDates = closedDates;
             currentResData.blockedSlots = blockedSlots;
             showBlockMsg(`✅ ${dateVal} fully blocked!`);
-
         } else {
             if (selectedBlockSlots.size === 0) return alert("Please select at least one time slot.");
             let blockedSlots = { ...(currentResData.blockedSlots || {}) };
@@ -1173,12 +1154,14 @@
             blockedSlots[dateVal] = merged;
             await updateDoc(resRef, { blockedSlots });
             currentResData.blockedSlots = blockedSlots;
+            const count = selectedBlockSlots.size;
             selectedBlockSlots.clear();
-            showBlockMsg(`✅ ${selectedBlockSlots.size || merged.length} slot(s) blocked on ${dateVal}!`);
+            showBlockMsg(`✅ ${count} slot(s) blocked on ${dateVal}!`);
         }
 
         document.getElementById('block-date').value = '';
         renderCurrentBlocks();
+        if (blockType === 'slots') renderBlockSlotGrid();
     };
 
     function showBlockMsg(text) {
@@ -1191,18 +1174,15 @@
     window.renderCurrentBlocks = () => {
         const container = document.getElementById('current-blocks-list');
         if (!currentResData) return;
-
         const closedDates = currentResData.closedDates || [];
         const blockedSlots = currentResData.blockedSlots || {};
         const today = new Date().toISOString().split('T')[0];
 
-        // Gather all blocked entries (future only)
         const entries = [];
         closedDates.filter(d => d >= today).sort().forEach(d => entries.push({ date: d, type: 'full' }));
         Object.keys(blockedSlots).filter(d => d >= today).sort().forEach(d => {
-            if (blockedSlots[d] && blockedSlots[d].length > 0) {
+            if (blockedSlots[d] && blockedSlots[d].length > 0)
                 entries.push({ date: d, type: 'slots', slots: blockedSlots[d] });
-            }
         });
 
         if (entries.length === 0) {
@@ -1212,11 +1192,10 @@
 
         let html = '';
         entries.forEach(e => {
-            const dStr = new Date(e.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const dStr = new Date(e.date).toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
             const typeLabel = e.type === 'full'
                 ? `<span style="color:var(--red); font-weight:700;">🚫 Full Day Blocked</span>`
-                : `<span style="color:var(--orange); font-weight:700;">🕐 ${e.slots.length} slots blocked: ${e.slots.join(', ')}</span>`;
-
+                : `<span style="color:var(--orange); font-weight:700;">🕐 ${e.slots.length} slots: ${e.slots.join(', ')}</span>`;
             html += `
             <div class="block-item">
                 <div style="flex:1; min-width:0;">
@@ -1233,7 +1212,6 @@
         if (!confirm(`Remove block for ${date}?`)) return;
         if (!currentResDocId) return;
         const resRef = doc(db, "restaurants", currentResDocId);
-
         if (type === 'full') {
             let closedDates = (currentResData.closedDates || []).filter(d => d !== date);
             await updateDoc(resRef, { closedDates });
@@ -1247,9 +1225,8 @@
         renderCurrentBlocks();
     };
 
-    // Extend setView to handle 'blocked'
-    const _originalSetView = window.setView;
-    window.setView = async (view) => {
+    // Override setView to handle 'blocked' tab
+    window.setView = (view) => {
         window.currentView = view;
         document.getElementById('tab-active').classList.toggle('active', view === 'active');
         document.getElementById('tab-past').classList.toggle('active', view === 'past');
@@ -1260,36 +1237,13 @@
         document.getElementById('blocked-panel').classList.toggle('hidden', view !== 'blocked');
 
         if (view === 'blocked') {
-            if (!currentResDocId) await loadResDoc();
-            // Set min date to today
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('block-date').setAttribute('min', today);
-            renderCurrentBlocks();
+            loadResDoc().then(() => renderCurrentBlocks());
         } else {
             if (latestSnapshot) renderListFromSnapshot(latestSnapshot);
         }
     };
-
-    // Load res doc after auth
-    const _originalOnAuth = onAuthStateChanged;
-    // Hook into existing login flow — call loadResDoc after startRealtimeListener
-    const origStart = startRealtimeListener;
-    function startRealtimeListener() {
-        origStart && origStart();
-    }
-    // We patch it by calling loadResDoc inside onAuthStateChanged after startRealtimeListener
-    // Since startRealtimeListener is already called, we add loadResDoc call there:
-    // (Done via overriding the function reference above — safe approach below)
-
-    // Simpler: just call loadResDoc when blocked tab is opened (already in setView above)
-    // But also pre-load after login so currentResDocId is ready
-    const _checkAndLoad = setInterval(() => {
-        if (currentRestaurant && !currentResDocId) {
-            loadResDoc().then(() => clearInterval(_checkAndLoad));
-        } else if (currentResDocId) {
-            clearInterval(_checkAndLoad);
-        }
-    }, 2000);
 </script>
 </body>
 </html>
