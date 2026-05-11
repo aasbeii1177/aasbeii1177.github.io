@@ -558,14 +558,34 @@
 
             <div id="manager-section">
                 <div class="section-title" style="margin-top:28px;">2 · Manager Login</div>
-                <label>Manager Email</label>
-                <input type="email" id="mgr-email" placeholder="manager@restaurant.com">
-                <label style="margin-top:14px;">Manager Password</label>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
+                    The manager logs in using a <strong>username</strong> and password — no email needed.<br>
+                    The username is converted to <code style="background:var(--input-bg); padding:2px 6px; border-radius:4px; font-size:0.75rem;">username@tawelty.com</code> behind the scenes.
+                </p>
+                <label>Username <span style="color:var(--text-hint); font-weight:400; text-transform:none; letter-spacing:0;">(e.g. Askim_Morning)</span></label>
+                <input type="text" id="mgr-username" placeholder="e.g. Askim or Askim_Evening" autocomplete="off">
+                <div id="mgr-username-preview" style="font-size:0.72rem; color:var(--text-hint); margin-top:4px; margin-bottom:12px;"></div>
+                <label style="margin-top:4px;">Password</label>
                 <input type="text" id="mgr-pass" placeholder="Create a secure password">
+            </div>
+
+            <!-- ADD EXTRA ACCOUNT (shown after restaurant is created) -->
+            <div id="extra-account-section" style="display:none; margin-top:16px; background:var(--input-bg); border-radius:var(--radius-md); padding:18px; border:1px solid var(--border);">
+                <div style="font-size:0.72rem; font-weight:700; color:var(--gold-dark); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:12px;">➕ Add Another Manager Account</div>
+                <label>Restaurant Name <span style="color:var(--text-hint); font-weight:400; text-transform:none;">(link to which restaurant)</span></label>
+                <input type="text" id="extra-res-name" placeholder="Must match existing restaurant name exactly">
+                <label style="margin-top:12px;">Username</label>
+                <input type="text" id="extra-username" placeholder="e.g. Askim_Evening" autocomplete="off" oninput="updateExtraPreview()">
+                <div id="extra-username-preview" style="font-size:0.72rem; color:var(--text-hint); margin-top:4px; margin-bottom:12px;"></div>
+                <label style="margin-top:4px;">Password</label>
+                <input type="text" id="extra-pass" placeholder="Password for this account">
+                <button class="btn-primary btn-green" style="margin-top:14px;" onclick="createExtraAccount()">+ Create Account</button>
+                <div id="extra-msg" style="display:none; margin-top:10px;" class="success-msg"></div>
             </div>
 
             <button id="btn-submit" class="btn-primary btn-gold" onclick="handleSubmit()">+ Create Everything</button>
             <button id="btn-cancel" class="btn-secondary" onclick="cancelEdit()">Cancel Edit</button>
+            <button id="btn-add-account" class="btn-secondary" style="display:none; border-color:var(--green); color:var(--green);" onclick="toggleExtraAccount()">➕ Add Another Account to a Restaurant</button>
 
             <div id="msg" class="success-msg"></div>
         </div>
@@ -807,12 +827,13 @@
         const rPri = document.getElementById('res-price').value || "$$";
         const rVip = document.getElementById('res-vip').value || "3";
         const rIsOpen = document.getElementById('res-isopen').value === "true";
-        const mEmail = document.getElementById('mgr-email').value;
+        const mUsername = document.getElementById('mgr-username').value.trim().toLowerCase().replace(/\s+/g, '_');
         const mPass = document.getElementById('mgr-pass').value;
         const btn = document.getElementById('btn-submit');
 
-        if (!rName || !rLoc || !mEmail || !mPass || !rCap) return alert("Please fill all core fields.");
+        if (!rName || !rLoc || !mUsername || !mPass || !rCap) return alert("Please fill all core fields including manager username and password.");
 
+        const mEmail = `${mUsername}@tawelty.com`;
         btn.innerHTML = '<div class="loader"></div> Creating…';
         btn.disabled = true;
 
@@ -825,13 +846,16 @@
                 closeTime: parseInt(rClose), cuisine: rCus, price: rPri,
                 vipThreshold: parseInt(rVip), isOpen: rIsOpen
             });
-            const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+            const secondaryApp = initializeApp(firebaseConfig, "Secondary-" + Date.now());
             const secondaryAuth = getAuth(secondaryApp);
             await createUserWithEmailAndPassword(secondaryAuth, mEmail, mPass);
-            await setDoc(doc(db, "managers", mEmail), { restaurant: rName, createdAt: new Date() });
-            showSuccess("✨ Venue created successfully!");
+            await setDoc(doc(db, "managers", mEmail), { restaurant: rName, username: mUsername, createdAt: new Date() });
+            showSuccess(`✨ Created! Manager logs in as: ${mUsername}`);
             clearInputs();
             loadRestaurants();
+            // Show the add-another-account button
+            document.getElementById('btn-add-account').style.display = 'block';
+            document.getElementById('extra-res-name').value = rName;
         } catch (e) { alert("Error: " + e.message); }
         finally { btn.innerHTML = '+ Create Everything'; btn.disabled = false; }
     }
@@ -993,7 +1017,7 @@
 
     function clearInputs() {
         ['res-name','res-location','res-image','res-capacity','res-tables',
-         'res-duration','res-open','res-close','res-cuisine','mgr-email','mgr-pass'].forEach(id => {
+         'res-duration','res-open','res-close','res-cuisine','mgr-username','mgr-pass'].forEach(id => {
             document.getElementById(id).value = "";
         });
         document.getElementById('res-city').value = "Damascus";
@@ -1001,7 +1025,63 @@
         document.getElementById('res-vip').value = "3";
         document.getElementById('res-isopen').value = "true";
         document.getElementById('upload-status').style.display = "none";
+        document.getElementById('mgr-username-preview').innerText = "";
     }
+
+    // ── USERNAME PREVIEW ──
+    document.addEventListener('DOMContentLoaded', () => {
+        const usernameInput = document.getElementById('mgr-username');
+        if (usernameInput) {
+            usernameInput.addEventListener('input', () => {
+                const val = usernameInput.value.trim().toLowerCase().replace(/\s+/g, '_');
+                const preview = document.getElementById('mgr-username-preview');
+                preview.innerText = val ? `Login will be: ${val}@tawelty.com` : '';
+            });
+        }
+    });
+
+    window.updateExtraPreview = () => {
+        const val = document.getElementById('extra-username').value.trim().toLowerCase().replace(/\s+/g, '_');
+        document.getElementById('extra-username-preview').innerText = val ? `Login: ${val}@tawelty.com` : '';
+    };
+
+    window.toggleExtraAccount = () => {
+        const sec = document.getElementById('extra-account-section');
+        sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+    };
+
+    window.createExtraAccount = async () => {
+        const resName = document.getElementById('extra-res-name').value.trim();
+        const username = document.getElementById('extra-username').value.trim().toLowerCase().replace(/\s+/g, '_');
+        const pass = document.getElementById('extra-pass').value;
+        const msgEl = document.getElementById('extra-msg');
+
+        if (!resName || !username || !pass) return alert("Please fill all fields.");
+
+        const email = `${username}@tawelty.com`;
+        const btn = document.querySelector('#extra-account-section .btn-primary');
+        btn.innerHTML = '<div class="loader"></div> Creating…';
+        btn.disabled = true;
+
+        try {
+            const secondaryApp = initializeApp(firebaseConfig, "Secondary-Extra-" + Date.now());
+            const secondaryAuth = getAuth(secondaryApp);
+            await createUserWithEmailAndPassword(secondaryAuth, email, pass);
+            await setDoc(doc(db, "managers", email), { restaurant: resName, username, createdAt: new Date() });
+
+            msgEl.innerText = `✅ Account created! Login: ${username}`;
+            msgEl.style.display = 'block';
+            document.getElementById('extra-username').value = '';
+            document.getElementById('extra-pass').value = '';
+            document.getElementById('extra-username-preview').innerText = '';
+            setTimeout(() => msgEl.style.display = 'none', 4000);
+        } catch (e) {
+            alert("Error: " + e.message);
+        } finally {
+            btn.innerHTML = '+ Create Account';
+            btn.disabled = false;
+        }
+    };
 
     function initCustomMonthPicker() {
         const yearSelect = document.getElementById('picker-year');
