@@ -430,7 +430,25 @@
         .review-text { font-size: 0.8rem; color: var(--text-muted); font-style: italic; margin: 0; }
 
         /* ── MISC ── */
-        .hidden { display: none !important; }
+        @keyframes modalIn { from { opacity:0; transform:translateY(20px) scale(0.97); } to { opacity:1; transform:none; } }
+
+        .account-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 14px; background: var(--input-bg);
+            border-radius: var(--radius-md); margin-bottom: 8px;
+            gap: 10px;
+        }
+        .account-username { font-weight: 600; font-size: 0.88rem; color: var(--text-main); }
+        .account-email { font-size: 0.7rem; color: var(--text-hint); margin-top: 2px; }
+        .btn-reset-pass {
+            background: var(--gold-pale); color: var(--gold-dark);
+            border: 1px solid var(--border-gold);
+            padding: 6px 11px; border-radius: var(--radius-sm);
+            font-size: 0.72rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            white-space: nowrap; transition: all 0.2s; flex-shrink: 0;
+        }
+        .btn-reset-pass:hover { background: var(--gold); color: white; border-color: var(--gold); }
         .loader {
             border: 2px solid var(--cream-dark); border-top: 2px solid var(--gold);
             border-radius: 50%; width: 18px; height: 18px;
@@ -687,6 +705,36 @@
         </div>
 
     </div><!-- /dashboard -->
+
+    <!-- ACCOUNTS MODAL -->
+    <div id="accounts-modal" style="display:none; position:fixed; inset:0; background:rgba(20,16,12,0.7); backdrop-filter:blur(10px); z-index:999; justify-content:center; align-items:center; display:none;">
+        <div style="background:white; border-radius:var(--radius-xl); padding:32px; width:90%; max-width:460px; box-shadow:0 30px 80px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto; animation:modalIn 0.25s ease-out;">
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+                <div>
+                    <h2 style="font-size:1.6rem;" id="accounts-modal-title">Manager Accounts</h2>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;" id="accounts-modal-sub"></div>
+                </div>
+                <button onclick="closeAccountsPanel()" style="background:var(--input-bg); border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.1rem; color:var(--text-muted);">×</button>
+            </div>
+
+            <!-- Existing accounts list -->
+            <div class="section-title">Current Accounts</div>
+            <div id="accounts-list" style="margin-bottom:20px;">
+                <div style="color:var(--text-hint); font-size:0.82rem; text-align:center; padding:16px 0;">Loading…</div>
+            </div>
+
+            <!-- Add new account -->
+            <div class="section-title">Add New Account</div>
+            <label>Username</label>
+            <input type="text" id="modal-new-username" class="input-field" placeholder="e.g. restaurant_evening" autocomplete="off" oninput="updateModalUsernamePreview()" style="margin-bottom:4px;">
+            <div id="modal-username-preview" style="font-size:0.72rem; color:var(--text-hint); margin-bottom:12px;"></div>
+            <label>Password</label>
+            <input type="text" id="modal-new-pass" class="input-field" placeholder="Password for this account">
+            <button class="btn-primary btn-green" style="margin-top:8px;" onclick="addAccountFromModal()">+ Add Account</button>
+            <div id="modal-add-msg" style="display:none; margin-top:10px;" class="success-msg"></div>
+        </div>
+    </div>
 </div>
 
 <!-- ==========================================
@@ -937,6 +985,7 @@
                         <div class="res-meta">${d.location} &nbsp;·&nbsp; VIP after ${safeVip} visits</div>
                     </div>
                     <div style="flex-shrink:0;">
+                        <button class="btn-action" style="background:rgba(201,168,76,0.12); color:var(--gold-dark);" onclick="openAccountsPanel('${safeName}')">👤</button>
                         <button class="btn-action btn-edit" onclick="startEdit('${doc.id}','${safeName}','${safeLoc}','${safeImg}',${safeCap},${safeTabs},'${safeCus}','${safePri}',${safeDur},${safeOpen},${safeClose},'${safeCity}',${isOpen},${safeVip})">✏️</button>
                         <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}','${safeName}')">🗑️</button>
                     </div>
@@ -1267,6 +1316,138 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    };
+
+    // ==========================================
+    // ACCOUNTS MANAGEMENT
+    // ==========================================
+    let currentAccountsRestaurant = '';
+
+    window.openAccountsPanel = async (restaurantName) => {
+        currentAccountsRestaurant = restaurantName;
+        document.getElementById('accounts-modal-title').innerText = `${restaurantName}`;
+        document.getElementById('accounts-modal-sub').innerText = 'Manager accounts for this restaurant';
+        document.getElementById('modal-new-username').value = '';
+        document.getElementById('modal-new-pass').value = '';
+        document.getElementById('modal-username-preview').innerText = '';
+        document.getElementById('modal-add-msg').style.display = 'none';
+        document.getElementById('accounts-modal').style.display = 'flex';
+        await loadAccountsList(restaurantName);
+    };
+
+    window.closeAccountsPanel = () => {
+        document.getElementById('accounts-modal').style.display = 'none';
+    };
+
+    async function loadAccountsList(restaurantName) {
+        const list = document.getElementById('accounts-list');
+        list.innerHTML = `<div style="color:var(--text-hint); font-size:0.82rem; text-align:center; padding:16px 0;">Loading…</div>`;
+        try {
+            const q = query(collection(db, "managers"), where("restaurant", "==", restaurantName));
+            const snap = await getDocs(q);
+
+            if (snap.empty) {
+                list.innerHTML = `<div style="color:var(--text-hint); font-size:0.82rem; text-align:center; padding:12px 0;">No accounts found.</div>`;
+                return;
+            }
+
+            let html = '';
+            snap.forEach(d => {
+                const data = d.data();
+                const username = data.username || d.id.replace('@tawelty.com', '');
+                const email = d.id;
+                html += `
+                <div class="account-item">
+                    <div>
+                        <div class="account-username">👤 ${username}</div>
+                        <div class="account-email">${email}</div>
+                    </div>
+                    <button class="btn-reset-pass" onclick="resetPassword('${email}', '${username}')">🔑 Reset Password</button>
+                </div>`;
+            });
+            list.innerHTML = html;
+        } catch (e) {
+            list.innerHTML = `<div style="color:var(--red); font-size:0.82rem; text-align:center; padding:12px 0;">Error loading accounts.</div>`;
+            console.error(e);
+        }
+    }
+
+    window.updateModalUsernamePreview = () => {
+        const val = document.getElementById('modal-new-username').value.trim().toLowerCase().replace(/\s+/g, '_');
+        document.getElementById('modal-username-preview').innerText = val ? `Login: ${val}@tawelty.com` : '';
+    };
+
+    window.addAccountFromModal = async () => {
+        const username = document.getElementById('modal-new-username').value.trim().toLowerCase().replace(/\s+/g, '_');
+        const pass = document.getElementById('modal-new-pass').value;
+        const msgEl = document.getElementById('modal-add-msg');
+
+        if (!username || !pass) return alert("Please enter a username and password.");
+        if (!currentAccountsRestaurant) return alert("No restaurant selected.");
+
+        const email = `${username}@tawelty.com`;
+        const btn = document.querySelector('#accounts-modal .btn-green');
+        btn.innerHTML = '<div class="loader"></div> Creating…';
+        btn.disabled = true;
+
+        try {
+            const secondaryApp = initializeApp(firebaseConfig, "Acct-" + Date.now());
+            const secondaryAuth = getAuth(secondaryApp);
+            await createUserWithEmailAndPassword(secondaryAuth, email, pass);
+            await setDoc(doc(db, "managers", email), {
+                restaurant: currentAccountsRestaurant,
+                username,
+                createdAt: new Date()
+            });
+            msgEl.innerText = `✅ Account created! Username: ${username}`;
+            msgEl.style.display = 'block';
+            document.getElementById('modal-new-username').value = '';
+            document.getElementById('modal-new-pass').value = '';
+            document.getElementById('modal-username-preview').innerText = '';
+            setTimeout(() => msgEl.style.display = 'none', 4000);
+            await loadAccountsList(currentAccountsRestaurant);
+        } catch (e) {
+            alert("Error: " + e.message);
+        } finally {
+            btn.innerHTML = '+ Add Account';
+            btn.disabled = false;
+        }
+    };
+
+    window.resetPassword = async (email, username) => {
+        const newPass = prompt(`Set new password for "${username}":\n(Minimum 6 characters)`);
+        if (!newPass || newPass.trim().length < 6) {
+            if (newPass !== null) alert("Password must be at least 6 characters.");
+            return;
+        }
+
+        if (!confirm(`Reset password for "${username}"?\n\nThis will delete the old account and recreate it with the new password. The manager will need to log out and log back in.`)) return;
+
+        try {
+            // Delete old manager doc
+            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+            await deleteDoc(doc(db, "managers", email));
+
+            // Recreate with new password under same username
+            const secondaryApp = initializeApp(firebaseConfig, "Reset-" + Date.now());
+            const secondaryAuth = getAuth(secondaryApp);
+            await createUserWithEmailAndPassword(secondaryAuth, email, newPass);
+            await setDoc(doc(db, "managers", email), {
+                restaurant: currentAccountsRestaurant,
+                username,
+                updatedAt: new Date()
+            });
+
+            alert(`✅ Password reset for "${username}". They can now log in with the new password.`);
+            await loadAccountsList(currentAccountsRestaurant);
+        } catch (e) {
+            // If account already exists in Auth (can't recreate), show instructions
+            if (e.code === 'auth/email-already-in-use') {
+                alert(`⚠️ Cannot reset automatically because the Firebase Auth account still exists.\n\nPlease go to:\nFirebase Console → Authentication → find ${email} → delete it, then try again.`);
+            } else {
+                alert("Error: " + e.message);
+            }
+        }
     };
 </script>
 </body>
