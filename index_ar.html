@@ -1146,6 +1146,18 @@
                 }
             }
             grid.innerHTML = html;
+
+            // إذا كانت جميع الأوقات غير متاحة، أظهر رسالة للتواصل مع المطعم
+            const allDisabled = html.length > 0 && !html.includes('onclick="selectSlot');
+            if (allDisabled) {
+                grid.innerHTML = `
+                <div style="grid-column:1/-1; text-align:center; padding:20px 10px;">
+                    <div style="font-size:1.4rem; margin-bottom:8px;">📵</div>
+                    <div style="font-weight:700; color:var(--text-main); margin-bottom:6px; font-size:0.92rem;">لا تتوفر أوقات متاحة لهذا اليوم.</div>
+                    <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.8;">قد يكون المطعم ممتلئاً أو يحتفظ بهذه الأوقات.<br>
+                    <strong style="color:var(--gold-dark);">تواصل مع المطعم مباشرةً للاستفسار.</strong></div>
+                </div>`;
+            }
         } catch (error) {
             console.error("Firebase Error: ", error);
             grid.innerHTML = `<div style='grid-column:1/-1; text-align:center; color:#C0392B; padding:20px; font-size:0.85rem;'>⚠️ خطأ في الاتصال. يرجى المحاولة مرة أخرى.</div>`;
