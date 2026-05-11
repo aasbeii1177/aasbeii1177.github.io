@@ -734,6 +734,48 @@
         </div>
     </div>
 
+    <!-- WAITLIST MODAL AR -->
+    <div id="waitlist-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeWaitlist()">×</button>
+            <h2>قائمة الانتظار</h2>
+            <p style="color:var(--text-muted); font-size:0.83rem; margin-bottom:18px; line-height:1.7; text-align:right;">هذا الوقت ممتلئ حالياً. أضف نفسك لقائمة الانتظار وسيتواصل معك المطعم على الواتساب عند توفر مقعد.</p>
+
+            <div style="background:var(--gold-pale); border:1px solid var(--border-gold); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:18px; font-size:0.82rem; color:var(--gold-dark); font-weight:700; text-align:right;">
+                🕒 <span id="wl-slot-display"></span>
+            </div>
+
+            <input type="hidden" id="wl-date">
+            <input type="hidden" id="wl-time">
+            <input type="hidden" id="wl-restaurant">
+
+            <label>الاسم الكامل</label>
+            <input type="text" class="input-field" id="wl-name" placeholder="الاسم الثلاثي" style="text-align:right; direction:rtl;">
+
+            <label>رقم الواتساب</label>
+            <div class="phone-group">
+                <select id="wl-code" class="code-select">
+                    <option value="963" selected>🇸🇾 +963</option>
+                    <option value="961">🇱🇧 +961</option>
+                    <option value="971">🇦🇪 +971</option>
+                    <option value="966">🇸🇦 +966</option>
+                    <option value="962">🇯🇴 +962</option>
+                    <option value="964">🇮🇶 +964</option>
+                    <option value="20">🇪🇬 +20</option>
+                </select>
+                <input type="tel" class="input-field" id="wl-phone" placeholder="09…" style="margin-bottom:0; flex:1;">
+            </div>
+
+            <button class="btn-primary" onclick="submitWaitlist()" id="wl-submit-btn">أضفني لقائمة الانتظار</button>
+
+            <div id="wl-success" style="display:none; background:#EBF5EB; border:1px solid rgba(39,174,96,0.25); border-radius:var(--radius-sm); padding:14px; text-align:center; margin-top:12px;">
+                <div style="font-size:1.5rem; margin-bottom:6px;">✅</div>
+                <div style="font-weight:700; color:#27AE60; font-size:0.9rem;">تم إضافتك لقائمة الانتظار!</div>
+                <div style="color:var(--text-muted); font-size:0.8rem; margin-top:4px;">سنتواصل معك على الواتساب عند توفر مقعد.</div>
+            </div>
+        </div>
+    </div>
+
     <div class="footer">© 2026 طاولتي. جميع الحقوق محفوظة.</div>
 
     <!-- BOTTOM NAV -->
@@ -1145,7 +1187,7 @@
                 } else if (doesItFit(idx, dur1)) {
                     html += `<div class="time-slot warning" onclick="selectSlot(this, '${timeString}', 1)">${timeString}</div>`;
                 } else {
-                    html += `<div class="time-slot disabled">ممتلئ</div>`;
+                    html += `<div class="time-slot disabled" style="cursor:pointer; border-color:var(--border-gold); color:var(--gold-dark); font-size:0.7rem;" onclick="openWaitlist('${timeString}', '${dateInput}')" title="انضم لقائمة الانتظار">⏳ ممتلئ</div>`;
                 }
             }
             grid.innerHTML = html;
@@ -1308,6 +1350,59 @@
             window.findBookings();
         } catch (e) {
             alert("خطأ أثناء الإرسال: " + e.message);
+        }
+    };
+
+    // ── قائمة الانتظار ──
+    window.openWaitlist = (time, date) => {
+        document.getElementById('wl-date').value = date;
+        document.getElementById('wl-time').value = time;
+        document.getElementById('wl-restaurant').value = window.selectedRestaurant;
+        document.getElementById('wl-slot-display').innerText = `${window.selectedRestaurant} · ${date} الساعة ${time}`;
+        document.getElementById('wl-name').value = '';
+        document.getElementById('wl-phone').value = '';
+        document.getElementById('wl-success').style.display = 'none';
+        document.getElementById('wl-submit-btn').style.display = 'block';
+        document.getElementById('wl-submit-btn').disabled = false;
+        document.getElementById('wl-submit-btn').innerText = 'أضفني لقائمة الانتظار';
+        document.getElementById('waitlist-modal').style.display = 'block';
+    };
+
+    window.closeWaitlist = () => {
+        document.getElementById('waitlist-modal').style.display = 'none';
+    };
+
+    window.submitWaitlist = async () => {
+        const name = document.getElementById('wl-name').value.trim();
+        const phone = document.getElementById('wl-phone').value.trim();
+        const code = document.getElementById('wl-code').value;
+        const date = document.getElementById('wl-date').value;
+        const time = document.getElementById('wl-time').value;
+        const restaurant = document.getElementById('wl-restaurant').value;
+
+        if (!name) return alert("الرجاء إدخال الاسم.");
+        if (!phone) return alert("الرجاء إدخال رقم الهاتف.");
+
+        const btn = document.getElementById('wl-submit-btn');
+        btn.innerText = "جاري الإضافة…";
+        btn.disabled = true;
+
+        const cleanPhone = (code || "") + phone.replace(/^0+/, '');
+
+        try {
+            await addDoc(collection(db, "waitlist"), {
+                restaurant, name,
+                phone: cleanPhone,
+                date, time,
+                createdAt: new Date(),
+                contacted: false
+            });
+            btn.style.display = 'none';
+            document.getElementById('wl-success').style.display = 'block';
+        } catch (e) {
+            alert("خطأ: " + e.message);
+            btn.innerText = "أضفني لقائمة الانتظار";
+            btn.disabled = false;
         }
     };
 </script>
