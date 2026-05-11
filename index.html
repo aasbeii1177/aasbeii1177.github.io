@@ -1121,6 +1121,8 @@
             };
 
             let html = '';
+            let hasManagerBlock = false;
+
             for (let idx = startIdx; idx < endIdx; idx++) {
                 const timeString = indexToTime(idx);
                 if (isToday && idx <= currentIdx) {
@@ -1129,6 +1131,7 @@
                 }
                 // Check if this slot is manually blocked by the manager
                 if (blockedSlots.includes(timeString)) {
+                    hasManagerBlock = true;
                     html += `<div class="time-slot disabled" title="Reserved — contact restaurant">—</div>`;
                     continue;
                 }
@@ -1144,16 +1147,12 @@
             }
             grid.innerHTML = html;
 
-            // If every slot ended up disabled, show a friendly call-us message
-            const clickableSlots = grid.querySelectorAll('.time-slot:not(.disabled)');
-            if (html.length > 0 && clickableSlots.length === 0) {
-                grid.innerHTML = `
-                <div style="grid-column:1/-1; text-align:center; padding:20px 10px;">
-                    <div style="font-size:1.4rem; margin-bottom:8px;">📵</div>
-                    <div style="font-weight:600; color:var(--text-main); margin-bottom:6px; font-size:0.92rem;">No online slots available for this date.</div>
-                    <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.6;">The restaurant may be fully booked or holding these times.<br>
-                    <strong style="color:var(--gold-dark);">Call us directly to check availability.</strong></div>
-                </div>`;
+            // Show call-us message only when manager has blocked specific slots
+            if (hasManagerBlock) {
+                const notice = document.createElement('div');
+                notice.style.cssText = 'grid-column:1/-1; background:var(--gold-pale); border:1px solid var(--border-gold); border-radius:var(--radius-sm); padding:12px 14px; margin-top:4px; text-align:center;';
+                notice.innerHTML = `<span style="font-size:0.82rem; color:var(--gold-dark); font-weight:600;">Some times are reserved. Call us to check availability for those slots.</span>`;
+                grid.appendChild(notice);
             }
         } catch (error) {
             console.error("Firebase Error: ", error);
