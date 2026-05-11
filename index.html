@@ -1189,6 +1189,14 @@
             }
             grid.innerHTML = html;
 
+            // Show waitlist hint if any slot is full
+            if (html.includes('openWaitlist')) {
+                const hint = document.createElement('div');
+                hint.style.cssText = 'grid-column:1/-1; text-align:center; font-size:0.75rem; color:var(--gold-dark); margin-top:6px;';
+                hint.innerHTML = `💡 Slots marked <strong>⏳ Full</strong> are fully booked — tap them to join the waitlist.`;
+                grid.appendChild(hint);
+            }
+
             // Show call-us message only when manager has blocked specific slots
             if (hasManagerBlock) {
                 const notice = document.createElement('div');
