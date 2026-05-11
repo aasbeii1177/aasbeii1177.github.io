@@ -1148,8 +1148,8 @@
             grid.innerHTML = html;
 
             // إذا كانت جميع الأوقات غير متاحة، أظهر رسالة للتواصل مع المطعم
-            const allDisabled = html.length > 0 && !html.includes('onclick="selectSlot');
-            if (allDisabled) {
+            const clickableSlots = grid.querySelectorAll('.time-slot:not(.disabled)');
+            if (html.length > 0 && clickableSlots.length === 0) {
                 grid.innerHTML = `
                 <div style="grid-column:1/-1; text-align:center; padding:20px 10px;">
                     <div style="font-size:1.4rem; margin-bottom:8px;">📵</div>
