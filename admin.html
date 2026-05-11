@@ -430,6 +430,8 @@
         .review-text { font-size: 0.8rem; color: var(--text-muted); font-style: italic; margin: 0; }
 
         /* ── MISC ── */
+        .hidden { display: none !important; }
+
         @keyframes modalIn { from { opacity:0; transform:translateY(20px) scale(0.97); } to { opacity:1; transform:none; } }
 
         .account-item {
@@ -707,7 +709,7 @@
     </div><!-- /dashboard -->
 
     <!-- ACCOUNTS MODAL -->
-    <div id="accounts-modal" style="display:none; position:fixed; inset:0; background:rgba(20,16,12,0.7); backdrop-filter:blur(10px); z-index:999; justify-content:center; align-items:center; display:none;">
+    <div id="accounts-modal" class="hidden" style="position:fixed; inset:0; background:rgba(20,16,12,0.7); backdrop-filter:blur(10px); z-index:999; justify-content:center; align-items:center;">
         <div style="background:white; border-radius:var(--radius-xl); padding:32px; width:90%; max-width:460px; box-shadow:0 30px 80px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto; animation:modalIn 0.25s ease-out;">
 
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
@@ -1331,12 +1333,16 @@
         document.getElementById('modal-new-pass').value = '';
         document.getElementById('modal-username-preview').innerText = '';
         document.getElementById('modal-add-msg').style.display = 'none';
-        document.getElementById('accounts-modal').style.display = 'flex';
+        const modal = document.getElementById('accounts-modal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
         await loadAccountsList(restaurantName);
     };
 
     window.closeAccountsPanel = () => {
-        document.getElementById('accounts-modal').style.display = 'none';
+        const modal = document.getElementById('accounts-modal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
     };
 
     async function loadAccountsList(restaurantName) {
