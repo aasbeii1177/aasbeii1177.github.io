@@ -419,6 +419,44 @@
         }
         .btn-add:hover { background: var(--gold); transform: scale(1.08); }
 
+        /* ── WAITLIST CARD ── */
+        .wl-group-header {
+            font-size: 0.68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--gold-dark); padding: 10px 0 6px;
+            border-bottom: 1px solid var(--gold-pale);
+            margin-bottom: 8px; margin-top: 16px;
+        }
+        .wl-card {
+            background: white; border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--gold);
+            padding: 14px 16px; margin-bottom: 8px;
+            display: flex; align-items: center;
+            justify-content: space-between; gap: 12px;
+        }
+        .wl-card.contacted { opacity: 0.5; border-left-color: var(--green); }
+        .wl-name { font-weight: 700; font-size: 0.9rem; color: var(--text-main); }
+        .wl-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
+        .wl-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .btn-wl-contact {
+            background: #25D366; color: white;
+            border: none; border-radius: var(--radius-sm);
+            padding: 8px 12px; font-size: 0.75rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            transition: background 0.2s; white-space: nowrap;
+        }
+        .btn-wl-contact:hover { background: #1da851; }
+        .btn-wl-remove {
+            background: var(--red-pale); color: var(--red);
+            border: 1px solid rgba(192,57,43,0.2);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px; font-size: 0.75rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-wl-remove:hover { background: var(--red); color: white; }
+
         /* ── MISC ── */
         .hidden { display: none !important; }
         .empty-state {
@@ -489,6 +527,7 @@
             <button id="tab-past"   class="tab-btn" onclick="setView('past')">Past</button>
             <button id="tab-history" class="tab-btn" onclick="setView('history')">Canceled</button>
             <button id="tab-blocked" class="tab-btn" onclick="setView('blocked')">🚫 Blocked</button>
+            <button id="tab-waitlist" class="tab-btn" onclick="setView('waitlist')" style="color:var(--gold-dark); border:1.5px solid var(--border-gold);">⏳ Waitlist</button>
             <button id="btn-pause-today" class="tab-btn" onclick="togglePauseToday()">⏸ Pause</button>
         </div>
 
@@ -562,6 +601,17 @@
             </div>
         </div>
 
+        <!-- ── WAITLIST PANEL ── -->
+        <div id="waitlist-panel" class="hidden">
+            <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
+                <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Waitlist</div>
+                <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">Customers waiting for a slot to open up. Contact them via WhatsApp and mark as done.</div>
+            </div>
+            <div id="waitlist-container">
+                <div class="empty-state"><div class="icon">⏳</div>Loading waitlist…</div>
+            </div>
+        </div>
+
         <!-- FAB -->
         <div class="action-bar">
             <button class="btn-add" onclick="openModal('add')">＋</button>
@@ -614,7 +664,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, updateDoc, addDoc, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, updateDoc, addDoc, query, where, onSnapshot, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8", // ADD YOUR REAL API KEY HERE
@@ -1225,24 +1275,113 @@
         renderCurrentBlocks();
     };
 
-    // Override setView to handle 'blocked' tab
+    // Override setView to handle 'blocked' and 'waitlist' tabs
     window.setView = (view) => {
         window.currentView = view;
         document.getElementById('tab-active').classList.toggle('active', view === 'active');
         document.getElementById('tab-past').classList.toggle('active', view === 'past');
         document.getElementById('tab-history').classList.toggle('active', view === 'history');
         document.getElementById('tab-blocked').classList.toggle('active', view === 'blocked');
+        document.getElementById('tab-waitlist').classList.toggle('active', view === 'waitlist');
 
-        document.getElementById('bookings-list').classList.toggle('hidden', view === 'blocked');
+        document.getElementById('bookings-list').classList.toggle('hidden', view === 'blocked' || view === 'waitlist');
         document.getElementById('blocked-panel').classList.toggle('hidden', view !== 'blocked');
+        document.getElementById('waitlist-panel').classList.toggle('hidden', view !== 'waitlist');
 
         if (view === 'blocked') {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('block-date').setAttribute('min', today);
             loadResDoc().then(() => renderCurrentBlocks());
+        } else if (view === 'waitlist') {
+            loadWaitlist();
         } else {
             if (latestSnapshot) renderListFromSnapshot(latestSnapshot);
         }
+    };
+
+    // ── WAITLIST ──
+    async function loadWaitlist() {
+        const container = document.getElementById('waitlist-container');
+        container.innerHTML = `<div class="empty-state"><div class="icon">⏳</div>Loading…</div>`;
+        try {
+            const q = query(
+                collection(db, "waitlist"),
+                where("restaurant", "==", currentRestaurant)
+            );
+            const snap = await getDocs(q);
+            if (snap.empty) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">✅</div>No one on the waitlist.</div>`;
+                return;
+            }
+
+            // Group by date+time
+            const groups = {};
+            snap.forEach(d => {
+                const data = { id: d.id, ...d.data() };
+                const key = `${data.date}__${data.time}`;
+                if (!groups[key]) groups[key] = { date: data.date, time: data.time, entries: [] };
+                groups[key].entries.push(data);
+            });
+
+            // Sort groups by date then time
+            const sorted = Object.values(groups).sort((a, b) => {
+                if (a.date !== b.date) return a.date.localeCompare(b.date);
+                return a.time.localeCompare(b.time);
+            });
+
+            const today = new Date().toISOString().split('T')[0];
+            let html = '';
+            sorted.forEach(group => {
+                if (group.date < today) return; // skip past dates
+                const dStr = new Date(group.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+                html += `<div class="wl-group-header">📅 ${dStr} &nbsp;·&nbsp; 🕒 ${group.time} &nbsp;·&nbsp; ${group.entries.length} waiting</div>`;
+
+                group.entries.forEach(entry => {
+                    const addedDate = entry.createdAt?.toDate ? entry.createdAt.toDate().toLocaleDateString('en-GB') : '';
+                    const contactedClass = entry.contacted ? 'contacted' : '';
+                    const contactedLabel = entry.contacted ? ' ✅ Contacted' : '';
+                    let cleanPhone = entry.phone.replace(/\D/g, '');
+                    if (cleanPhone.startsWith('0')) cleanPhone = '963' + cleanPhone.substring(1);
+                    const waMsg = encodeURIComponent(`Hello ${entry.name}, a spot has opened up at ${currentRestaurant} on ${group.date} at ${group.time}. Would you like to book it?`);
+
+                    html += `
+                    <div class="wl-card ${contactedClass}" id="wl-card-${entry.id}">
+                        <div style="flex:1; min-width:0;">
+                            <div class="wl-name">${entry.name}${contactedLabel}</div>
+                            <div class="wl-meta">📞 ${entry.phone} &nbsp;·&nbsp; Added ${addedDate}</div>
+                        </div>
+                        <div class="wl-actions">
+                            <button class="btn-wl-contact" onclick="contactWaitlist('${entry.id}', '${cleanPhone}', '${waMsg}')">💬 WhatsApp</button>
+                            <button class="btn-wl-remove" onclick="removeWaitlist('${entry.id}')">✕</button>
+                        </div>
+                    </div>`;
+                });
+            });
+
+            container.innerHTML = html || `<div class="empty-state"><div class="icon">✅</div>No upcoming waitlist entries.</div>`;
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = `<div class="empty-state" style="color:var(--red);">Error loading waitlist.</div>`;
+        }
+    }
+
+    window.contactWaitlist = async (id, phone, waMsg) => {
+        window.open(`https://wa.me/${phone}?text=${waMsg}`, '_blank');
+        // Mark as contacted
+        try {
+            await updateDoc(doc(db, "waitlist", id), { contacted: true });
+            const card = document.getElementById(`wl-card-${id}`);
+            if (card) card.classList.add('contacted');
+        } catch (e) { console.error(e); }
+    };
+
+    window.removeWaitlist = async (id) => {
+        if (!confirm("Remove this person from the waitlist?")) return;
+        try {
+            await deleteDoc(doc(db, "waitlist", id));
+            const card = document.getElementById(`wl-card-${id}`);
+            if (card) card.remove();
+        } catch (e) { alert("Error: " + e.message); }
     };
 </script>
 </body>
