@@ -1080,6 +1080,15 @@
         const currentIdx = Math.floor(currentTotalMinutes / 30);
 
         try {
+            // Check for partially blocked slots on this date
+            const resQ = query(collection(db, "restaurants"), where("name", "==", resName));
+            const resSnap = await getDocs(resQ);
+            let blockedSlots = [];
+            if (!resSnap.empty) {
+                const resData = resSnap.docs[0].data();
+                blockedSlots = (resData.blockedSlots && resData.blockedSlots[dateInput]) || [];
+            }
+
             const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
             const snapshot = await getDocs(q);
 
@@ -1119,6 +1128,11 @@
                 const timeString = indexToTime(idx);
                 if (isToday && idx <= currentIdx) {
                     html += `<div class="time-slot disabled">${timeString}</div>`;
+                    continue;
+                }
+                // Check if this slot is manually blocked by the manager
+                if (blockedSlots.includes(timeString)) {
+                    html += `<div class="time-slot disabled" title="محجوزة - تواصل مع المطعم">—</div>`;
                     continue;
                 }
                 if (doesItFit(idx, dur3)) {
