@@ -503,7 +503,7 @@
     <div id="login-view" class="container">
         <div class="login-logo">Tawelty<span>.</span></div>
         <div class="login-sub">Staff Portal · Secure Access</div>
-        <input type="email" id="email" placeholder="Manager email">
+        <input type="text" id="email" placeholder="Username (e.g. Askim)" autocomplete="off">
         <input type="password" id="password" placeholder="Password" onkeydown="if(event.key==='Enter') login()">
         <button class="btn-login" onclick="login()">Enter Dashboard →</button>
         <p id="login-msg" class="hidden"></p>
@@ -710,14 +710,17 @@
 
     // ── AUTH ──
     window.login = () => {
-        const email = document.getElementById('email').value;
+        const rawUsername = document.getElementById('email').value.trim().toLowerCase().replace(/\s+/g, '_');
         const pass = document.getElementById('password').value;
         const sound = document.getElementById('notif-sound');
         if (sound) { sound.play().catch(e => {}); sound.pause(); }
 
+        // Convert username to email automatically
+        const email = rawUsername.includes('@') ? rawUsername : `${rawUsername}@tawelty.com`;
+
         signInWithEmailAndPassword(auth, email, pass).catch(e => {
             const msg = document.getElementById('login-msg');
-            msg.innerText = "Login failed: " + e.message;
+            msg.innerText = "Login failed. Check your username and password.";
             msg.classList.remove('hidden');
         });
     };
