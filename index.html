@@ -1143,6 +1143,18 @@
                 }
             }
             grid.innerHTML = html;
+
+            // If every slot ended up disabled, show a friendly call-us message
+            const allDisabled = html.length > 0 && !html.includes('onclick="selectSlot');
+            if (allDisabled) {
+                grid.innerHTML = `
+                <div style="grid-column:1/-1; text-align:center; padding:20px 10px;">
+                    <div style="font-size:1.4rem; margin-bottom:8px;">📵</div>
+                    <div style="font-weight:600; color:var(--text-main); margin-bottom:6px; font-size:0.92rem;">No online slots available for this date.</div>
+                    <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.6;">The restaurant may be fully booked or holding these times.<br>
+                    <strong style="color:var(--gold-dark);">Call us directly to check availability.</strong></div>
+                </div>`;
+            }
         } catch (error) {
             console.error("Firebase Error: ", error);
             grid.innerHTML = `<div style='grid-column:1/-1; text-align:center; color:#C0392B; padding:20px; font-size:0.85rem;'>⚠️ Network error. Please try again.</div>`;
