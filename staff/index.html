@@ -426,6 +426,37 @@
             color: var(--text-hint); font-size: 0.85rem;
         }
         .empty-state .icon { font-size: 2rem; margin-bottom: 8px; }
+
+        /* ── BLOCK SLOTS ── */
+        .block-slot-btn {
+            padding: 10px 4px; text-align: center;
+            background: white; border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm); cursor: pointer;
+            font-size: 0.75rem; font-weight: 600;
+            color: var(--text-main); font-family: 'DM Sans', sans-serif;
+            transition: all 0.15s;
+        }
+        .block-slot-btn:hover { border-color: var(--red); color: var(--red); }
+        .block-slot-btn.selected { background: var(--red); color: white; border-color: var(--red); }
+        .block-slot-btn.already-blocked { background: var(--input-bg); color: var(--text-hint); cursor: default; border-style: dashed; }
+
+        /* ── CURRENT BLOCK ITEM ── */
+        .block-item {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 13px 0; border-bottom: 1px solid var(--cream-dark);
+        }
+        .block-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .block-item-date { font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-bottom: 4px; }
+        .block-item-type { font-size: 0.75rem; color: var(--text-muted); }
+        .btn-unblock {
+            background: var(--red-pale); color: var(--red);
+            border: 1px solid rgba(192,57,43,0.2);
+            padding: 6px 12px; border-radius: var(--radius-sm);
+            font-size: 0.72rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            transition: all 0.2s; flex-shrink: 0;
+        }
+        .btn-unblock:hover { background: var(--red); color: white; }
     </style>
 </head>
 <body>
@@ -457,6 +488,7 @@
             <button id="tab-active" class="tab-btn active" onclick="setView('active')">🔴 Live</button>
             <button id="tab-past"   class="tab-btn" onclick="setView('past')">Past</button>
             <button id="tab-history" class="tab-btn" onclick="setView('history')">Canceled</button>
+            <button id="tab-blocked" class="tab-btn" onclick="setView('blocked')">🚫 Blocked</button>
             <button id="btn-pause-today" class="tab-btn" onclick="togglePauseToday()">⏸ Pause</button>
         </div>
 
@@ -478,6 +510,56 @@
         <!-- Bookings -->
         <div id="bookings-list">
             <div class="empty-state"><div class="icon">⏳</div>Connecting…</div>
+        </div>
+
+        <!-- ── BLOCKED DATES PANEL ── -->
+        <div id="blocked-panel" class="hidden">
+
+            <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
+                <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Manage Blocked Dates</div>
+                <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">Block full days or specific time slots — customers won't be able to book them online.</div>
+            </div>
+
+            <!-- ADD NEW BLOCK CARD -->
+            <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:14px;">
+                <div style="font-size:0.65rem; font-weight:700; color:var(--gold-dark); text-transform:uppercase; letter-spacing:2px; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                    <span style="width:3px; height:14px; background:var(--gold); border-radius:2px; display:inline-block;"></span>
+                    Add New Block
+                </div>
+
+                <label class="modal-label">Select Date</label>
+                <input type="date" id="block-date" class="modal-input" style="margin-bottom:14px;" onchange="onBlockDateChange()">
+
+                <label class="modal-label">Block Type</label>
+                <div style="display:flex; gap:8px; margin-bottom:14px;">
+                    <button id="block-type-full" class="tab-btn active" style="flex:1; border:1.5px solid var(--charcoal);" onclick="setBlockType('full')">🚫 Full Day</button>
+                    <button id="block-type-slots" class="tab-btn" style="flex:1; border:1.5px solid var(--border);" onclick="setBlockType('slots')">🕐 Specific Times</button>
+                </div>
+
+                <!-- SLOT PICKER (shown when type = slots) -->
+                <div id="slot-picker" class="hidden">
+                    <label class="modal-label">Select Time Slots to Block</label>
+                    <div id="block-slot-grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:14px;">
+                        <div style="grid-column:1/-1; text-align:center; color:var(--text-hint); font-size:0.82rem; padding:10px;">Select a date first</div>
+                    </div>
+                </div>
+
+                <button onclick="saveBlock()" style="width:100%; padding:13px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.88rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.2s;">
+                    Save Block
+                </button>
+                <div id="block-save-msg" style="display:none; background:var(--green-pale); color:var(--green); border:1px solid rgba(39,174,96,0.25); padding:10px 14px; border-radius:var(--radius-sm); text-align:center; font-size:0.82rem; font-weight:600; margin-top:10px;"></div>
+            </div>
+
+            <!-- CURRENT BLOCKS LIST -->
+            <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px;">
+                <div style="font-size:0.65rem; font-weight:700; color:var(--gold-dark); text-transform:uppercase; letter-spacing:2px; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                    <span style="width:3px; height:14px; background:var(--gold); border-radius:2px; display:inline-block;"></span>
+                    Currently Blocked
+                </div>
+                <div id="current-blocks-list">
+                    <div class="empty-state" style="padding:20px 0;"><div class="icon">✅</div>No dates blocked.</div>
+                </div>
+            </div>
         </div>
 
         <!-- FAB -->
@@ -535,7 +617,7 @@
     import { getFirestore, collection, doc, getDoc, updateDoc, addDoc, query, where, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8", // ADD YOUR REAL API KEY HERE
+      apiKey: "xxxxxxxxxxxxxxxxxxx", // ADD YOUR REAL API KEY HERE
       authDomain: "tawelty-realtime.firebaseapp.com",
       projectId: "tawelty-realtime",
       storageBucket: "tawelty-realtime.firebasestorage.app",
@@ -981,6 +1063,233 @@
             await updateDoc(doc(db, "reservations", id), { archived: true });
         }
     };
+
+    // ==========================================
+    // BLOCKED DATES & SLOTS FEATURE
+    // ==========================================
+    let blockType = 'full'; // 'full' or 'slots'
+    let selectedBlockSlots = new Set();
+    let currentResDocId = null;
+    let currentResData = null;
+
+    // Load restaurant doc ID once after login
+    async function loadResDoc() {
+        if (!currentRestaurant) return;
+        const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            currentResDocId = snap.docs[0].id;
+            currentResData = snap.docs[0].data();
+        }
+    }
+
+    window.setBlockType = (type) => {
+        blockType = type;
+        const btnFull  = document.getElementById('block-type-full');
+        const btnSlots = document.getElementById('block-type-slots');
+        const slotPicker = document.getElementById('slot-picker');
+
+        if (type === 'full') {
+            btnFull.classList.add('active');
+            btnFull.style.borderColor = 'var(--charcoal)';
+            btnSlots.classList.remove('active');
+            btnSlots.style.borderColor = 'var(--border)';
+            slotPicker.classList.add('hidden');
+        } else {
+            btnSlots.classList.add('active');
+            btnSlots.style.borderColor = 'var(--charcoal)';
+            btnFull.classList.remove('active');
+            btnFull.style.borderColor = 'var(--border)';
+            slotPicker.classList.remove('hidden');
+            renderBlockSlotGrid();
+        }
+    };
+
+    window.onBlockDateChange = () => {
+        selectedBlockSlots.clear();
+        if (blockType === 'slots') renderBlockSlotGrid();
+    };
+
+    function renderBlockSlotGrid() {
+        const grid = document.getElementById('block-slot-grid');
+        const dateVal = document.getElementById('block-date').value;
+        if (!dateVal) {
+            grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-hint); font-size:0.82rem; padding:10px;">Select a date first</div>`;
+            return;
+        }
+
+        // Get already-blocked slots for this date
+        const blockedSlots = (currentResData && currentResData.blockedSlots && currentResData.blockedSlots[dateVal]) || [];
+
+        let html = '';
+        for (let h = openTime; h < closeTime; h++) {
+            for (let m of ['00', '30']) {
+                const slot = `${h}:${m}`;
+                const isAlready = blockedSlots.includes(slot);
+                const isSelected = selectedBlockSlots.has(slot);
+                let cls = 'block-slot-btn';
+                if (isAlready) cls += ' already-blocked';
+                else if (isSelected) cls += ' selected';
+                const onclick = isAlready ? '' : `onclick="toggleBlockSlot('${slot}')"`;
+                html += `<button class="${cls}" ${onclick}>${slot}</button>`;
+            }
+        }
+        grid.innerHTML = html;
+    }
+
+    window.toggleBlockSlot = (slot) => {
+        if (selectedBlockSlots.has(slot)) selectedBlockSlots.delete(slot);
+        else selectedBlockSlots.add(slot);
+        renderBlockSlotGrid();
+    };
+
+    window.saveBlock = async () => {
+        const dateVal = document.getElementById('block-date').value;
+        if (!dateVal) return alert("Please select a date first.");
+        if (!currentResDocId) return alert("Restaurant not loaded yet.");
+
+        const resRef = doc(db, "restaurants", currentResDocId);
+
+        if (blockType === 'full') {
+            let closedDates = currentResData.closedDates || [];
+            if (closedDates.includes(dateVal)) {
+                showBlockMsg("This date is already fully blocked.");
+                return;
+            }
+            closedDates.push(dateVal);
+            // Also remove any slot blocks for this date since full day covers it
+            let blockedSlots = { ...(currentResData.blockedSlots || {}) };
+            delete blockedSlots[dateVal];
+            await updateDoc(resRef, { closedDates, blockedSlots });
+            currentResData.closedDates = closedDates;
+            currentResData.blockedSlots = blockedSlots;
+            showBlockMsg(`✅ ${dateVal} fully blocked!`);
+
+        } else {
+            if (selectedBlockSlots.size === 0) return alert("Please select at least one time slot.");
+            let blockedSlots = { ...(currentResData.blockedSlots || {}) };
+            const existing = blockedSlots[dateVal] || [];
+            const merged = [...new Set([...existing, ...selectedBlockSlots])].sort();
+            blockedSlots[dateVal] = merged;
+            await updateDoc(resRef, { blockedSlots });
+            currentResData.blockedSlots = blockedSlots;
+            selectedBlockSlots.clear();
+            showBlockMsg(`✅ ${selectedBlockSlots.size || merged.length} slot(s) blocked on ${dateVal}!`);
+        }
+
+        document.getElementById('block-date').value = '';
+        renderCurrentBlocks();
+    };
+
+    function showBlockMsg(text) {
+        const el = document.getElementById('block-save-msg');
+        el.innerText = text;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    window.renderCurrentBlocks = () => {
+        const container = document.getElementById('current-blocks-list');
+        if (!currentResData) return;
+
+        const closedDates = currentResData.closedDates || [];
+        const blockedSlots = currentResData.blockedSlots || {};
+        const today = new Date().toISOString().split('T')[0];
+
+        // Gather all blocked entries (future only)
+        const entries = [];
+        closedDates.filter(d => d >= today).sort().forEach(d => entries.push({ date: d, type: 'full' }));
+        Object.keys(blockedSlots).filter(d => d >= today).sort().forEach(d => {
+            if (blockedSlots[d] && blockedSlots[d].length > 0) {
+                entries.push({ date: d, type: 'slots', slots: blockedSlots[d] });
+            }
+        });
+
+        if (entries.length === 0) {
+            container.innerHTML = `<div class="empty-state" style="padding:20px 0;"><div class="icon">✅</div>No upcoming blocked dates.</div>`;
+            return;
+        }
+
+        let html = '';
+        entries.forEach(e => {
+            const dStr = new Date(e.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const typeLabel = e.type === 'full'
+                ? `<span style="color:var(--red); font-weight:700;">🚫 Full Day Blocked</span>`
+                : `<span style="color:var(--orange); font-weight:700;">🕐 ${e.slots.length} slots blocked: ${e.slots.join(', ')}</span>`;
+
+            html += `
+            <div class="block-item">
+                <div style="flex:1; min-width:0;">
+                    <div class="block-item-date">${dStr}</div>
+                    <div class="block-item-type">${typeLabel}</div>
+                </div>
+                <button class="btn-unblock" onclick="removeBlock('${e.date}','${e.type}')">Remove</button>
+            </div>`;
+        });
+        container.innerHTML = html;
+    };
+
+    window.removeBlock = async (date, type) => {
+        if (!confirm(`Remove block for ${date}?`)) return;
+        if (!currentResDocId) return;
+        const resRef = doc(db, "restaurants", currentResDocId);
+
+        if (type === 'full') {
+            let closedDates = (currentResData.closedDates || []).filter(d => d !== date);
+            await updateDoc(resRef, { closedDates });
+            currentResData.closedDates = closedDates;
+        } else {
+            let blockedSlots = { ...(currentResData.blockedSlots || {}) };
+            delete blockedSlots[date];
+            await updateDoc(resRef, { blockedSlots });
+            currentResData.blockedSlots = blockedSlots;
+        }
+        renderCurrentBlocks();
+    };
+
+    // Extend setView to handle 'blocked'
+    const _originalSetView = window.setView;
+    window.setView = async (view) => {
+        window.currentView = view;
+        document.getElementById('tab-active').classList.toggle('active', view === 'active');
+        document.getElementById('tab-past').classList.toggle('active', view === 'past');
+        document.getElementById('tab-history').classList.toggle('active', view === 'history');
+        document.getElementById('tab-blocked').classList.toggle('active', view === 'blocked');
+
+        document.getElementById('bookings-list').classList.toggle('hidden', view === 'blocked');
+        document.getElementById('blocked-panel').classList.toggle('hidden', view !== 'blocked');
+
+        if (view === 'blocked') {
+            if (!currentResDocId) await loadResDoc();
+            // Set min date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('block-date').setAttribute('min', today);
+            renderCurrentBlocks();
+        } else {
+            if (latestSnapshot) renderListFromSnapshot(latestSnapshot);
+        }
+    };
+
+    // Load res doc after auth
+    const _originalOnAuth = onAuthStateChanged;
+    // Hook into existing login flow — call loadResDoc after startRealtimeListener
+    const origStart = startRealtimeListener;
+    function startRealtimeListener() {
+        origStart && origStart();
+    }
+    // We patch it by calling loadResDoc inside onAuthStateChanged after startRealtimeListener
+    // Since startRealtimeListener is already called, we add loadResDoc call there:
+    // (Done via overriding the function reference above — safe approach below)
+
+    // Simpler: just call loadResDoc when blocked tab is opened (already in setView above)
+    // But also pre-load after login so currentResDocId is ready
+    const _checkAndLoad = setInterval(() => {
+        if (currentRestaurant && !currentResDocId) {
+            loadResDoc().then(() => clearInterval(_checkAndLoad));
+        } else if (currentResDocId) {
+            clearInterval(_checkAndLoad);
+        }
+    }, 2000);
 </script>
 </body>
 </html>
