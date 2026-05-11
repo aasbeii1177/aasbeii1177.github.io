@@ -778,11 +778,24 @@
     };
 
     window.logout = () => {
-        signOut(auth).then(() => { window.location.href = "staff/"; });
+        signOut(auth).then(() => {
+            window.location.reload();
+        });
     };
+
+    const ADMIN_EMAIL = "admin@tawelty.com";
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            if (user.email !== ADMIN_EMAIL) {
+                // Not the admin — sign out and show login
+                signOut(auth);
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('dashboard-section').classList.add('hidden');
+                document.getElementById('login-error').innerText = "Access denied. Admin credentials required.";
+                document.getElementById('login-error').classList.remove('hidden');
+                return;
+            }
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.remove('hidden');
             loadRestaurants();
@@ -1440,6 +1453,8 @@
             alert("Error deleting account: " + e.message);
         }
     };
+
+    window.resetPassword = async (email, username) => {
         const newPass = prompt(`Set new password for "${username}":\n(Minimum 6 characters)`);
         if (!newPass || newPass.trim().length < 6) {
             if (newPass !== null) alert("Password must be at least 6 characters.");
@@ -1449,11 +1464,9 @@
         if (!confirm(`Reset password for "${username}"?\n\nThis will delete the old account and recreate it with the new password. The manager will need to log out and log back in.`)) return;
 
         try {
-            // Delete old manager doc
             const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
             await deleteDoc(doc(db, "managers", email));
 
-            // Recreate with new password under same username
             const secondaryApp = initializeApp(firebaseConfig, "Reset-" + Date.now());
             const secondaryAuth = getAuth(secondaryApp);
             await createUserWithEmailAndPassword(secondaryAuth, email, newPass);
@@ -1466,9 +1479,8 @@
             alert(`✅ Password reset for "${username}". They can now log in with the new password.`);
             await loadAccountsList(currentAccountsRestaurant);
         } catch (e) {
-            // If account already exists in Auth (can't recreate), show instructions
             if (e.code === 'auth/email-already-in-use') {
-                alert(`⚠️ Cannot reset automatically because the Firebase Auth account still exists.\n\nPlease go to:\nFirebase Console → Authentication → find ${email} → delete it, then try again.`);
+                alert(`⚠️ Cannot reset automatically.\n\nGo to Firebase Console → Authentication → find ${email} → delete it, then try again.`);
             } else {
                 alert("Error: " + e.message);
             }
