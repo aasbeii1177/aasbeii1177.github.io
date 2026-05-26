@@ -466,6 +466,174 @@
         /* ── FOOTER ── */
         .footer { text-align: center; padding: 24px 20px; color: var(--text-hint); font-size: 0.78rem; }
 
+        /* ── PROFILE OVERLAY ── */
+        .profile-overlay {
+            display: none; position: fixed; inset: 0; z-index: 998;
+            background: var(--cream);
+            overflow-y: auto;
+            animation: slideInUp 0.32s cubic-bezier(0.16,1,0.3,1);
+        }
+        @keyframes slideInUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .profile-hero {
+            height: 280px; position: relative; overflow: hidden;
+            background: var(--charcoal);
+        }
+        .profile-hero-img {
+            width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            transition: transform 0.4s ease;
+        }
+        .profile-hero-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(26,23,20,0.75) 100%);
+        }
+        .profile-back-btn {
+            position: absolute; top: 16px; left: 16px;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+            backdrop-filter: blur(8px); border-radius: 20px;
+            color: white; font-size: 0.8rem; font-weight: 600;
+            padding: 8px 16px; cursor: pointer;
+            font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 6px;
+            transition: background 0.2s;
+        }
+        .profile-back-btn:hover { background: rgba(255,255,255,0.25); }
+        .profile-back-btn svg { width: 14px; height: 14px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        .profile-hero-info {
+            position: absolute; bottom: 20px; left: 20px; right: 20px;
+        }
+        .profile-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.2rem; font-weight: 700; color: white;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.3); margin-bottom: 6px;
+        }
+        .profile-tags { display: flex; gap: 7px; flex-wrap: wrap; }
+        .profile-tag {
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+            backdrop-filter: blur(8px); border-radius: 20px;
+            color: white; font-size: 0.72rem; font-weight: 600; padding: 4px 12px;
+        }
+        .profile-tag.gold { background: rgba(201,168,76,0.25); border-color: rgba(201,168,76,0.5); color: var(--gold-light); }
+
+        /* Gallery thumbnails */
+        .gallery-strip {
+            display: flex; gap: 8px; overflow-x: auto; padding: 16px 16px 0;
+            scrollbar-width: none;
+        }
+        .gallery-strip::-webkit-scrollbar { display: none; }
+        .gallery-thumb {
+            width: 80px; height: 60px; border-radius: var(--radius-sm);
+            flex-shrink: 0; background-size: cover; background-position: center;
+            cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
+        }
+        .gallery-thumb.active { border-color: var(--gold); }
+        .gallery-thumb:hover { transform: scale(1.05); }
+
+        /* Profile sections */
+        .profile-body { padding: 0 16px 100px; max-width: 700px; margin: 0 auto; }
+        .profile-section { margin-top: 24px; }
+        .profile-section-title {
+            font-size: 0.65rem; font-weight: 700; color: var(--gold-dark);
+            text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        }
+        .profile-section-title::before {
+            content: ''; display: block; width: 3px; height: 14px;
+            background: var(--gold); border-radius: 2px;
+        }
+
+        .profile-info-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .profile-info-item {
+            background: white; border-radius: var(--radius-md);
+            border: 1px solid var(--border); padding: 14px 16px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .profile-info-item svg { width: 18px; height: 18px; stroke: var(--gold-dark); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+        .profile-info-label { font-size: 0.65rem; color: var(--text-hint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .profile-info-value { font-size: 0.85rem; color: var(--text-main); font-weight: 600; margin-top: 2px; }
+
+        .profile-description {
+            background: white; border-radius: var(--radius-md);
+            border: 1px solid var(--border); padding: 16px 18px;
+            font-size: 0.88rem; color: var(--text-muted); line-height: 1.75;
+        }
+
+        /* Menu */
+        .menu-images { display: flex; flex-direction: column; gap: 10px; }
+        .menu-img {
+            width: 100%; border-radius: var(--radius-md);
+            border: 1px solid var(--border); cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .menu-img:hover { transform: scale(1.01); }
+        .menu-pdf-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: var(--charcoal); color: white;
+            border: none; border-radius: var(--radius-md);
+            padding: 14px; font-size: 0.88rem; font-weight: 600;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            text-decoration: none; transition: background 0.2s;
+        }
+        .menu-pdf-btn:hover { background: var(--charcoal-soft); }
+
+        /* Reviews */
+        .reviews-summary {
+            background: var(--charcoal); border-radius: var(--radius-lg);
+            padding: 20px; display: flex; align-items: center; gap: 20px;
+            margin-bottom: 12px;
+        }
+        .reviews-score {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem; font-weight: 700; color: var(--gold);
+            line-height: 1;
+        }
+        .reviews-stars { font-size: 1rem; margin-bottom: 4px; }
+        .reviews-count { font-size: 0.75rem; color: rgba(255,255,255,0.45); }
+        .review-item {
+            background: white; border-radius: var(--radius-md);
+            border: 1px solid var(--border); padding: 14px 16px;
+            margin-bottom: 8px;
+        }
+        .review-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .review-item-name { font-weight: 700; font-size: 0.85rem; color: var(--text-main); }
+        .review-item-date { font-size: 0.72rem; color: var(--text-hint); }
+        .review-item-stars { font-size: 0.85rem; margin-bottom: 5px; }
+        .review-item-text { font-size: 0.82rem; color: var(--text-muted); font-style: italic; line-height: 1.5; }
+
+        /* Sticky reserve button */
+        .profile-reserve-bar {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
+            background: rgba(255,255,255,0.97); backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border);
+            padding: 12px 16px 28px;
+        }
+        .btn-profile-reserve {
+            width: 100%; max-width: 700px; margin: 0 auto; display: block;
+            padding: 15px; background: var(--charcoal); color: white;
+            border: none; border-radius: var(--radius-md);
+            font-size: 1rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-profile-reserve:hover { background: var(--gold); color: var(--charcoal); }
+
+        /* Fullscreen image viewer */
+        .img-viewer {
+            display: none; position: fixed; inset: 0; z-index: 1000;
+            background: rgba(0,0,0,0.95); justify-content: center; align-items: center;
+        }
+        .img-viewer img { max-width: 95vw; max-height: 90vh; border-radius: var(--radius-md); object-fit: contain; }
+        .img-viewer-close {
+            position: absolute; top: 16px; right: 16px;
+            background: rgba(255,255,255,0.15); border: none;
+            color: white; font-size: 1.4rem; width: 40px; height: 40px;
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+
         /* ── LOADER ── */
         .loader-wrap { text-align: center; padding: 60px 20px; color: var(--text-hint); font-size: 0.88rem; }
 
@@ -949,6 +1117,62 @@
         </div>
     </div>
 
+    <!-- ── RESTAURANT PROFILE OVERLAY ── -->
+    <div id="profile-overlay" class="profile-overlay">
+        <div class="profile-hero" id="profile-hero">
+            <div class="profile-hero-img" id="profile-hero-img"></div>
+            <div class="profile-hero-overlay"></div>
+            <button class="profile-back-btn" onclick="closeProfile()">
+                <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Back
+            </button>
+            <div class="profile-hero-info">
+                <div class="profile-name" id="profile-name"></div>
+                <div class="profile-tags" id="profile-tags"></div>
+            </div>
+        </div>
+
+        <!-- Gallery strip -->
+        <div class="gallery-strip" id="profile-gallery"></div>
+
+        <div class="profile-body">
+            <!-- Info grid -->
+            <div class="profile-section">
+                <div class="profile-info-grid" id="profile-info-grid"></div>
+            </div>
+
+            <!-- Description -->
+            <div class="profile-section" id="profile-desc-section" style="display:none;">
+                <div class="profile-section-title">About</div>
+                <div class="profile-description" id="profile-description"></div>
+            </div>
+
+            <!-- Menu -->
+            <div class="profile-section" id="profile-menu-section" style="display:none;">
+                <div class="profile-section-title">Menu</div>
+                <div class="menu-images" id="profile-menu-images"></div>
+            </div>
+
+            <!-- Reviews -->
+            <div class="profile-section" id="profile-reviews-section" style="display:none;">
+                <div class="profile-section-title">Reviews</div>
+                <div class="reviews-summary" id="profile-reviews-summary"></div>
+                <div id="profile-reviews-list"></div>
+            </div>
+        </div>
+
+        <!-- Sticky reserve button -->
+        <div class="profile-reserve-bar">
+            <button class="btn-profile-reserve" id="profile-reserve-btn">Reserve a Table</button>
+        </div>
+    </div>
+
+    <!-- Fullscreen image viewer -->
+    <div class="img-viewer" id="img-viewer" onclick="closeImgViewer()">
+        <button class="img-viewer-close">×</button>
+        <img id="img-viewer-img" src="" alt="">
+    </div>
+
     <div class="footer">© 2026 Tawelty. All rights reserved.</div>
 
     <!-- BOTTOM NAV -->
@@ -1167,6 +1391,7 @@
         data.forEach((branch) => {
             const capacity = branch.capacity || 20;
             const tables = branch.tables || 10;
+            const onlineTables = branch.onlineTables !== undefined ? branch.onlineTables : tables;
             const duration = branch.duration || 3;
             const openTime = branch.openTime !== undefined ? branch.openTime : 12;
             const closeTime = branch.closeTime !== undefined ? branch.closeTime : 22;
@@ -1182,11 +1407,10 @@
             const safeImg = (branch.image || '').replace(/'/g, "\\'");
             const engCity = branch.city || "Damascus";
             const safeClosedDates = (branch.closedDates || []).join(',');
-
-            let clickAction = `onclick="openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${tables}, ${openTime}, ${closeTime}, '${safeClosedDates}')"`;
+            const safeDesc = (branch.description || '').replace(/'/g, "\\'").substring(0, 100);
 
             html += `
-            <div class="card" ${clickAction}>
+            <div class="card" onclick="openProfile('${branch.id}')">
                 <div class="card-img-wrapper">
                     <div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div>
                     <div class="card-badge">${branch.cuisine}</div>
@@ -1206,8 +1430,9 @@
                             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                             ${hoursText}
                         </span>
+                        ${safeDesc ? `<span class="card-row" style="color:var(--text-hint); font-style:italic; font-size:0.78rem; margin-top:2px;">${safeDesc}${branch.description && branch.description.length > 100 ? '…' : ''}</span>` : ''}
                     </div>
-                    <button class="btn-card">
+                    <button class="btn-card" onclick="event.stopPropagation(); openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${onlineTables}, ${openTime}, ${closeTime}, '${safeClosedDates}')">
                         Reserve a Table
                         <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
@@ -1590,6 +1815,182 @@
             btn.innerText = "Add Me to Waitlist";
             btn.disabled = false;
         }
+    };
+
+    // ==========================================
+    // RESTAURANT PROFILE OVERLAY
+    // ==========================================
+    window.openProfile = async (restaurantId) => {
+        const overlay = document.getElementById('profile-overlay');
+        overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        window.scrollTo(0, 0);
+
+        // Find restaurant data from allRestaurants
+        const branch = window.allRestaurants.find(r => r.id === restaurantId);
+        if (!branch) return;
+
+        const formatH = (h) => {
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            return `${h % 12 || 12}:00 ${ampm}`;
+        };
+
+        // Hero image
+        const heroImg = document.getElementById('profile-hero-img');
+        heroImg.style.backgroundImage = `url('${branch.image || 'https://via.placeholder.com/800x400'}')`;
+
+        // Name & tags
+        document.getElementById('profile-name').innerText = branch.name;
+        document.getElementById('profile-tags').innerHTML = `
+            <span class="profile-tag">${branch.cuisine}</span>
+            <span class="profile-tag gold">${branch.price}</span>
+            ${branch.city ? `<span class="profile-tag">${branch.city}</span>` : ''}
+        `;
+
+        // Gallery
+        const gallery = document.getElementById('profile-gallery');
+        const allPhotos = [branch.image, ...(branch.gallery || [])].filter(Boolean);
+        if (allPhotos.length > 1) {
+            gallery.innerHTML = allPhotos.map((img, i) =>
+                `<div class="gallery-thumb ${i === 0 ? 'active' : ''}" style="background-image:url('${img}')" onclick="switchHeroImg('${img}', this)"></div>`
+            ).join('');
+            gallery.style.display = 'flex';
+        } else {
+            gallery.innerHTML = '';
+            gallery.style.display = 'none';
+        }
+
+        // Info grid
+        document.getElementById('profile-info-grid').innerHTML = `
+            <div class="profile-info-item">
+                <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <div>
+                    <div class="profile-info-label">Location</div>
+                    <div class="profile-info-value">${branch.city || 'Damascus'} · ${branch.location}</div>
+                </div>
+            </div>
+            <div class="profile-info-item">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div>
+                    <div class="profile-info-label">Hours</div>
+                    <div class="profile-info-value">${formatH(branch.openTime || 12)} – ${formatH(branch.closeTime || 22)}</div>
+                </div>
+            </div>
+            <div class="profile-info-item">
+                <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <div>
+                    <div class="profile-info-label">Price Range</div>
+                    <div class="profile-info-value">${branch.price}</div>
+                </div>
+            </div>
+            <div class="profile-info-item">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <div>
+                    <div class="profile-info-label">Cuisine</div>
+                    <div class="profile-info-value">${branch.cuisine}</div>
+                </div>
+            </div>
+        `;
+
+        // Description
+        if (branch.description) {
+            document.getElementById('profile-desc-section').style.display = 'block';
+            document.getElementById('profile-description').innerText = branch.description;
+        } else {
+            document.getElementById('profile-desc-section').style.display = 'none';
+        }
+
+        // Menu
+        const menuSection = document.getElementById('profile-menu-section');
+        const menuImages = document.getElementById('profile-menu-images');
+        const menuItems = branch.menuImages || [];
+        const menuPdf = branch.menuPdfUrl || '';
+        if (menuItems.length > 0 || menuPdf) {
+            menuSection.style.display = 'block';
+            let menuHtml = menuItems.map(img =>
+                `<img class="menu-img" src="${img}" alt="Menu" onclick="openImgViewer('${img}')" loading="lazy">`
+            ).join('');
+            if (menuPdf) {
+                menuHtml += `<a href="${menuPdf}" target="_blank" class="menu-pdf-btn">📄 View Full Menu (PDF)</a>`;
+            }
+            menuImages.innerHTML = menuHtml;
+        } else {
+            menuSection.style.display = 'none';
+        }
+
+        // Reviews — fetch from Firestore
+        const reviewsSection = document.getElementById('profile-reviews-section');
+        try {
+            const q = query(
+                collection(db, "reservations"),
+                where("restaurant", "==", branch.name),
+                where("isReviewed", "==", true)
+            );
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+                let totalRating = 0; let count = 0; let reviewsHtml = '';
+                snap.forEach(d => {
+                    const rv = d.data();
+                    totalRating += rv.rating || 0; count++;
+                    const stars = '⭐'.repeat(rv.rating || 0);
+                    const date = rv.reviewDate ? new Date(rv.reviewDate).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
+                    reviewsHtml += `
+                    <div class="review-item">
+                        <div class="review-item-header">
+                            <span class="review-item-name">${rv.name || 'Guest'}</span>
+                            <span class="review-item-date">${date}</span>
+                        </div>
+                        <div class="review-item-stars">${stars}</div>
+                        ${rv.reviewText ? `<div class="review-item-text">"${rv.reviewText}"</div>` : ''}
+                    </div>`;
+                });
+                const avg = (totalRating / count).toFixed(1);
+                const summaryStars = '⭐'.repeat(Math.round(totalRating / count));
+                document.getElementById('profile-reviews-summary').innerHTML = `
+                    <div class="reviews-score">${avg}</div>
+                    <div>
+                        <div class="reviews-stars">${summaryStars}</div>
+                        <div style="color:white; font-weight:600; font-size:0.88rem;">${count} review${count !== 1 ? 's' : ''}</div>
+                        <div class="reviews-count">Based on verified visits</div>
+                    </div>
+                `;
+                document.getElementById('profile-reviews-list').innerHTML = reviewsHtml;
+                reviewsSection.style.display = 'block';
+            } else {
+                reviewsSection.style.display = 'none';
+            }
+        } catch (e) { reviewsSection.style.display = 'none'; }
+
+        // Reserve button
+        const capacity = branch.capacity || 20;
+        const onlineTables = branch.onlineTables !== undefined ? branch.onlineTables : (branch.tables || 10);
+        const safeImg = (branch.image || '').replace(/'/g, "\\'");
+        const safeName = branch.name.replace(/'/g, "\\'");
+        const safeClosedDates = (branch.closedDates || []).join(',');
+        document.getElementById('profile-reserve-btn').onclick = () => {
+            closeProfile();
+            openBooking(safeName, safeImg, capacity, branch.duration || 3, onlineTables, branch.openTime || 12, branch.closeTime || 22, safeClosedDates);
+        };
+    };
+
+    window.closeProfile = () => {
+        document.getElementById('profile-overlay').style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    window.switchHeroImg = (imgUrl, thumbEl) => {
+        document.getElementById('profile-hero-img').style.backgroundImage = `url('${imgUrl}')`;
+        document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+        thumbEl.classList.add('active');
+    };
+
+    window.openImgViewer = (imgUrl) => {
+        document.getElementById('img-viewer-img').src = imgUrl;
+        document.getElementById('img-viewer').style.display = 'flex';
+    };
+
+    window.closeImgViewer = () => {
+        document.getElementById('img-viewer').style.display = 'none';
     };
 </script>
 </body>
