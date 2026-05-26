@@ -485,8 +485,8 @@
             animation: slideInUp 0.32s cubic-bezier(0.16,1,0.3,1);
         }
         @keyframes slideInUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .profile-hero { height: 280px; position: relative; overflow: hidden; background: var(--charcoal); }
-        .profile-hero-img { width: 100%; height: 100%; background-size: cover; background-position: center; }
+        .profile-hero { height: 220px; position: relative; overflow: hidden; background: var(--charcoal); }
+        .profile-hero-img { width: 100%; height: 100%; background-size: cover; background-position: center top; transition: background-image 0.3s ease; }
         .profile-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(26,23,20,0.75) 100%); }
         .profile-back-btn {
             position: absolute; top: 16px; right: 16px;
@@ -502,7 +502,7 @@
         .profile-tags { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
         .profile-tag { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(8px); border-radius: 20px; color: white; font-size: 0.72rem; font-weight: 700; padding: 4px 12px; font-family: 'Cairo', sans-serif; }
         .profile-tag.gold { background: rgba(201,168,76,0.25); border-color: rgba(201,168,76,0.5); color: var(--gold-light); }
-        .gallery-strip { display: flex; gap: 8px; overflow-x: auto; padding: 16px 16px 0; scrollbar-width: none; flex-direction: row-reverse; }
+        .gallery-strip { display: flex; gap: 8px; overflow-x: auto; padding: 12px 16px; background: white; border-bottom: 1px solid var(--border); scrollbar-width: none; flex-direction: row-reverse; }
         .gallery-strip::-webkit-scrollbar { display: none; }
         .gallery-thumb { width: 80px; height: 60px; border-radius: var(--radius-sm); flex-shrink: 0; background-size: cover; background-position: center; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
         .gallery-thumb.active { border-color: var(--gold); }
@@ -527,7 +527,7 @@
         .review-item-name { font-weight: 700; font-size: 0.85rem; color: var(--text-main); font-family: 'Cairo', sans-serif; }
         .review-item-date { font-size: 0.72rem; color: var(--text-hint); }
         .review-item-text { font-size: 0.82rem; color: var(--text-muted); font-style: italic; line-height: 1.5; text-align: right; font-family: 'Cairo', sans-serif; }
-        .profile-reserve-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 999; background: rgba(255,255,255,0.97); backdrop-filter: blur(16px); border-top: 1px solid var(--border); padding: 12px 16px 28px; }
+        .profile-reserve-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1001; background: rgba(255,255,255,0.97); backdrop-filter: blur(16px); border-top: 1px solid var(--border); padding: 10px 16px 84px; }
         .btn-profile-reserve { width: 100%; max-width: 700px; margin: 0 auto; display: block; padding: 15px; background: var(--charcoal); color: white; border: none; border-radius: var(--radius-md); font-size: 1rem; font-weight: 700; font-family: 'Cairo', sans-serif; cursor: pointer; transition: background 0.2s; }
         .btn-profile-reserve:hover { background: var(--gold); color: var(--charcoal); }
         .img-viewer { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; }
