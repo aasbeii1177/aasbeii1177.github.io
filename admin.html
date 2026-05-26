@@ -547,7 +547,11 @@
                 </div>
                 <div>
                     <label>Total Tables</label>
-                    <input type="number" id="res-tables" placeholder="e.g. 10">
+                    <input type="number" id="res-tables" placeholder="e.g. 100">
+                </div>
+                <div>
+                    <label>Online Tables <span style="color:var(--gold-dark); font-weight:400; text-transform:none; letter-spacing:0; font-size:0.65rem;">bookable online</span></label>
+                    <input type="number" id="res-online-tables" placeholder="e.g. 10">
                 </div>
                 <div>
                     <label>Avg Duration (hrs)</label>
@@ -575,6 +579,15 @@
                 <option value="true" selected>🟢 Active — Visible to Customers</option>
                 <option value="false">🔴 Hidden — Disabled</option>
             </select>
+
+            <div class="section-title" style="margin-top:28px;">3 · Restaurant Profile</div>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">Optional but recommended — this is what customers see on the restaurant profile page.</p>
+
+            <label>Description</label>
+            <textarea id="res-description" style="width:100%; padding:12px 14px; background:var(--input-bg); border:1.5px solid transparent; border-radius:var(--radius-md); font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text-main); outline:none; resize:vertical; min-height:80px; transition:all 0.2s;" placeholder="About the restaurant — atmosphere, specialties, history…"></textarea>
+
+            <label style="margin-top:8px;">Menu PDF URL <span style="color:var(--text-hint); font-weight:400; text-transform:none;">(optional)</span></label>
+            <input type="text" id="res-menu-pdf" placeholder="https://… link to menu PDF">
 
             <div id="manager-section">
                 <div class="section-title" style="margin-top:28px;">2 · Manager Login</div>
@@ -745,7 +758,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, doc, setDoc, getDocs, deleteDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, setDoc, getDocs, getDoc, deleteDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8", // PUT YOUR REAL API KEY HERE
@@ -883,6 +896,7 @@
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
         const rTabs = document.getElementById('res-tables').value || "10";
+        const rOnlineTabs = document.getElementById('res-online-tables').value || rTabs;
         const rDur = document.getElementById('res-duration').value || "3";
         const rOpen = document.getElementById('res-open').value || "12";
         const rClose = document.getElementById('res-close').value || "22";
@@ -890,6 +904,8 @@
         const rPri = document.getElementById('res-price').value || "$$";
         const rVip = document.getElementById('res-vip').value || "3";
         const rIsOpen = document.getElementById('res-isopen').value === "true";
+        const rDesc = document.getElementById('res-description').value.trim();
+        const rMenuPdf = document.getElementById('res-menu-pdf').value.trim();
         const mUsername = document.getElementById('mgr-username').value.trim().toLowerCase().replace(/\s+/g, '_');
         const mPass = document.getElementById('mgr-pass').value;
         const btn = document.getElementById('btn-submit');
@@ -905,9 +921,11 @@
                 name: rName, city: rCity, location: rLoc,
                 image: rImg || 'https://via.placeholder.com/400x300',
                 capacity: parseInt(rCap), tables: parseInt(rTabs),
+                onlineTables: parseInt(rOnlineTabs),
                 duration: parseInt(rDur), openTime: parseInt(rOpen),
                 closeTime: parseInt(rClose), cuisine: rCus, price: rPri,
-                vipThreshold: parseInt(rVip), isOpen: rIsOpen
+                vipThreshold: parseInt(rVip), isOpen: rIsOpen,
+                description: rDesc, menuPdfUrl: rMenuPdf, gallery: [], menuImages: []
             });
             const secondaryApp = initializeApp(firebaseConfig, "Secondary-" + Date.now());
             const secondaryAuth = getAuth(secondaryApp);
@@ -930,6 +948,7 @@
         const rImg = document.getElementById('res-image').value;
         const rCap = document.getElementById('res-capacity').value;
         const rTabs = document.getElementById('res-tables').value;
+        const rOnlineTabs = document.getElementById('res-online-tables').value || rTabs;
         const rDur = document.getElementById('res-duration').value;
         const rOpen = document.getElementById('res-open').value;
         const rClose = document.getElementById('res-close').value;
@@ -937,6 +956,8 @@
         const rPri = document.getElementById('res-price').value;
         const rVip = document.getElementById('res-vip').value || "3";
         const rIsOpen = document.getElementById('res-isopen').value === "true";
+        const rDesc = document.getElementById('res-description').value.trim();
+        const rMenuPdf = document.getElementById('res-menu-pdf').value.trim();
         const btn = document.getElementById('btn-submit');
 
         if (!rName || !rLoc || !rCap || !rDur || !rTabs) return alert("All fields required.");
@@ -948,9 +969,11 @@
             await updateDoc(doc(db, "restaurants", editingId), {
                 name: rName, city: rCity, location: rLoc, image: rImg,
                 capacity: parseInt(rCap), tables: parseInt(rTabs),
+                onlineTables: parseInt(rOnlineTabs),
                 duration: parseInt(rDur), openTime: parseInt(rOpen),
                 closeTime: parseInt(rClose), cuisine: rCus, price: rPri,
-                vipThreshold: parseInt(rVip), isOpen: rIsOpen
+                vipThreshold: parseInt(rVip), isOpen: rIsOpen,
+                description: rDesc, menuPdfUrl: rMenuPdf
             });
             if (rName !== editingOldName) {
                 const q = query(collection(db, "managers"), where("restaurant", "==", editingOldName));
@@ -981,6 +1004,7 @@
                 const safeImg = d.image ? d.image.replace(/'/g, "\\'") : '';
                 const safeCap = d.capacity || 20;
                 const safeTabs = d.tables || 10;
+                const safeOnlineTabs = d.onlineTables !== undefined ? d.onlineTables : safeTabs;
                 const safeDur = d.duration || 3;
                 const safeOpen = d.openTime !== undefined ? d.openTime : 12;
                 const safeClose = d.closeTime !== undefined ? d.closeTime : 22;
@@ -997,11 +1021,11 @@
                 <div class="res-item">
                     <div class="res-info">
                         <div class="res-name">${d.name} ${badge} <span style="font-weight:400; font-size:0.72rem; color:var(--text-hint);">${safeCity}</span></div>
-                        <div class="res-meta">${d.location} &nbsp;·&nbsp; VIP after ${safeVip} visits</div>
+                        <div class="res-meta">${d.location} &nbsp;·&nbsp; ${safeOnlineTabs}/${safeTabs} tables online &nbsp;·&nbsp; VIP after ${safeVip} visits</div>
                     </div>
                     <div style="flex-shrink:0;">
                         <button class="btn-action" style="background:rgba(201,168,76,0.12); color:var(--gold-dark);" onclick="openAccountsPanel('${safeName}')">👤</button>
-                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}','${safeName}','${safeLoc}','${safeImg}',${safeCap},${safeTabs},'${safeCus}','${safePri}',${safeDur},${safeOpen},${safeClose},'${safeCity}',${isOpen},${safeVip})">✏️</button>
+                        <button class="btn-action btn-edit" onclick="startEdit('${doc.id}','${safeName}','${safeLoc}','${safeImg}',${safeCap},${safeTabs},${safeOnlineTabs},'${safeCus}','${safePri}',${safeDur},${safeOpen},${safeClose},'${safeCity}',${isOpen},${safeVip})">✏️</button>
                         <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}','${safeName}')">🗑️</button>
                     </div>
                 </div>`;
@@ -1010,9 +1034,16 @@
         } catch (e) { console.error(e); }
     }
 
-    window.startEdit = (id, name, loc, img, cap, tabs, cus, pri, dur, open, close, city, isOpenParam, vipThreshold) => {
+    window.startEdit = async (id, name, loc, img, cap, tabs, onlineTabs, cus, pri, dur, open, close, city, isOpenParam, vipThreshold) => {
         editingId = id;
         editingOldName = name;
+
+        // Fetch full restaurant data for profile fields
+        let resData = {};
+        try {
+            const snap = await getDoc(doc(db, "restaurants", id));
+            if (snap.exists()) resData = snap.data();
+        } catch(e) { console.error(e); }
         document.getElementById('res-name').value = name;
         document.getElementById('res-city').value = city || "Damascus";
         document.getElementById('res-location').value = loc;
@@ -1027,6 +1058,7 @@
         }
         document.getElementById('res-capacity').value = cap;
         document.getElementById('res-tables').value = tabs;
+        document.getElementById('res-online-tables').value = onlineTabs;
         document.getElementById('res-duration').value = dur;
         document.getElementById('res-open').value = open;
         document.getElementById('res-close').value = close;
@@ -1034,6 +1066,8 @@
         document.getElementById('res-price').value = pri;
         document.getElementById('res-vip').value = vipThreshold || 3;
         document.getElementById('res-isopen').value = isOpenParam ? "true" : "false";
+        document.getElementById('res-description').value = resData.description || '';
+        document.getElementById('res-menu-pdf').value = resData.menuPdfUrl || '';
         document.getElementById('form-title').innerText = "Edit Venue";
         document.getElementById('btn-submit').innerText = "Save Changes";
         document.getElementById('manager-section').style.display = 'none';
@@ -1081,7 +1115,8 @@
 
     function clearInputs() {
         ['res-name','res-location','res-image','res-capacity','res-tables',
-         'res-duration','res-open','res-close','res-cuisine','mgr-username','mgr-pass'].forEach(id => {
+         'res-online-tables', 'res-duration','res-open','res-close','res-cuisine',
+         'mgr-username','mgr-pass','res-description','res-menu-pdf'].forEach(id => {
             document.getElementById(id).value = "";
         });
         document.getElementById('res-city').value = "Damascus";
