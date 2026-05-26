@@ -459,6 +459,16 @@
 
         /* ── MISC ── */
         .hidden { display: none !important; }
+
+        .section-title-staff {
+            font-size: 0.65rem; font-weight: 700; color: var(--gold-dark);
+            text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+        }
+        .section-title-staff::before {
+            content: ''; display: block; width: 3px; height: 14px;
+            background: var(--gold); border-radius: 2px;
+        }
         .empty-state {
             text-align: center; padding: 50px 20px;
             color: var(--text-hint); font-size: 0.85rem;
@@ -528,6 +538,7 @@
             <button id="tab-history" class="tab-btn" onclick="setView('history')">Canceled</button>
             <button id="tab-blocked" class="tab-btn" onclick="setView('blocked')">🚫 Blocked</button>
             <button id="tab-waitlist" class="tab-btn" onclick="setView('waitlist')" style="color:var(--gold-dark); border:1.5px solid var(--border-gold);">⏳ Waitlist</button>
+            <button id="tab-profile" class="tab-btn" onclick="setView('profile')" style="color:var(--blue); border:1.5px solid rgba(36,113,163,0.3);">✨ Profile</button>
             <button id="btn-pause-today" class="tab-btn" onclick="togglePauseToday()">⏸ Pause</button>
         </div>
 
@@ -610,6 +621,56 @@
             <div id="waitlist-container">
                 <div class="empty-state"><div class="icon">⏳</div>Loading waitlist…</div>
             </div>
+        </div>
+
+        <!-- ── PROFILE EDITOR PANEL ── -->
+        <div id="profile-panel" class="hidden">
+            <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
+                <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Restaurant Profile</div>
+                <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">This is what customers see when they tap your restaurant. Keep it updated to attract more bookings.</div>
+            </div>
+
+            <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
+                <div class="section-title-staff">About Your Restaurant</div>
+
+                <label class="modal-label">Description</label>
+                <textarea id="prof-description" style="width:100%; padding:12px 14px; background:var(--input-bg); border:1.5px solid transparent; border-radius:var(--radius-md); font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text-main); outline:none; resize:vertical; min-height:100px; transition:all 0.2s; margin-bottom:0;" placeholder="Tell customers about your restaurant — atmosphere, specialties, history…" oninput="this.style.borderColor='var(--gold)'"></textarea>
+            </div>
+
+            <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
+                <div class="section-title-staff">Photo Gallery</div>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">Add up to 6 photos. The first card image is set from the admin. These are extra gallery photos.</p>
+
+                <div id="gallery-preview" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;"></div>
+
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="prof-gallery-url" class="modal-input" placeholder="Paste image URL…" style="flex:1; margin-bottom:0;">
+                    <input type="file" id="prof-gallery-file" accept="image/*" style="display:none;" onchange="handleGalleryUpload(event)">
+                    <button class="btn-upload" onclick="document.getElementById('prof-gallery-file').click()">📁</button>
+                    <button style="background:var(--charcoal); color:white; border:none; border-radius:var(--radius-sm); padding:0 14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; font-size:0.82rem;" onclick="addGalleryUrl()">Add</button>
+                </div>
+            </div>
+
+            <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
+                <div class="section-title-staff">Menu</div>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">Upload menu as images or link a PDF.</p>
+
+                <div id="menu-preview" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;"></div>
+
+                <label class="modal-label">Add Menu Image</label>
+                <div style="display:flex; gap:8px; margin-bottom:12px;">
+                    <input type="text" id="prof-menu-url" class="modal-input" placeholder="Paste menu image URL…" style="flex:1; margin-bottom:0;">
+                    <input type="file" id="prof-menu-file" accept="image/*" style="display:none;" onchange="handleMenuUpload(event)">
+                    <button class="btn-upload" onclick="document.getElementById('prof-menu-file').click()">📁</button>
+                    <button style="background:var(--charcoal); color:white; border:none; border-radius:var(--radius-sm); padding:0 14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; font-size:0.82rem;" onclick="addMenuUrl()">Add</button>
+                </div>
+
+                <label class="modal-label">Menu PDF Link (optional)</label>
+                <input type="text" id="prof-menu-pdf" class="modal-input" placeholder="https://… link to your PDF menu" style="margin-bottom:0;">
+            </div>
+
+            <button onclick="saveProfile()" style="width:100%; padding:14px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.9rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.2s; margin-bottom:8px;">Save Profile</button>
+            <div id="profile-save-msg" style="display:none; background:var(--green-pale); color:var(--green); border:1px solid rgba(39,174,96,0.25); padding:12px; border-radius:var(--radius-sm); text-align:center; font-size:0.82rem; font-weight:600;"></div>
         </div>
 
         <!-- FAB -->
@@ -732,44 +793,51 @@
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            if (user.email === "admin@tawelty.com") {
-                window.location.href = "../admin.html";
-                return;
-            }
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-
             try {
+                // First check if this user is a manager — if not, sign them out
                 const managerSnap = await getDoc(doc(db, "managers", user.email));
-                if (managerSnap.exists()) {
-                    currentRestaurant = managerSnap.data().restaurant;
-                    document.getElementById('manager-title').innerText = currentRestaurant;
-
-                    const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
-                    const resSnap = await getDocs(q);
-                    if (!resSnap.empty) {
-                        const d = resSnap.docs[0].data();
-                        maxGuests = d.capacity || 20;
-                        maxTables = d.tables || 10;
-                        openTime = d.openTime || 12;
-                        closeTime = d.closeTime || 22;
-                        vipThreshold = d.vipThreshold || 3;
-                        document.getElementById('max-guests').innerText = "/ " + maxGuests + " Cap";
-                        document.getElementById('max-tables').innerText = "/ " + maxTables + " Tables";
-
-                        const todayStr = new Date().toISOString().split('T')[0];
-                        const btnPause = document.getElementById('btn-pause-today');
-                        if (d.closedDates && d.closedDates.includes(todayStr)) {
-                            btnPause.innerText = "▶ Re-Open Today";
-                            btnPause.classList.add('paused');
-                        }
-                    }
-                    startRealtimeListener();
-                } else {
-                    alert("Account not linked to a restaurant.");
+                if (!managerSnap.exists()) {
+                    // Not a manager (could be admin or unknown account)
                     signOut(auth);
+                    document.getElementById('login-view').classList.remove('hidden');
+                    document.getElementById('dashboard-view').classList.add('hidden');
+                    const msg = document.getElementById('login-msg');
+                    msg.innerText = "This account does not have staff access.";
+                    msg.classList.remove('hidden');
+                    return;
                 }
-            } catch (error) { console.error(error); }
+
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+
+                currentRestaurant = managerSnap.data().restaurant;
+                document.getElementById('manager-title').innerText = currentRestaurant;
+
+                const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
+                const resSnap = await getDocs(q);
+                if (!resSnap.empty) {
+                    const d = resSnap.docs[0].data();
+                    maxGuests = d.capacity || 20;
+                    maxTables = d.tables || 10;
+                    openTime = d.openTime || 12;
+                    closeTime = d.closeTime || 22;
+                    vipThreshold = d.vipThreshold || 3;
+                    document.getElementById('max-guests').innerText = "/ " + maxGuests + " Cap";
+                    document.getElementById('max-tables').innerText = "/ " + maxTables + " Tables";
+
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const btnPause = document.getElementById('btn-pause-today');
+                    if (d.closedDates && d.closedDates.includes(todayStr)) {
+                        btnPause.innerText = "▶ Re-Open Today";
+                        btnPause.classList.add('paused');
+                    }
+                }
+                startRealtimeListener();
+
+            } catch (error) {
+                console.error(error);
+                signOut(auth);
+            }
         } else {
             document.getElementById('login-view').classList.remove('hidden');
             document.getElementById('dashboard-view').classList.add('hidden');
@@ -1278,7 +1346,7 @@
         renderCurrentBlocks();
     };
 
-    // Override setView to handle 'blocked' and 'waitlist' tabs
+    // Override setView to handle all tabs including profile
     window.setView = (view) => {
         window.currentView = view;
         document.getElementById('tab-active').classList.toggle('active', view === 'active');
@@ -1286,10 +1354,12 @@
         document.getElementById('tab-history').classList.toggle('active', view === 'history');
         document.getElementById('tab-blocked').classList.toggle('active', view === 'blocked');
         document.getElementById('tab-waitlist').classList.toggle('active', view === 'waitlist');
+        document.getElementById('tab-profile').classList.toggle('active', view === 'profile');
 
-        document.getElementById('bookings-list').classList.toggle('hidden', view === 'blocked' || view === 'waitlist');
+        document.getElementById('bookings-list').classList.toggle('hidden', ['blocked','waitlist','profile'].includes(view));
         document.getElementById('blocked-panel').classList.toggle('hidden', view !== 'blocked');
         document.getElementById('waitlist-panel').classList.toggle('hidden', view !== 'waitlist');
+        document.getElementById('profile-panel').classList.toggle('hidden', view !== 'profile');
 
         if (view === 'blocked') {
             const today = new Date().toISOString().split('T')[0];
@@ -1297,8 +1367,153 @@
             loadResDoc().then(() => renderCurrentBlocks());
         } else if (view === 'waitlist') {
             loadWaitlist();
+        } else if (view === 'profile') {
+            loadProfileEditor();
         } else {
             if (latestSnapshot) renderListFromSnapshot(latestSnapshot);
+        }
+    };
+
+    // ── PROFILE EDITOR ──
+    let profileGallery = [];
+    let profileMenuImages = [];
+
+    async function loadProfileEditor() {
+        if (!currentResDocId) await loadResDoc();
+        if (!currentResData) return;
+
+        document.getElementById('prof-description').value = currentResData.description || '';
+        document.getElementById('prof-menu-pdf').value = currentResData.menuPdfUrl || '';
+
+        profileGallery = [...(currentResData.gallery || [])];
+        profileMenuImages = [...(currentResData.menuImages || [])];
+
+        renderGalleryPreview();
+        renderMenuPreview();
+    }
+
+    function renderGalleryPreview() {
+        const container = document.getElementById('gallery-preview');
+        if (profileGallery.length === 0) {
+            container.innerHTML = `<div style="grid-column:1/-1; color:var(--text-hint); font-size:0.78rem; text-align:center; padding:10px 0;">No gallery photos yet.</div>`;
+            return;
+        }
+        container.innerHTML = profileGallery.map((img, i) => `
+            <div style="position:relative; aspect-ratio:4/3;">
+                <div style="width:100%; height:100%; background-image:url('${img}'); background-size:cover; background-position:center; border-radius:var(--radius-sm); border:1px solid var(--border);"></div>
+                <button onclick="removeGalleryImg(${i})" style="position:absolute; top:4px; right:4px; background:rgba(192,57,43,0.9); color:white; border:none; border-radius:50%; width:22px; height:22px; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+            </div>
+        `).join('');
+    }
+
+    function renderMenuPreview() {
+        const container = document.getElementById('menu-preview');
+        if (profileMenuImages.length === 0) {
+            container.innerHTML = `<div style="color:var(--text-hint); font-size:0.78rem; text-align:center; padding:8px 0;">No menu images yet.</div>`;
+            return;
+        }
+        container.innerHTML = profileMenuImages.map((img, i) => `
+            <div style="position:relative;">
+                <img src="${img}" style="width:100%; border-radius:var(--radius-sm); border:1px solid var(--border);" loading="lazy">
+                <button onclick="removeMenuImg(${i})" style="position:absolute; top:8px; right:8px; background:rgba(192,57,43,0.9); color:white; border:none; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif;">Remove</button>
+            </div>
+        `).join('');
+    }
+
+    window.addGalleryUrl = () => {
+        const url = document.getElementById('prof-gallery-url').value.trim();
+        if (!url) return;
+        if (profileGallery.length >= 6) return alert("Maximum 6 gallery photos.");
+        profileGallery.push(url);
+        document.getElementById('prof-gallery-url').value = '';
+        renderGalleryPreview();
+    };
+
+    window.removeGalleryImg = (index) => {
+        profileGallery.splice(index, 1);
+        renderGalleryPreview();
+    };
+
+    window.handleGalleryUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (profileGallery.length >= 6) return alert("Maximum 6 gallery photos.");
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX = 800;
+                const scale = img.width > MAX ? MAX / img.width : 1;
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                profileGallery.push(canvas.toDataURL('image/jpeg', 0.75));
+                renderGalleryPreview();
+            };
+        };
+    };
+
+    window.addMenuUrl = () => {
+        const url = document.getElementById('prof-menu-url').value.trim();
+        if (!url) return;
+        profileMenuImages.push(url);
+        document.getElementById('prof-menu-url').value = '';
+        renderMenuPreview();
+    };
+
+    window.removeMenuImg = (index) => {
+        profileMenuImages.splice(index, 1);
+        renderMenuPreview();
+    };
+
+    window.handleMenuUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX = 1200;
+                const scale = img.width > MAX ? MAX / img.width : 1;
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                profileMenuImages.push(canvas.toDataURL('image/jpeg', 0.8));
+                renderMenuPreview();
+            };
+        };
+    };
+
+    window.saveProfile = async () => {
+        if (!currentResDocId) return alert("Restaurant not loaded.");
+        const description = document.getElementById('prof-description').value.trim();
+        const menuPdfUrl = document.getElementById('prof-menu-pdf').value.trim();
+        const btn = document.querySelector('#profile-panel button[onclick="saveProfile()"]');
+        const msgEl = document.getElementById('profile-save-msg');
+        btn.innerText = 'Saving…'; btn.disabled = true;
+
+        try {
+            await updateDoc(doc(db, "restaurants", currentResDocId), {
+                description, gallery: profileGallery,
+                menuImages: profileMenuImages, menuPdfUrl
+            });
+            currentResData.description = description;
+            currentResData.gallery = profileGallery;
+            currentResData.menuImages = profileMenuImages;
+            currentResData.menuPdfUrl = menuPdfUrl;
+            msgEl.innerText = '✅ Profile saved! Customers can now see the updates.';
+            msgEl.style.display = 'block';
+            setTimeout(() => msgEl.style.display = 'none', 3500);
+        } catch (e) {
+            alert("Error saving profile: " + e.message);
+        } finally {
+            btn.innerText = 'Save Profile'; btn.disabled = false;
         }
     };
 
