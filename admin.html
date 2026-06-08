@@ -500,8 +500,16 @@
 
             <div class="section-title">1 · Restaurant Details</div>
 
-            <label>Name</label>
-            <input type="text" id="res-name" placeholder="e.g. Naranj">
+            <div class="field-row" style="margin-top:0;">
+                <div>
+                    <label>Name (English)</label>
+                    <input type="text" id="res-name" placeholder="e.g. Naranj">
+                </div>
+                <div>
+                    <label>الاسم بالعربية</label>
+                    <input type="text" id="res-name-ar" placeholder="مثال: نارنج" style="text-align:right; direction:rtl;">
+                </div>
+            </div>
 
             <label style="margin-top:14px;">City</label>
             <select id="res-city">
@@ -891,6 +899,7 @@
 
     async function createRestaurant() {
         const rName = document.getElementById('res-name').value;
+        const rNameAr = document.getElementById('res-name-ar').value.trim();
         const rCity = document.getElementById('res-city').value;
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
@@ -918,7 +927,7 @@
 
         try {
             await addDoc(collection(db, "restaurants"), {
-                name: rName, city: rCity, location: rLoc,
+                name: rName, nameAr: rNameAr, city: rCity, location: rLoc,
                 image: rImg || 'https://via.placeholder.com/400x300',
                 capacity: parseInt(rCap), tables: parseInt(rTabs),
                 onlineTables: parseInt(rOnlineTabs),
@@ -934,7 +943,6 @@
             showSuccess(`✨ Created! Manager logs in as: ${mUsername}`);
             clearInputs();
             loadRestaurants();
-            // Show the add-another-account button
             document.getElementById('btn-add-account').style.display = 'block';
             document.getElementById('extra-res-name').value = rName;
         } catch (e) { alert("Error: " + e.message); }
@@ -943,6 +951,7 @@
 
     async function updateRestaurant() {
         const rName = document.getElementById('res-name').value;
+        const rNameAr = document.getElementById('res-name-ar').value.trim();
         const rCity = document.getElementById('res-city').value;
         const rLoc = document.getElementById('res-location').value;
         const rImg = document.getElementById('res-image').value;
@@ -967,7 +976,7 @@
 
         try {
             await updateDoc(doc(db, "restaurants", editingId), {
-                name: rName, city: rCity, location: rLoc, image: rImg,
+                name: rName, nameAr: rNameAr, city: rCity, location: rLoc, image: rImg,
                 capacity: parseInt(rCap), tables: parseInt(rTabs),
                 onlineTables: parseInt(rOnlineTabs),
                 duration: parseInt(rDur), openTime: parseInt(rOpen),
@@ -1045,6 +1054,7 @@
             if (snap.exists()) resData = snap.data();
         } catch(e) { console.error(e); }
         document.getElementById('res-name').value = name;
+        document.getElementById('res-name-ar').value = resData.nameAr || '';
         document.getElementById('res-city').value = city || "Damascus";
         document.getElementById('res-location').value = loc;
         if (img.length > 500) {
@@ -1114,7 +1124,7 @@
     }
 
     function clearInputs() {
-        ['res-name','res-location','res-image','res-capacity','res-tables',
+        ['res-name','res-name-ar','res-location','res-image','res-capacity','res-tables',
          'res-online-tables', 'res-duration','res-open','res-close','res-cuisine',
          'mgr-username','mgr-pass','res-description','res-menu-pdf'].forEach(id => {
             document.getElementById(id).value = "";
