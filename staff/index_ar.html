@@ -1171,12 +1171,26 @@
 
         try {
             await updateDoc(doc(db, "reservations", id), { status: newStatus });
+
             if (sendWhatsapp && phone) {
                 let clean = phone.replace(/\D/g, '');
                 if (clean.startsWith('0')) clean = "963" + clean.substring(1);
+
+                // Always use the most up-to-date Arabic name
+                let arName = currentRestaurantNameAr;
+                if (!arName || arName === currentRestaurant) {
+                    // Try to fetch it fresh
+                    try {
+                        const rq = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
+                        const rsnap = await getDocs(rq);
+                        if (!rsnap.empty) arName = rsnap.docs[0].data().nameAr || currentRestaurant;
+                        currentRestaurantNameAr = arName;
+                    } catch(e) { arName = currentRestaurant; }
+                }
+
                 const msg = newStatus === "Accepted"
-                    ? `مرحبًا ${name}، تم تأكيد حجزك في ${currentRestaurantNameAr}! ✅\nHello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅`
-                    : `مرحبًا ${name}، للأسف لا يمكننا قبول حجزك في ${currentRestaurantNameAr}. ❌\nHello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌`;
+                    ? `مرحبًا ${name}، تم تأكيد حجزك في ${arName}! ✅\nHello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅`
+                    : `مرحبًا ${name}، للأسف لا يمكننا قبول حجزك في ${arName}. ❌\nHello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌`;
                 window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
             }
         } catch (e) { alert("خطأ: " + e.message); }
