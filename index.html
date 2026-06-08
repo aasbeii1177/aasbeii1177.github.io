@@ -977,6 +977,8 @@
             <input type="hidden" id="wl-date">
             <input type="hidden" id="wl-time">
             <input type="hidden" id="wl-restaurant">
+            <input type="hidden" id="wl-persons">
+            <input type="hidden" id="wl-duration">
 
             <label>Full Name</label>
             <input type="text" class="input-field" id="wl-name" placeholder="First and Last Name">
@@ -1540,7 +1542,7 @@
                 } else if (doesItFit(idx, dur1)) {
                     html += `<div class="time-slot warning" onclick="selectSlot(this, '${timeString}', 1)">${timeString}</div>`;
                 } else {
-                    html += `<div class="time-slot disabled" style="cursor:pointer; border-color:var(--border-gold); color:var(--gold-dark); font-size:0.7rem;" onclick="openWaitlist('${timeString}', '${dateInput}')" title="Join waitlist">${timeString}<br>⏳</div>`;
+                    html += `<div class="time-slot disabled" style="cursor:pointer; border-color:var(--border-gold); color:var(--gold-dark); font-size:0.7rem;" onclick="openWaitlist('${timeString}', '${dateInput}', ${groupSize}, ${window.currentDuration || 3})" title="Join waitlist">${timeString}<br>⏳</div>`;
                 }
             }
             grid.innerHTML = html;
@@ -1715,11 +1717,13 @@
     };
 
     // ── WAITLIST ──
-    window.openWaitlist = (time, date) => {
+    window.openWaitlist = (time, date, persons, duration) => {
         document.getElementById('wl-date').value = date;
         document.getElementById('wl-time').value = time;
         document.getElementById('wl-restaurant').value = window.selectedRestaurant;
-        document.getElementById('wl-slot-display').innerText = `${window.selectedRestaurant} · ${date} at ${time}`;
+        document.getElementById('wl-persons').value = persons || 2;
+        document.getElementById('wl-duration').value = duration || 2;
+        document.getElementById('wl-slot-display').innerText = `${window.selectedRestaurant} · ${date} at ${time} · ${persons || 2} guests`;
         document.getElementById('wl-name').value = '';
         document.getElementById('wl-phone').value = '';
         document.getElementById('wl-success').style.display = 'none';
@@ -1738,6 +1742,8 @@
         const date = document.getElementById('wl-date').value;
         const time = document.getElementById('wl-time').value;
         const restaurant = document.getElementById('wl-restaurant').value;
+        const persons = parseInt(document.getElementById('wl-persons').value) || 2;
+        const duration = parseInt(document.getElementById('wl-duration').value) || 2;
 
         if (!name) return alert("Please enter your name.");
         if (!phone) return alert("Please enter your phone number.");
@@ -1753,6 +1759,7 @@
                 restaurant, name,
                 phone: cleanPhone,
                 date, time,
+                persons, duration,
                 createdAt: new Date(),
                 contacted: false
             });
