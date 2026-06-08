@@ -794,10 +794,14 @@
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
-                // First check if this user is a manager — if not, sign them out
                 const managerSnap = await getDoc(doc(db, "managers", user.email));
                 if (!managerSnap.exists()) {
-                    // Not a manager (could be admin or unknown account)
+                    // Not a manager — check if it's the admin
+                    if (user.email === "admin@tawelty.com") {
+                        window.location.href = "../admin.html";
+                        return;
+                    }
+                    // Unknown account — sign out
                     signOut(auth);
                     document.getElementById('login-view').classList.remove('hidden');
                     document.getElementById('dashboard-view').classList.add('hidden');
