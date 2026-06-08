@@ -960,12 +960,23 @@
 
         latestSnapshot.forEach(doc => {
             const data = doc.data();
-            if (data.date === todayStr && !data.archived && (data.status === 'Accepted' || data.status === 'Seated')) {
-                const startHour = parseInt(data.time.split(':')[0]);
-                const endHour = startHour + (data.duration || 3);
-                if (h >= startHour && h < endHour) {
+            if (data.date === todayStr && !data.archived) {
+                if (data.status === 'Seated') {
+                    // Seated = physically in the restaurant, count immediately
                     liveGuests += parseInt(data.persons);
                     liveTables += Math.ceil(parseInt(data.persons) / 4);
+                } else if (data.status === 'Accepted') {
+                    // Accepted = check time window using minutes for accuracy
+                    const startHour = parseInt(data.time.split(':')[0]);
+                    const startMin = parseInt(data.time.split(':')[1]) || 0;
+                    const endHour = startHour + (data.duration || 3);
+                    const nowMinutes = h * 60 + now.getMinutes();
+                    const startMinutes = startHour * 60 + startMin;
+                    const endMinutes = endHour * 60;
+                    if (nowMinutes >= startMinutes && nowMinutes < endMinutes) {
+                        liveGuests += parseInt(data.persons);
+                        liveTables += Math.ceil(parseInt(data.persons) / 4);
+                    }
                 }
             }
         });
