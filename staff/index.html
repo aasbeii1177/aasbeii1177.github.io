@@ -749,6 +749,7 @@
     const AUDIO_SRC = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a";
 
     let currentRestaurant = "";
+    let currentRestaurantNameAr = "";
     let maxGuests = 0;
     let maxTables = 0;
     let openTime = 12;
@@ -827,6 +828,7 @@
                 const resSnap = await getDocs(q);
                 if (!resSnap.empty) {
                     const d = resSnap.docs[0].data();
+                    currentRestaurantNameAr = d.nameAr || currentRestaurant;
                     maxGuests = d.capacity || 20;
                     maxTables = d.tables || 10;
                     openTime = d.openTime || 12;
