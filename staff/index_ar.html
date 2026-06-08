@@ -750,6 +750,7 @@
     const AUDIO_SRC = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a";
 
     let currentRestaurant = "";
+    let currentRestaurantNameAr = "";
     let maxGuests = 0;
     let maxTables = 0;
     let openTime = 12;
@@ -828,6 +829,10 @@
                 const resSnap = await getDocs(q);
                 if (!resSnap.empty) {
                     const d = resSnap.docs[0].data();
+                    // Load Arabic name — falls back to English if not set
+                    currentRestaurantNameAr = d.nameAr || currentRestaurant;
+                    // Show Arabic name in header if available
+                    document.getElementById('manager-title').innerText = currentRestaurantNameAr;
                     maxGuests = d.capacity || 20;
                     maxTables = d.tables || 10;
                     openTime = d.openTime || 12;
@@ -1170,8 +1175,8 @@
                 let clean = phone.replace(/\D/g, '');
                 if (clean.startsWith('0')) clean = "963" + clean.substring(1);
                 const msg = newStatus === "Accepted"
-                    ? `مرحبًا ${name}، تم تأكيد حجزك في ${currentRestaurant}! ✅`
-                    : `مرحبًا ${name}، للأسف لا يمكننا قبول حجزك في ${currentRestaurant}. ❌`;
+                    ? `مرحبًا ${name}، تم تأكيد حجزك في ${currentRestaurantNameAr}! ✅\nHello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅`
+                    : `مرحبًا ${name}، للأسف لا يمكننا قبول حجزك في ${currentRestaurantNameAr}. ❌\nHello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌`;
                 window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
             }
         } catch (e) { alert("خطأ: " + e.message); }
@@ -1180,7 +1185,7 @@
     window.askForReview = (phone, name) => {
         let clean = phone.replace(/\D/g, '');
         if (clean.startsWith('0')) clean = "963" + clean.substring(1);
-        const msg = `مرحبًا ${name}، شكرًا لزيارتك ${currentRestaurant}! نود سماع رأيك. قم بزيارة حجوزاتي في موقعنا لإضافة تقييم: https://taweltysy.com`;
+        const msg = `مرحبًا ${name}، شكرًا لزيارتك ${currentRestaurantNameAr}! نود سماع رأيك. قم بزيارة "حجوزاتي" في موقعنا لإضافة تقييم: https://taweltysy.com\n\nHi ${name}, thank you for dining at ${currentRestaurant}! We'd love your feedback. Visit My Bookings on our site to leave a review: https://taweltysy.com`;
         window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
@@ -1571,7 +1576,7 @@
                     const contactedLabel = entry.contacted ? ' ✅ Contacted' : '';
                     let cleanPhone = entry.phone.replace(/\D/g, '');
                     if (cleanPhone.startsWith('0')) cleanPhone = '963' + cleanPhone.substring(1);
-                    const waMsg = encodeURIComponent(`Hello ${entry.name}, a spot has opened up at ${currentRestaurant} بتاريخ ${group.date} الساعة ${group.time}. هل تريد حجزه؟`);
+                    const waMsg = encodeURIComponent(`تم توفر مقعد في ${currentRestaurantNameAr} بتاريخ ${group.date} الساعة ${group.time}. هل تريد حجزه؟ 🎉\nA spot has opened up at ${currentRestaurant} on ${group.date} at ${group.time}. Would you like to book it? 🎉`);
 
                     html += `
                     <div class="wl-card ${contactedClass}" id="wl-card-${entry.id}">
@@ -1595,7 +1600,10 @@
     }
 
     window.contactWaitlist = async (id, phone, waMsg) => {
-        window.open(`https://wa.me/${phone}?text=${waMsg}`, '_blank');
+        const bilingualMsg = encodeURIComponent(
+            `تم توفر مقعد في ${currentRestaurantNameAr}. هل تريد حجزه؟ 🎉\nA spot has opened up at ${currentRestaurant}. Would you like to book it? 🎉`
+        );
+        window.open(`https://wa.me/${phone}?text=${bilingualMsg}`, '_blank');
         // Mark as contacted
         try {
             await updateDoc(doc(db, "waitlist", id), { contacted: true });
