@@ -1582,7 +1582,7 @@
                         </div>
                         <div class="wl-actions">
                             <button class="btn-wl-contact" onclick="contactWaitlist('${entry.id}', '${cleanPhone}', '${waMsg}')">💬 WhatsApp</button>
-                            <button class="btn-wl-contact" style="background:var(--gold); color:var(--charcoal);" onclick="bookFromWaitlist('${entry.id}', '${entry.name.replace(/'/g,"\\'")}', '${cleanPhone}', '${group.date}', '${group.time}')">✓ Book</button>
+                            <button class="btn-wl-contact" style="background:var(--gold); color:var(--charcoal);" onclick="bookFromWaitlist('${entry.id}', '${entry.name.replace(/'/g,"\\'")}', '${cleanPhone}', '${group.date}', '${group.time}', ${entry.persons || 2}, ${entry.duration || 2})">✓ Book</button>
                             <button class="btn-wl-remove" onclick="removeWaitlist('${entry.id}')">✕</button>
                         </div>
                     </div>`;
@@ -1623,27 +1623,25 @@
         } catch (e) { alert("Error: " + e.message); }
     };
 
-    window.bookFromWaitlist = async (waitlistId, name, phone, date, time) => {
-        if (!confirm(`Book a table for ${name} on ${date} at ${time}?\n\nThis will create a confirmed reservation and remove them from the waitlist.`)) return;
+    window.bookFromWaitlist = async (waitlistId, name, phone, date, time, persons, duration) => {
+        persons = persons || 2;
+        duration = duration || 2;
+        if (!confirm(`Book a table for ${name} on ${date} at ${time} for ${persons} guest(s)?\n\nThis will create a confirmed reservation and remove them from the waitlist.`)) return;
         try {
-            // Create confirmed reservation
             await addDoc(collection(db, "reservations"), {
                 restaurant: currentRestaurant,
                 name, phone, date, time,
-                persons: 2, duration: 2,
+                persons, duration,
                 status: "Accepted",
                 source: "Waitlist",
                 createdAt: new Date()
             });
-            // Remove from waitlist
             await deleteDoc(doc(db, "waitlist", waitlistId));
-            // Remove card from UI
             const card = document.getElementById(`wl-card-${waitlistId}`);
             if (card) card.remove();
-            // Send WhatsApp confirmation
             let clean = phone.replace(/\D/g, '');
             if (clean.startsWith('0')) clean = "963" + clean.substring(1);
-            const msg = `Hello ${name}, your reservation at ${currentRestaurant} on ${date} at ${time} is CONFIRMED! ✅\nمرحبًا ${name}، تم تأكيد حجزك في ${currentRestaurantNameAr || currentRestaurant} بتاريخ ${date} الساعة ${time}! ✅`;
+            const msg = `Hello ${name}, your reservation at ${currentRestaurant} on ${date} at ${time} for ${persons} guest(s) is CONFIRMED! ✅\nمرحبًا ${name}، تم تأكيد حجزك في ${currentRestaurantNameAr || currentRestaurant} بتاريخ ${date} الساعة ${time} لـ ${persons} ضيوف! ✅`;
             window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
         } catch (e) { alert("Error: " + e.message); }
     };
