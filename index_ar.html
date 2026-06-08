@@ -1283,6 +1283,7 @@
             const hoursText = `${formatH(openTime)} - ${formatH(closeTime)}`;
 
             const safeName = branch.name.replace(/'/g, "\\'");
+            const safeNameAr = (branch.nameAr || '').replace(/'/g, "\\'");
             const safeImg = (branch.image || '').replace(/'/g, "\\'");
             const engCity = branch.city || "Damascus";
             const arCity = cityTrans[engCity] || engCity;
@@ -1300,7 +1301,7 @@
                         <span class="tag tag-cuisine">${branch.cuisine}</span>
                         <span class="tag tag-price">${branch.price}</span>
                     </div>
-                    <h3 class="card-title">${branch.name}</h3>
+                    <h3 class="card-title">${branch.nameAr || branch.name}</h3>
                     <div class="card-details">
                         <span class="card-row">
                             <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -1312,7 +1313,7 @@
                         </span>
                         ${safeDesc ? `<span class="card-row" style="color:var(--text-hint); font-style:italic; font-size:0.78rem; margin-top:2px;">${safeDesc}${branch.description && branch.description.length > 100 ? '…' : ''}</span>` : ''}
                     </div>
-                    <button class="btn-card" onclick="event.stopPropagation(); openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${onlineTables}, ${openTime}, ${closeTime}, '${safeClosedDates}')">
+                    <button class="btn-card" onclick="event.stopPropagation(); openBookingAr('${safeName}', '${safeNameAr}', '${safeImg}', ${capacity}, ${duration}, ${onlineTables}, ${openTime}, ${closeTime}, '${safeClosedDates}')">
                         <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                         احجز طاولة
                     </button>
@@ -1338,6 +1339,11 @@
         renderList(filtered);
     }
 
+    window.openBookingAr = function(name, nameAr, imgUrl, capacity, duration, tables, open, close, closedDatesStr) {
+        window.selectedRestaurantNameAr = nameAr || name;
+        openBooking(name, imgUrl, capacity, duration, tables, open, close, closedDatesStr);
+    };
+
     window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close, closedDatesStr) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity;
@@ -1347,7 +1353,7 @@
         window.currentClose = close;
         window.currentClosedDates = closedDatesStr ? closedDatesStr.split(',') : [];
 
-        document.getElementById('selected-restaurant-title').innerText = name;
+        document.getElementById('selected-restaurant-title').innerText = window.selectedRestaurantNameAr || name;
         document.getElementById('date').value = "";
         document.getElementById('time-grid').innerHTML = "<div style='grid-column:1/-1; text-align:center; color:var(--text-hint); padding:20px; font-size:0.85rem;'>يرجى اختيار التاريخ والعدد</div>";
         document.getElementById('selected-time-value').value = "";
@@ -1524,7 +1530,7 @@
 
             if (!window.selectedSlotDuration) window.selectedSlotDuration = 3;
 
-            document.getElementById('rev-loc').innerText = window.selectedRestaurant;
+            document.getElementById('rev-loc').innerText = window.selectedRestaurantNameAr || window.selectedRestaurant;
             document.getElementById('rev-name').innerText = nameInp.value;
             document.getElementById('rev-phone-display').innerText = "+" + window.selectedFullPhone;
             document.getElementById('rev-time-display').innerText = `${timeInp.value}  ${dateInp.value}`;
@@ -1718,7 +1724,7 @@
         };
 
         document.getElementById('profile-hero-img').style.backgroundImage = `url('${branch.image || 'https://via.placeholder.com/800x400'}')`;
-        document.getElementById('profile-name').innerText = branch.name;
+        document.getElementById('profile-name').innerText = branch.nameAr || branch.name;
 
         const arCity = cityTrans[branch.city || 'Damascus'] || branch.city || 'دمشق';
         document.getElementById('profile-tags').innerHTML = `
@@ -1802,10 +1808,11 @@
         const onlineTables = branch.onlineTables !== undefined ? branch.onlineTables : (branch.tables || 10);
         const safeImg = (branch.image || '').replace(/'/g, "\\'");
         const safeName = branch.name.replace(/'/g, "\\'");
+        const safeNameAr = (branch.nameAr || '').replace(/'/g, "\\'");
         const safeClosedDates = (branch.closedDates || []).join(',');
         document.getElementById('profile-reserve-btn').onclick = () => {
             closeProfile();
-            openBooking(safeName, safeImg, capacity, branch.duration || 3, onlineTables, branch.openTime || 12, branch.closeTime || 22, safeClosedDates);
+            openBookingAr(safeName, safeNameAr, safeImg, capacity, branch.duration || 3, onlineTables, branch.openTime || 12, branch.closeTime || 22, safeClosedDates);
         };
     };
 
