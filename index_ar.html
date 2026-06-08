@@ -1146,7 +1146,9 @@
     window.heroSearch = () => {
         const val = document.getElementById('hero-search-input').value.toLowerCase();
         const filtered = window.allRestaurants.filter(r =>
-            r.name.toLowerCase().includes(val) || r.location.toLowerCase().includes(val)
+            r.name.toLowerCase().includes(val) ||
+            (r.nameAr && r.nameAr.includes(val)) ||
+            r.location.toLowerCase().includes(val)
         );
         renderList(filtered);
     };
@@ -1330,7 +1332,9 @@
         const price = document.getElementById('filter-price').value;
 
         const filtered = window.allRestaurants.filter(r => {
-            const matchesName = r.name.toLowerCase().includes(search) || r.location.toLowerCase().includes(search);
+            const matchesName = r.name.toLowerCase().includes(search) ||
+                                (r.nameAr && r.nameAr.includes(search)) ||
+                                r.location.toLowerCase().includes(search);
             const matchesCity = city === "All" || r.city === city;
             const matchesCuisine = cuisine === "All" || r.cuisine === cuisine;
             const matchesPrice = price === "All" || r.price === price;
