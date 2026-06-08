@@ -1600,6 +1600,7 @@
                         </div>
                         <div class="wl-actions">
                             <button class="btn-wl-contact" onclick="contactWaitlist('${entry.id}', '${cleanPhone}', '${waMsg}')">💬 واتساب</button>
+                            <button class="btn-wl-contact" style="background:var(--gold); color:var(--charcoal);" onclick="bookFromWaitlist('${entry.id}', '${entry.name.replace(/'/g,"\\'")}', '${cleanPhone}', '${group.date}', '${group.time}')">✓ احجز</button>
                             <button class="btn-wl-remove" onclick="removeWaitlist('${entry.id}')">✕</button>
                         </div>
                     </div>`;
@@ -1632,6 +1633,29 @@
             await deleteDoc(doc(db, "waitlist", id));
             const card = document.getElementById(`wl-card-${id}`);
             if (card) card.remove();
+        } catch (e) { alert("خطأ: " + e.message); }
+    };
+
+    window.bookFromWaitlist = async (waitlistId, name, phone, date, time) => {
+        if (!confirm(`حجز طاولة لـ ${name} بتاريخ ${date} الساعة ${time}؟\n\nسيتم إنشاء حجز مؤكد وإزالتهم من قائمة الانتظار.`)) return;
+        try {
+            await addDoc(collection(db, "reservations"), {
+                restaurant: currentRestaurant,
+                name, phone, date, time,
+                persons: 2, duration: 2,
+                status: "Accepted",
+                source: "Waitlist",
+                createdAt: new Date()
+            });
+            await deleteDoc(doc(db, "waitlist", waitlistId));
+            const card = document.getElementById(`wl-card-${waitlistId}`);
+            if (card) card.remove();
+            // Send bilingual WhatsApp confirmation
+            let clean = phone.replace(/\D/g, '');
+            if (clean.startsWith('0')) clean = "963" + clean.substring(1);
+            const arName = currentRestaurantNameAr || currentRestaurant;
+            const msg = `مرحبًا ${name}، تم تأكيد حجزك في ${arName} بتاريخ ${date} الساعة ${time}! ✅\nHello ${name}, your reservation at ${currentRestaurant} on ${date} at ${time} is CONFIRMED! ✅`;
+            window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
         } catch (e) { alert("خطأ: " + e.message); }
     };
 </script>
