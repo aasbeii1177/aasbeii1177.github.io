@@ -1169,8 +1169,8 @@
                 let clean = phone.replace(/\D/g, '');
                 if (clean.startsWith('0')) clean = "963" + clean.substring(1);
                 const msg = newStatus === "Accepted"
-                    ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅`
-                    : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌`;
+                    ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅\nمرحبًا ${name}، تم تأكيد حجزك في ${currentRestaurant}! ✅`
+                    : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌\nمرحبًا ${name}، للأسف لا يمكننا قبول حجزك في ${currentRestaurant}. ❌`;
                 window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
             }
         } catch (e) { alert("Error: " + e.message); }
@@ -1179,7 +1179,7 @@
     window.askForReview = (phone, name) => {
         let clean = phone.replace(/\D/g, '');
         if (clean.startsWith('0')) clean = "963" + clean.substring(1);
-        const msg = `Hi ${name}, thank you for dining at ${currentRestaurant}! We'd love your feedback. Visit My Bookings on our site to leave a review: https://taweltysy.com`;
+        const msg = `Hi ${name}, thank you for dining at ${currentRestaurant}! We'd love your feedback. Visit My Bookings on our site to leave a review: https://taweltysy.com\n\nمرحبًا ${name}، شكرًا لزيارتك ${currentRestaurant}! نود سماع رأيك. قم بزيارة "حجوزاتي" في موقعنا لإضافة تقييم: https://taweltysy.com`;
         window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
@@ -1594,7 +1594,15 @@
     }
 
     window.contactWaitlist = async (id, phone, waMsg) => {
-        window.open(`https://wa.me/${phone}?text=${waMsg}`, '_blank');
+        const clean = phone;
+        const msg = encodeURIComponent(decodeURIComponent(waMsg));
+        // Build bilingual message
+        const entry = document.getElementById(`wl-card-${id}`);
+        const name = entry ? entry.querySelector('.wl-name').innerText : '';
+        const bilingualMsg = encodeURIComponent(
+            `A spot has opened up at ${currentRestaurant}. Would you like to book it? 🎉\nتم توفر مقعد في ${currentRestaurant}. هل تريد حجزه؟ 🎉`
+        );
+        window.open(`https://wa.me/${phone}?text=${bilingualMsg}`, '_blank');
         // Mark as contacted
         try {
             await updateDoc(doc(db, "waitlist", id), { contacted: true });
