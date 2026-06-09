@@ -956,7 +956,7 @@
         document.getElementById('current-hour-display').innerText = `${h}:${m}:${s}`;
 
         let liveGuests = 0, liveTables = 0;
-        const todayStr = now.toISOString().split('T')[0];
+        const todayStr = now.toISOString().split("T")[0];
 
         latestSnapshot.forEach(doc => {
             const data = doc.data();
@@ -993,14 +993,21 @@
     async function renderListFromSnapshot(snapshot) {
         const list = document.getElementById('bookings-list');
         const allDocs = [];
-        const todayStr = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const todayStr = now.toISOString().split("T")[0];
 
         snapshot.forEach(doc => {
             const d = doc.data();
             if (window.currentView === 'active') {
-                if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) allDocs.push({ id: doc.id, ...d });
+                if (!d.archived && d.status !== 'Declined' && d.status !== 'Finished' && d.status !== 'No-Show') {
+                    allDocs.push({ id: doc.id, ...d });
+                }
             } else if (window.currentView === 'past') {
-                if (!d.archived && d.status !== 'Declined' && d.date < todayStr) allDocs.push({ id: doc.id, ...d });
+                if (!d.archived && d.status !== 'Declined' && d.status !== 'Seated') {
+                    if (d.status === 'Finished' || d.status === 'No-Show' || d.date < todayStr) {
+                        allDocs.push({ id: doc.id, ...d });
+                    }
+                }
             } else if (window.currentView === 'history') {
                 if (d.archived || d.status === 'Declined') allDocs.push({ id: doc.id, ...d });
             }
@@ -1053,12 +1060,11 @@
                         <button class="btn-decision btn-seated" onclick="updateBookingStatus('${b.id}','Seated',false)">✅ جالس</button>
                         <button class="btn-decision btn-noshow" onclick="updateBookingStatus('${b.id}','No-Show',false)">🚫 لم يحضر</button>
                     </div>`;
-                } else if (b.status === 'Seated' && b.date === todayStr && window.currentView === 'active') {
+                } else if (b.status === 'Seated') {
+                    // Always show Finish button for Seated — regardless of date
                     buttons = `<div class="btn-decision-row">
                         <button class="btn-decision btn-finish" onclick="updateBookingStatus('${b.id}','Finished',false)">🏁 انتهى — تحرير الطاولة</button>
                     </div>`;
-                } else if (b.status === 'Seated') {
-                    buttons = `<div class="status-label" style="color:var(--blue);">✅ IN RESTAURANT (SEATED)</div>`;
                 } else if (b.status === 'Finished') {
                     buttons = `<div class="status-label" style="color:var(--text-muted);">🏁 COMPLETED</div>`;
                 } else if (b.status === 'No-Show') {
