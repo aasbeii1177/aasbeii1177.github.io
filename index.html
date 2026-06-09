@@ -1,43 +1,33 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>Tawelty — Staff Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tawelty - Premium Reservations</title>
-    <link rel="apple-touch-icon" href="logo.jpeg">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1A1714">
-
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) { registration.unregister(); }
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js', { scope: '/staff/' })
+            .then(reg => console.log('Staff SW registered', reg))
+            .catch(err => console.log('Staff SW failed', err));
         });
-        window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js?v=' + new Date().getTime()); });
       }
     </script>
 
-    <meta property="og:title" content="Tawelty - Restaurant Reservations">
-    <meta property="og:description" content="Book your table at the finest restaurants.">
-    <meta property="og:image" content="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=2874&auto=format&fit=crop">
-    <meta property="og:url" content="https://taweltysy.com">
-    <meta property="og:type" content="website">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1A1714">
+    <link rel="apple-touch-icon" href="logo.jpeg">
 
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         /* ============================================
-           TAWELTY V5.0 — LUXURY REDESIGN
-           Palette: Deep Charcoal + Antique Gold + Warm Cream
-           Fonts: Cormorant Garamond (display) + DM Sans (UI)
+           TAWELTY STAFF PORTAL V5.0 — LUXURY THEME
+           Charcoal + Antique Gold + Warm Cream
         ============================================ */
         :root {
             --charcoal: #1A1714;
             --charcoal-soft: #252118;
-            --charcoal-mid: #2E2A24;
             --gold: #C9A84C;
             --gold-light: #E8D5A3;
             --gold-pale: #F5EDD8;
@@ -45,1099 +35,693 @@
             --cream: #FAF7F2;
             --cream-dark: #F0EAE0;
             --surface: #FFFFFF;
+            --bg: #F2EDE6;
             --text-main: #1A1714;
             --text-muted: #6B6458;
             --text-hint: #A09688;
             --border: rgba(26,23,20,0.10);
             --border-gold: rgba(201,168,76,0.30);
             --input-bg: #F5F1EB;
+            --green: #27AE60;
+            --green-pale: #EBF5EB;
+            --red: #C0392B;
+            --red-pale: #FDEDEC;
+            --blue: #2471A3;
+            --blue-pale: #EBF5FB;
+            --orange: #D68910;
+            --orange-pale: #FEF9E7;
             --radius-sm: 8px;
             --radius-md: 12px;
-            --radius-lg: 18px;
-            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-xl: 22px;
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { overflow-x: hidden; width: 100%; }
+        html, body { overflow-x: hidden; }
 
         body {
             font-family: 'DM Sans', sans-serif;
-            background: var(--cream);
+            background: var(--bg);
             color: var(--text-main);
-            padding-bottom: 90px;
+            padding: 16px 16px 100px;
             -webkit-font-smoothing: antialiased;
         }
 
         h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 600; margin: 0; }
 
-        /* ── TOP NAV ── */
-        .top-nav {
-            position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 24px; box-sizing: border-box;
-        }
-        .nav-logo {
-            color: white; font-family: 'Cormorant Garamond', serif;
-            font-size: 1.6rem; font-weight: 700; text-decoration: none;
-            letter-spacing: 1px;
-        }
-        .nav-logo span { color: var(--gold); }
-        .nav-links { display: flex; gap: 10px; }
-        .nav-item {
-            color: rgba(255,255,255,0.85); text-decoration: none;
-            font-size: 0.78rem; font-weight: 500; letter-spacing: 0.5px;
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 7px 14px; border-radius: 20px;
-            backdrop-filter: blur(8px); transition: all 0.2s; cursor: pointer;
-        }
-        .nav-item:hover { background: var(--gold); border-color: var(--gold); color: var(--charcoal); }
+        .container { max-width: 720px; margin: 0 auto; }
 
-        /* ── HERO ── */
-        .hero {
-            background: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(26,23,20,0.80) 100%),
-                        url('https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=2874&auto=format&fit=crop');
-            background-size: cover; background-position: center;
-            background-attachment: fixed;
-            min-height: 380px;
-            display: flex; flex-direction: column; justify-content: flex-end;
-            align-items: center; text-align: center;
-            color: white;
-            padding: 0 20px 50px;
-            transition: background-image 0.5s ease-in-out;
-        }
-
-        .hero-eyebrow {
-            display: inline-block;
-            border: 1px solid rgba(201,168,76,0.5);
-            color: var(--gold-light);
-            font-size: 0.68rem; font-weight: 500;
-            letter-spacing: 3px; text-transform: uppercase;
-            padding: 5px 16px; border-radius: 20px;
-            background: rgba(201,168,76,0.10);
-            margin-bottom: 14px;
-        }
-
-        .hero h1 {
-            font-size: clamp(2.8rem, 8vw, 4.5rem);
-            color: white; font-weight: 700;
-            text-shadow: 0 4px 30px rgba(0,0,0,0.4);
-            line-height: 1; margin-bottom: 10px;
-            letter-spacing: -0.5px;
-        }
-
-        .hero-sub {
-            font-size: 0.9rem; color: rgba(255,255,255,0.55);
-            letter-spacing: 0.5px; margin-bottom: 28px; font-weight: 400;
-        }
-
-        /* ── SEARCH BAR IN HERO ── */
-        .hero-search {
-            width: 100%; max-width: 560px;
-            background: white;
-            border-radius: var(--radius-lg);
-            display: flex; overflow: hidden;
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        .hero-search-field {
-            flex: 1; display: flex; align-items: center; gap: 8px;
-            padding: 0 16px; border-right: 1px solid var(--border);
-        }
-        .hero-search-field svg { width: 16px; height: 16px; stroke: var(--text-hint); flex-shrink: 0; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .hero-search-field input {
-            border: none; outline: none; font-size: 14px;
-            color: var(--text-main); background: transparent;
-            width: 100%; font-family: 'DM Sans', sans-serif;
-            padding: 16px 0;
-        }
-        .hero-search-field input::placeholder { color: var(--text-hint); }
-        .hero-search-btn {
-            background: var(--charcoal); border: none; cursor: pointer;
-            padding: 0 22px; color: white; font-size: 0.8rem;
-            font-weight: 600; font-family: 'DM Sans', sans-serif;
-            letter-spacing: 0.5px; white-space: nowrap;
-            transition: background 0.2s;
-        }
-        .hero-search-btn:hover { background: var(--gold); color: var(--charcoal); }
-
-        /* cuisine quick-filter pills */
-        .hero-pills {
-            display: flex; gap: 8px; margin-top: 14px;
-            flex-wrap: wrap; justify-content: center;
-        }
-        .hero-pill {
-            background: rgba(255,255,255,0.10);
-            border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 20px; color: rgba(255,255,255,0.7);
-            font-size: 0.72rem; padding: 5px 13px; cursor: pointer;
-            transition: all 0.2s; font-weight: 500;
-        }
-        .hero-pill:hover { background: rgba(255,255,255,0.20); color: white; }
-
-        /* ── TRUST BAR ── */
-        .trust-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
-            gap: 10px;
-            padding: 20px 16px 0;
-            max-width: 1000px; margin: 0 auto;
-        }
-        .trust-item {
-            background: white; border-radius: var(--radius-md);
-            border: 1px solid var(--border);
-            padding: 14px 16px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .trust-icon {
-            width: 36px; height: 36px; border-radius: var(--radius-sm);
-            background: var(--gold-pale);
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-        }
-        .trust-icon svg { width: 18px; height: 18px; stroke: var(--gold-dark); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .trust-num { font-size: 1rem; font-weight: 600; color: var(--text-main); line-height: 1.2; }
-        .trust-label { font-size: 0.7rem; color: var(--text-muted); }
-
-        /* ── MAIN CONTAINER ── */
-        .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px; position: relative; z-index: 2; width: 100%; }
-
-        /* ── SECTION HEADERS ── */
-        .section-header {
-            display: flex; align-items: baseline; justify-content: space-between;
-            margin-bottom: 16px; margin-top: 28px;
-        }
-        .section-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.6rem; font-weight: 600; color: var(--text-main);
-        }
-        .section-link { font-size: 0.8rem; color: var(--gold-dark); font-weight: 500; cursor: pointer; }
-
-        /* ── RESTAURANT GRID ── */
-        .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-        @media(min-width: 600px) { .grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } }
-
-        /* ── RESTAURANT CARD ── */
-        .card {
-            background: white; border-radius: var(--radius-lg);
-            overflow: hidden; cursor: pointer;
-            border: 1px solid var(--border);
-            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-        }
-        .card:hover {
-            transform: translateY(-4px);
-            border-color: var(--border-gold);
-            box-shadow: 0 16px 40px rgba(26,23,20,0.10);
-        }
-        .card-img-wrapper { height: 190px; position: relative; overflow: hidden; }
-        .card-img { width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform 0.4s ease; }
-        .card:hover .card-img { transform: scale(1.04); }
-
-        .card-badge {
-            position: absolute; top: 12px; left: 12px;
-            background: var(--charcoal); color: white;
-            font-size: 0.65rem; font-weight: 600; letter-spacing: 0.5px;
-            text-transform: uppercase; border-radius: 6px; padding: 4px 9px;
-        }
-        .card-status-available {
-            position: absolute; top: 12px; right: 12px;
-            background: rgba(15,110,70,0.88); color: #9FE1CB;
-            font-size: 0.65rem; font-weight: 600; border-radius: 6px; padding: 4px 9px;
-        }
-        .card-status-busy {
-            position: absolute; top: 12px; right: 12px;
-            background: rgba(139,60,20,0.88); color: #F5C4B3;
-            font-size: 0.65rem; font-weight: 600; border-radius: 6px; padding: 4px 9px;
-        }
-
-        .card-content { padding: 16px 18px 18px; }
-        .card-tags { display: flex; gap: 7px; margin-bottom: 10px; }
-        .tag {
-            font-size: 0.65rem; font-weight: 700; padding: 4px 10px;
-            border-radius: 5px; text-transform: uppercase; letter-spacing: 0.3px;
-        }
-        .tag-cuisine { background: var(--gold-pale); color: var(--gold-dark); }
-        .tag-price { background: var(--input-bg); color: var(--text-muted); }
-
-        .card-title { font-size: 1.25rem; margin-bottom: 8px; color: var(--text-main); font-weight: 600; }
-        .card-details { font-size: 0.82rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 5px; }
-        .card-row { display: flex; align-items: center; gap: 6px; font-weight: 400; }
-        .card-row svg { width: 13px; height: 13px; stroke: var(--text-hint); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-
-        .btn-card {
-            display: flex; align-items: center; justify-content: space-between;
-            width: 100%; padding: 11px 14px;
-            background: var(--cream); border: 1px solid var(--border);
-            color: var(--text-main); border-radius: var(--radius-sm);
-            font-weight: 600; font-size: 0.82rem;
-            margin-top: 14px; cursor: pointer; transition: all 0.2s;
-            font-family: 'DM Sans', sans-serif;
-        }
-        .btn-card:hover { background: var(--charcoal); color: white; border-color: var(--charcoal); }
-        .btn-card svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .btn-busy { background: #f5f5f5 !important; color: #aaa !important; cursor: default !important; }
-
-        /* ── FORM ELEMENTS ── */
-        label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block; letter-spacing: 0.5px; text-transform: uppercase; }
-
-        .input-field, .code-select, .search-input, .filter-select {
-            background: var(--input-bg);
-            border: 1.5px solid transparent;
-            padding: 13px 14px; border-radius: var(--radius-md);
-            font-size: 15px; outline: none;
-            transition: all 0.25s;
-            font-family: 'DM Sans', sans-serif;
-            width: 100%; color: var(--text-main);
-            margin-bottom: 16px;
-        }
-        .input-field:focus, .code-select:focus, .search-input:focus, .filter-select:focus {
-            background: white;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
-        }
-        .input-field::placeholder { color: var(--text-hint); }
-
-        .phone-group { display: flex; gap: 10px; margin-bottom: 16px; }
-        .code-select { width: 160px !important; flex-shrink: 0; margin-bottom: 0; }
-
-        /* ── TIME SLOTS ── */
-        .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
-        .time-slot {
-            padding: 11px 5px; text-align: center;
-            background: white; border: 1.5px solid var(--border);
-            border-radius: var(--radius-sm); cursor: pointer;
-            font-weight: 600; font-size: 0.8rem; color: var(--text-main);
-            transition: all 0.18s; font-family: 'DM Sans', sans-serif;
-        }
-        .time-slot:hover { border-color: var(--gold); color: var(--gold-dark); }
-        .time-slot.selected { background: var(--charcoal); color: white; border-color: var(--charcoal); }
-        .time-slot.disabled { background: var(--input-bg); color: #ccc; cursor: not-allowed; border-color: transparent; }
-        .time-slot.warning { border-color: #E8A020; color: #B07010; }
-
-        /* ── FORM BOX ── */
-        .form-box {
-            background: white; padding: 28px;
+        /* ── LOGIN ── */
+        #login-view {
+            max-width: 360px; margin: 8vh auto;
+            background: var(--charcoal);
             border-radius: var(--radius-xl);
-            box-shadow: 0 8px 40px rgba(26,23,20,0.07);
-            max-width: 480px; margin: 0 auto;
-            border: 1px solid var(--border);
+            padding: 44px 36px;
+            box-shadow: 0 30px 80px rgba(26,23,20,0.25);
+            text-align: center;
         }
-
-        .form-back {
-            display: flex; align-items: center; gap: 6px;
-            cursor: pointer; color: var(--text-muted);
-            font-size: 0.82rem; font-weight: 500;
-            margin-bottom: 20px; border: none; background: none;
-            font-family: 'DM Sans', sans-serif; padding: 0;
-            transition: color 0.2s;
+        .login-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem; font-weight: 700;
+            color: white; margin-bottom: 4px;
         }
-        .form-back:hover { color: var(--text-main); }
-        .form-back svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-        .form-box h2 { font-size: 1.7rem; margin-bottom: 22px; color: var(--text-main); }
-
-        /* ── BUTTONS ── */
-        .btn-primary {
-            width: 100%; padding: 15px;
-            background: var(--charcoal); color: white;
+        .login-logo span { color: var(--gold); }
+        .login-sub {
+            font-size: 0.7rem; letter-spacing: 2px;
+            text-transform: uppercase; color: rgba(255,255,255,0.3);
+            margin-bottom: 32px;
+        }
+        #login-view input {
+            width: 100%; padding: 13px 16px;
+            background: rgba(255,255,255,0.07);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            border-radius: var(--radius-md);
+            color: white; font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+            outline: none; margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+        #login-view input::placeholder { color: rgba(255,255,255,0.3); }
+        #login-view input:focus {
+            border-color: rgba(201,168,76,0.6);
+            background: rgba(255,255,255,0.10);
+            color: white;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+        }
+        #login-view input:-webkit-autofill,
+        #login-view input:-webkit-autofill:focus {
+            -webkit-text-fill-color: white;
+            -webkit-box-shadow: 0 0 0px 1000px rgba(40,35,28,0.95) inset;
+        }
+        .btn-login {
+            width: 100%; padding: 14px;
+            background: var(--gold); color: var(--charcoal);
             border: none; border-radius: var(--radius-md);
-            cursor: pointer; font-size: 0.9rem; font-weight: 600;
-            font-family: 'DM Sans', sans-serif; margin-top: 8px;
-            transition: background 0.2s, transform 0.15s;
-            letter-spacing: 0.3px;
+            font-size: 0.9rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            margin-top: 4px; transition: background 0.2s;
         }
-        .btn-primary:hover { background: var(--charcoal-soft); }
-        .btn-primary:active { transform: scale(0.98); }
-        .btn-primary:disabled { background: #ccc !important; opacity: 0.7; cursor: not-allowed; }
+        .btn-login:hover { background: var(--gold-light); }
+        #login-msg { color: #F1948A; font-size: 0.8rem; margin-top: 12px; }
 
-        .btn-ghost {
-            background: none; border: none; width: 100%; padding: 14px;
-            cursor: pointer; color: var(--text-muted); font-weight: 600;
-            font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
-            transition: color 0.2s;
+        /* ── DASHBOARD HEADER ── */
+        .dash-header {
+            background: var(--charcoal);
+            border-radius: var(--radius-lg);
+            padding: 18px 22px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap; gap: 10px;
         }
-        .btn-ghost:hover { color: var(--text-main); }
-
-        .btn-cancel-user {
-            background: white; color: #C0392B;
-            border: 1.5px solid #E8C4C0; padding: 8px 15px;
-            border-radius: var(--radius-sm); cursor: pointer;
-            font-weight: 600; font-size: 0.75rem;
-            margin-top: 10px; font-family: 'DM Sans', sans-serif;
-            display: inline-block; transition: all 0.2s;
+        .dash-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.4rem; font-weight: 700; color: white;
         }
-        .btn-cancel-user:hover { background: #C0392B; color: white; border-color: #C0392B; }
-
-        .btn-review {
-            background: var(--gold-pale); color: var(--gold-dark);
-            border: 1.5px solid var(--border-gold); padding: 8px 15px;
-            border-radius: var(--radius-sm); cursor: pointer;
-            font-weight: 600; font-size: 0.75rem;
-            margin-top: 10px; font-family: 'DM Sans', sans-serif;
-            display: inline-block; transition: all 0.2s;
+        .dash-logo span { color: var(--gold); }
+        #manager-title {
+            font-size: 0.75rem; color: rgba(255,255,255,0.45);
+            font-family: 'DM Sans', sans-serif; font-weight: 500;
+            letter-spacing: 0.3px; margin-top: 2px;
         }
-        .btn-review:hover { background: var(--gold); color: white; border-color: var(--gold); }
-
-        /* ── CONFIRM DETAILS BOX ── */
-        .review-box {
-            background: var(--cream); padding: 18px 20px;
-            border-radius: var(--radius-md); margin: 18px 0;
-            border: 1px solid var(--cream-dark);
+        .btn-logout {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.55); font-size: 0.75rem;
+            font-weight: 500; font-family: 'DM Sans', sans-serif;
+            padding: 7px 14px; border-radius: 20px; cursor: pointer;
+            transition: all 0.2s;
         }
-        .review-box p { font-size: 0.87rem; color: var(--text-muted); padding: 5px 0; border-bottom: 1px solid var(--cream-dark); }
-        .review-box p:last-child { border-bottom: none; }
-        .review-box p strong { color: var(--text-main); }
+        .btn-logout:hover { background: var(--red); border-color: var(--red); color: white; }
 
-        /* ── SUCCESS STATE ── */
-        .success-animation {
-            width: 72px; height: 72px; border-radius: 50%;
-            background: linear-gradient(135deg, #27AE60, #2ECC71);
-            color: white; display: flex; justify-content: center;
-            align-items: center; margin: 0 auto 18px; font-size: 32px;
+        /* ── TABS ── */
+        .view-tabs {
+            display: flex; flex-wrap: wrap; gap: 6px;
+            background: white; padding: 5px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            margin-bottom: 14px; align-items: center;
+        }
+        .tab-btn {
+            background: none; border: none;
+            padding: 8px 14px; border-radius: var(--radius-sm);
+            font-weight: 600; color: var(--text-hint);
+            cursor: pointer; transition: all 0.2s;
+            font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
+        }
+        .tab-btn.active { background: var(--charcoal); color: white; }
+        .tab-btn:hover:not(.active) { background: var(--input-bg); color: var(--text-main); }
+
+        #btn-pause-today {
+            margin-left: auto;
+            border: 1.5px solid var(--red) !important;
+            color: var(--red) !important;
+            background: none;
+        }
+        #btn-pause-today.paused {
+            background: var(--red) !important;
+            color: white !important;
         }
 
-        /* ── MY BOOKINGS CARD ── */
-        .my-booking-card {
-            background: var(--cream); padding: 18px 20px;
-            border-radius: var(--radius-md); margin-bottom: 12px;
-            border-left: 3px solid var(--gold);
-            border-top: 1px solid var(--cream-dark);
-            border-right: 1px solid var(--cream-dark);
+        /* ── STATS GRID ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px; margin-bottom: 16px;
+        }
+        .time-card {
+            grid-column: 1 / -1;
+            background: var(--charcoal);
+            color: var(--gold-light);
+            padding: 12px; border-radius: var(--radius-md);
+            text-align: center; font-weight: 700;
+            font-size: 1.2rem; letter-spacing: 2px;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .stat-card {
+            background: white; padding: 18px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .stat-val {
+            display: block; font-size: 2rem;
+            font-weight: 700; color: var(--text-main);
+            line-height: 1.1; font-family: 'DM Sans', sans-serif;
+        }
+        .stat-limit {
+            display: block; font-size: 0.72rem;
+            color: var(--text-hint); margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 0.62rem; text-transform: uppercase;
+            letter-spacing: 1px; font-weight: 700; color: var(--text-hint);
+        }
+
+        /* ── DATE HEADER ── */
+        .date-header {
+            position: sticky; top: 0; z-index: 10;
+            background: rgba(242,237,230,0.95);
+            backdrop-filter: blur(8px);
+            padding: 10px 0; margin: 16px 0 8px;
+            font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-hint);
             border-bottom: 1px solid var(--cream-dark);
         }
-        .my-booking-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 6px; }
-        .my-booking-card p { font-size: 0.83rem; color: var(--text-muted); margin-bottom: 3px; }
 
-        /* ── POLICY BOX ── */
-        .policy-box {
-            background: var(--cream); padding: 14px 16px;
-            border-radius: var(--radius-sm); margin: 16px 0;
-            font-size: 0.82rem; color: var(--text-muted);
-            display: flex; align-items: flex-start; gap: 10px;
-            border: 1px solid var(--cream-dark); line-height: 1.5;
+        /* ── BOOKING CARD ── */
+        .booking-card {
+            background: white; padding: 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            border-left: 5px solid var(--border);
+            display: flex; flex-direction: column; gap: 10px;
+            position: relative; transition: box-shadow 0.2s;
         }
-        .policy-box input { margin-top: 3px; accent-color: var(--gold); flex-shrink: 0; }
+        .booking-card:hover { box-shadow: 0 4px 20px rgba(26,23,20,0.08); }
 
-        /* ── MODALS ── */
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(20,16,12,0.65); backdrop-filter: blur(10px); }
-        .modal-content {
-            background: white; width: 90%; max-width: 400px;
-            margin: 12vh auto; padding: 32px;
-            border-radius: var(--radius-xl); text-align: left; position: relative;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.25);
-            animation: modalIn 0.25s ease-out;
+        /* Status left-border colors */
+        .status-Pending   { border-left-color: var(--orange); }
+        .status-Accepted  { border-left-color: var(--green); }
+        .status-Seated    { border-left-color: var(--blue); background: #F4F8FB; }
+        .status-Finished  { border-left-color: var(--text-hint); opacity: 0.82; }
+        .status-No-Show   { border-left-color: var(--red); background: var(--red-pale); opacity: 0.75; }
+        .status-Declined  { border-left-color: var(--text-hint); background: var(--cream); opacity: 0.7; }
+        .status-History   { border-left-color: var(--red); background: var(--red-pale); opacity: 0.7; }
+
+        .card-title { font-size: 1rem; font-weight: 700; color: var(--text-main); font-family: 'DM Sans', sans-serif; }
+        .card-meta {
+            font-size: 0.8rem; color: var(--text-muted);
+            display: flex; gap: 10px; flex-wrap: wrap;
+            font-weight: 500;
         }
-        @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: none; } }
-        .modal-content h2 { font-size: 1.6rem; margin-bottom: 22px; }
-        .modal-close {
-            position: absolute; top: 18px; right: 18px;
+        .card-meta span { display: flex; align-items: center; gap: 4px; }
+
+        /* ── DECISION BUTTONS ── */
+        .btn-decision-row { display: flex; gap: 8px; }
+        .btn-decision {
+            flex: 1; padding: 11px;
+            border-radius: var(--radius-sm); border: none;
+            font-weight: 700; cursor: pointer;
+            font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
+            transition: all 0.18s;
+        }
+        .btn-accept { background: var(--green-pale); color: #1A6B3C; }
+        .btn-accept:hover { background: #27AE60; color: white; }
+        .btn-decline { background: var(--red-pale); color: var(--red); }
+        .btn-decline:hover { background: var(--red); color: white; }
+        .btn-seated { background: var(--blue-pale); color: var(--blue); }
+        .btn-seated:hover { background: var(--blue); color: white; }
+        .btn-noshow { background: var(--red-pale); color: var(--red); }
+        .btn-noshow:hover { background: var(--red); color: white; }
+        .btn-finish {
+            width: 100%; background: var(--input-bg);
+            color: var(--text-muted);
+            border: 1.5px solid var(--border);
+        }
+        .btn-finish:hover { background: var(--charcoal); color: white; border-color: var(--charcoal); }
+
+        .status-label {
+            font-size: 0.75rem; font-weight: 700;
+            padding: 6px 0; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* ── ACTION ICONS ── */
+        .actions {
+            position: absolute; top: 14px; right: 14px;
+            display: flex; gap: 5px;
+        }
+        .btn-icon {
             background: var(--input-bg); border: none;
-            font-size: 1.1rem; color: var(--text-muted);
-            cursor: pointer; width: 32px; height: 32px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            transition: background 0.2s;
+            width: 30px; height: 30px; border-radius: var(--radius-sm);
+            cursor: pointer; display: flex;
+            justify-content: center; align-items: center;
+            font-size: 0.85rem; transition: background 0.15s;
         }
-        .modal-close:hover { background: var(--cream-dark); }
+        .btn-icon:hover { background: var(--cream-dark); }
+        .btn-icon.delete:hover { background: var(--red-pale); }
 
-        /* ── PAGE TRANSITIONS ── */
-        .page-section { display: none; animation: slideUp 0.3s ease-out; }
-        .active-section { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        /* ── BADGES ── */
+        .badges-row { display: flex; flex-wrap: wrap; gap: 6px; }
+        .vip-badge {
+            background: var(--gold-pale); color: var(--gold-dark);
+            border: 1px solid var(--border-gold);
+            padding: 5px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .yellow-flag {
+            background: var(--orange-pale); color: var(--orange);
+            border: 1px solid rgba(214,137,16,0.3);
+            padding: 5px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .red-flag {
+            background: var(--red-pale); color: var(--red);
+            border: 1px solid rgba(192,57,43,0.25);
+            padding: 5px 10px; border-radius: 6px;
+            font-size: 0.72rem; font-weight: 700;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
 
-        /* ── BOTTOM NAV ── */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: rgba(255,255,255,0.97);
-            backdrop-filter: blur(16px);
-            display: flex; justify-content: space-around; align-items: center;
-            padding: 10px 0 24px;
-            box-shadow: 0 -1px 0 var(--border);
-            z-index: 1000;
+        /* ── REVIEW BOX ── */
+        .review-box {
+            background: var(--gold-pale); border: 1px solid var(--border-gold);
+            padding: 12px; border-radius: var(--radius-sm); margin-top: 4px;
         }
-        .nav-tab {
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
-            color: var(--text-hint); text-decoration: none;
-            font-size: 0.68rem; font-weight: 600; letter-spacing: 0.3px;
-            transition: color 0.2s; cursor: pointer; width: 33%;
-        }
-        .nav-tab.active { color: var(--gold-dark); }
-        .nav-icon { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
+        .review-box p { margin: 0; font-size: 0.78rem; color: var(--gold-dark); font-weight: 700; }
+        .review-box .stars { font-size: 0.85rem; margin: 4px 0; }
+        .review-box .comment { color: var(--text-muted); font-style: italic; font-weight: 400; }
 
-        /* ── FOOTER ── */
-        .footer { text-align: center; padding: 24px 20px; color: var(--text-hint); font-size: 0.78rem; }
-
-        /* ── PROFILE OVERLAY ── */
-        .profile-overlay {
-            display: none; position: fixed; inset: 0; z-index: 998;
-            background: var(--cream); overflow-y: auto; overflow-x: hidden;
-        }
-        .profile-overlay.open { animation: slideInUp 0.3s cubic-bezier(0.16,1,0.3,1); }
-        @keyframes slideInUp { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
-
-        .profile-hero {
-            width: 100%; height: 240px; position: relative; overflow: hidden;
-            background: var(--charcoal); flex-shrink: 0;
-        }
-        .profile-hero-img {
-            position: absolute; inset: 0;
-            background-size: cover; background-position: center;
-            transition: background-image 0.25s ease;
-        }
-        .profile-hero-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(26,23,20,0.72) 100%);
-        }
-        .profile-back-btn {
-            position: absolute; top: 16px; left: 16px; z-index: 2;
-            background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 20px; color: white; font-size: 0.8rem; font-weight: 600;
-            padding: 8px 16px; cursor: pointer;
-            font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 6px;
-        }
-        .profile-back-btn svg { width: 14px; height: 14px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .profile-hero-info {
-            position: absolute; bottom: 16px; left: 20px; right: 20px; z-index: 2;
-        }
-        .profile-name {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 2rem; font-weight: 700; color: white;
-            text-shadow: 0 2px 16px rgba(0,0,0,0.5); margin-bottom: 8px;
-        }
-        .profile-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-        .profile-tag {
-            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 20px; color: white; font-size: 0.72rem; font-weight: 600; padding: 4px 12px;
-        }
-        .profile-tag.gold { background: rgba(201,168,76,0.3); border-color: rgba(201,168,76,0.5); color: var(--gold-light); }
-
-        /* Gallery */
-        .gallery-strip {
-            background: white; border-bottom: 1px solid var(--border);
-            display: flex; gap: 8px; padding: 10px 14px;
-            overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
-        }
-        .gallery-strip::-webkit-scrollbar { display: none; }
-        .gallery-thumb {
-            width: 68px; height: 52px; flex-shrink: 0;
-            background-size: cover; background-position: center;
+        /* ── ASK REVIEW BUTTON ── */
+        .btn-ask-review {
+            background: none; border: 1.5px solid var(--green);
+            color: var(--green); padding: 8px 14px;
             border-radius: var(--radius-sm); cursor: pointer;
-            border: 2px solid transparent; opacity: 0.6; transition: all 0.2s;
+            font-size: 0.75rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            width: 100%; margin-top: 4px; transition: all 0.2s;
         }
-        .gallery-thumb.active { border-color: var(--gold); opacity: 1; }
-        .gallery-thumb:hover { opacity: 0.9; }
+        .btn-ask-review:hover { background: var(--green); color: white; }
 
-        /* Body */
-        .profile-body { padding: 0 16px 20px; max-width: 700px; margin: 0 auto; }
-        .profile-section { margin-top: 20px; }
-        .profile-section-title {
-            font-size: 0.65rem; font-weight: 700; color: var(--gold-dark);
-            text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;
-            display: flex; align-items: center; gap: 8px;
+        /* ── MODAL ── */
+        .modal {
+            display: none; position: fixed; z-index: 999;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(20,16,12,0.7);
+            backdrop-filter: blur(8px);
+            justify-content: center; align-items: center;
         }
-        .profile-section-title::before { content:''; width:3px; height:14px; background:var(--gold); border-radius:2px; display:block; }
-
-        .profile-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .profile-info-item {
-            background: white; border-radius: var(--radius-md);
-            border: 1px solid var(--border); padding: 13px 14px;
-            display: flex; align-items: center; gap: 10px;
+        .modal-content {
+            background: white; padding: 28px;
+            border-radius: var(--radius-xl);
+            width: 90%; max-width: 400px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+            animation: modalIn 0.22s ease-out;
         }
-        .profile-info-item svg { width: 16px; height: 16px; stroke: var(--gold-dark); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-        .profile-info-label { font-size: 0.62rem; color: var(--text-hint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        .profile-info-value { font-size: 0.83rem; color: var(--text-main); font-weight: 600; margin-top: 2px; }
-        .profile-description { background: white; border-radius: var(--radius-md); border: 1px solid var(--border); padding: 16px 18px; font-size: 0.88rem; color: var(--text-muted); line-height: 1.75; }
-        .menu-images { display: flex; flex-direction: column; gap: 10px; }
-        .menu-img { width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border); cursor: pointer; display: block; }
-        .menu-pdf-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--charcoal); color: white; border: none; border-radius: var(--radius-md); padding: 14px; font-size: 0.88rem; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; text-decoration: none; }
-        .reviews-summary { background: var(--charcoal); border-radius: var(--radius-lg); padding: 18px; display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
-        .reviews-score { font-family: 'Cormorant Garamond', serif; font-size: 2.8rem; font-weight: 700; color: var(--gold); line-height: 1; }
-        .reviews-stars { font-size: 1rem; margin-bottom: 4px; }
-        .reviews-count { font-size: 0.72rem; color: rgba(255,255,255,0.45); }
-        .review-item { background: white; border-radius: var(--radius-md); border: 1px solid var(--border); padding: 13px 15px; margin-bottom: 8px; }
-        .review-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .review-item-name { font-weight: 700; font-size: 0.85rem; color: var(--text-main); }
-        .review-item-date { font-size: 0.7rem; color: var(--text-hint); }
-        .review-item-stars { font-size: 0.85rem; margin-bottom: 4px; }
-        .review-item-text { font-size: 0.82rem; color: var(--text-muted); font-style: italic; line-height: 1.5; margin-top: 4px; }
-
-        /* Reserve button — at BOTTOM of scroll content, NOT fixed */
-        .profile-reserve-bar {
-            padding: 16px 16px 20px;
-            background: var(--cream);
-            border-top: 1px solid var(--border);
-            margin-top: 20px;
+        @keyframes modalIn { from { opacity:0; transform:translateY(16px) scale(0.97); } to { opacity:1; transform:none; } }
+        .modal-content h3 {
+            font-size: 1.4rem; margin-bottom: 20px;
+            color: var(--text-main);
         }
-        .btn-profile-reserve {
-            width: 100%; padding: 15px;
+        .modal-label {
+            font-size: 0.68rem; font-weight: 700;
+            color: var(--text-muted); display: block;
+            margin-bottom: 5px; margin-top: 12px;
+            letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        .modal-input {
+            width: 100%; padding: 12px 14px;
+            background: var(--input-bg);
+            border: 1.5px solid transparent;
+            border-radius: var(--radius-md);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px; color: var(--text-main);
+            outline: none; transition: all 0.2s;
+            margin-bottom: 0;
+        }
+        .modal-input:focus {
+            background: white; border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+        }
+        .modal-row { display: flex; gap: 10px; margin-top: 12px; }
+        .modal-row > div { flex: 1; }
+        .btn-save {
+            width: 100%; padding: 14px;
             background: var(--charcoal); color: white;
             border: none; border-radius: var(--radius-md);
-            font-size: 1rem; font-weight: 700;
-            font-family: 'DM Sans', sans-serif; cursor: pointer;
-            transition: background 0.2s;
+            font-size: 0.9rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer; margin-top: 18px; transition: background 0.2s;
         }
-        .btn-profile-reserve:hover { background: var(--gold); color: var(--charcoal); }
+        .btn-save:hover { background: var(--charcoal-soft); }
+        .btn-modal-cancel {
+            width: 100%; background: none; border: none;
+            color: var(--text-hint); padding: 13px;
+            cursor: pointer; font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem; font-weight: 500; margin-top: 4px;
+            transition: color 0.2s;
+        }
+        .btn-modal-cancel:hover { color: var(--text-main); }
 
-        /* Fullscreen image viewer */
-        .img-viewer { display: none; position: fixed; inset: 0; z-index: 1002; background: rgba(0,0,0,0.95); justify-content: center; align-items: center; }
-        .img-viewer img { max-width: 95vw; max-height: 90vh; object-fit: contain; border-radius: var(--radius-md); }
-        .img-viewer-close { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.15); border: none; color: white; font-size: 1.2rem; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        /* ── FAB ── */
+        .action-bar { position: fixed; bottom: 24px; right: 20px; z-index: 90; }
+        .btn-add {
+            background: var(--charcoal); color: white;
+            border: none; width: 56px; height: 56px;
+            border-radius: 50%; font-size: 22px;
+            box-shadow: 0 8px 24px rgba(26,23,20,0.3);
+            cursor: pointer; display: flex;
+            justify-content: center; align-items: center;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .btn-add:hover { background: var(--gold); transform: scale(1.08); }
 
-        /* ── LOADER ── */
-        .loader-wrap { text-align: center; padding: 60px 20px; color: var(--text-hint); font-size: 0.88rem; }
+        /* ── WAITLIST CARD ── */
+        .wl-group-header {
+            font-size: 0.68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--gold-dark); padding: 10px 0 6px;
+            border-bottom: 1px solid var(--gold-pale);
+            margin-bottom: 8px; margin-top: 16px;
+        }
+        .wl-card {
+            background: white; border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--gold);
+            padding: 14px 16px; margin-bottom: 8px;
+            display: flex; align-items: center;
+            justify-content: space-between; gap: 12px;
+        }
+        .wl-card.contacted { opacity: 0.5; border-left-color: var(--green); }
+        .wl-name { font-weight: 700; font-size: 0.9rem; color: var(--text-main); }
+        .wl-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
+        .wl-actions { display: flex; gap: 6px; flex-shrink: 0; }
+        .btn-wl-contact {
+            background: #25D366; color: white;
+            border: none; border-radius: var(--radius-sm);
+            padding: 8px 12px; font-size: 0.75rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            transition: background 0.2s; white-space: nowrap;
+        }
+        .btn-wl-contact:hover { background: #1da851; }
+        .btn-wl-remove {
+            background: var(--red-pale); color: var(--red);
+            border: 1px solid rgba(192,57,43,0.2);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px; font-size: 0.75rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-wl-remove:hover { background: var(--red); color: white; }
 
-        /* ── SEARCH MODAL ADJUSTMENTS ── */
-        .filter-row { display: flex; gap: 10px; }
-        .filter-row > div { flex: 1; }
+        /* ── MISC ── */
+        .hidden { display: none !important; }
+
+        .section-title-staff {
+            font-size: 0.65rem; font-weight: 700; color: var(--gold-dark);
+            text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+        }
+        .section-title-staff::before {
+            content: ''; display: block; width: 3px; height: 14px;
+            background: var(--gold); border-radius: 2px;
+        }
+        .empty-state {
+            text-align: center; padding: 50px 20px;
+            color: var(--text-hint); font-size: 0.85rem;
+        }
+        .empty-state .icon { font-size: 2rem; margin-bottom: 8px; }
+
+        /* ── BLOCK SLOTS ── */
+        .block-slot-btn {
+            padding: 10px 4px; text-align: center;
+            background: white; border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm); cursor: pointer;
+            font-size: 0.75rem; font-weight: 600;
+            color: var(--text-main); font-family: 'DM Sans', sans-serif;
+            transition: all 0.15s;
+        }
+        .block-slot-btn:hover { border-color: var(--red); color: var(--red); }
+        .block-slot-btn.selected { background: var(--red); color: white; border-color: var(--red); }
+        .block-slot-btn.already-blocked { background: var(--input-bg); color: var(--text-hint); cursor: default; border-style: dashed; }
+
+        /* ── CURRENT BLOCK ITEM ── */
+        .block-item {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding: 13px 0; border-bottom: 1px solid var(--cream-dark);
+        }
+        .block-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .block-item-date { font-weight: 700; font-size: 0.88rem; color: var(--text-main); margin-bottom: 4px; }
+        .block-item-type { font-size: 0.75rem; color: var(--text-muted); }
+        .btn-unblock {
+            background: var(--red-pale); color: var(--red);
+            border: 1px solid rgba(192,57,43,0.2);
+            padding: 6px 12px; border-radius: var(--radius-sm);
+            font-size: 0.72rem; font-weight: 700;
+            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            transition: all 0.2s; flex-shrink: 0;
+        }
+        .btn-unblock:hover { background: var(--red); color: white; }
     </style>
 </head>
 <body>
 
-    <!-- TOP NAV -->
-    <div class="top-nav">
-        <a href="#" onclick="goHome()" class="nav-logo">Tawelty<span>.</span></a>
-        <div class="nav-links">
-            <a href="index_ar.html" class="nav-item">العربية 🇸🇾</a>
+    <!-- ── LOGIN ── -->
+    <div id="login-view" class="container">
+        <div class="login-logo">Tawelty<span>.</span></div>
+        <div class="login-sub">Staff Portal · Secure Access</div>
+        <input type="text" id="email" placeholder="Username" autocomplete="off">
+        <input type="password" id="password" placeholder="Password" onkeydown="if(event.key==='Enter') login()">
+        <button class="btn-login" onclick="login()">Enter Dashboard →</button>
+        <p id="login-msg" class="hidden"></p>
+        <div style="margin-top:20px; text-align:center;">
+            <a href="index_ar.html" style="font-size:0.78rem; color:rgba(255,255,255,0.4); text-decoration:none; font-family:'DM Sans',sans-serif; border:1px solid rgba(255,255,255,0.15); padding:6px 16px; border-radius:20px; transition:all 0.2s;" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold)'" onmouseout="this.style.color='rgba(255,255,255,0.4)';this.style.borderColor='rgba(255,255,255,0.15)'">عربية 🇸🇾</a>
         </div>
     </div>
 
-    <!-- HERO -->
-    <div class="hero hero-container">
-        <div class="hero-eyebrow">Premium Reservations · Damascus</div>
-        <h1>Tawelty</h1>
-        <p class="hero-sub">Discover and book the finest restaurants — instantly</p>
+    <!-- ── DASHBOARD ── -->
+    <div id="dashboard-view" class="container hidden">
 
-        <div class="hero-search">
-            <div class="hero-search-field">
-                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="hero-search-input" placeholder="Restaurant, cuisine, or area…" onkeyup="heroSearch()" />
-            </div>
-            <button class="hero-search-btn" onclick="openSearch()">Search</button>
-        </div>
-
-        <div class="hero-pills">
-            <span class="hero-pill" onclick="filterByCuisine('Turkish')">Turkish</span>
-            <span class="hero-pill" onclick="filterByCuisine('Lebanese')">Lebanese</span>
-            <span class="hero-pill" onclick="filterByCuisine('Grills')">Grills</span>
-            <span class="hero-pill" onclick="filterByCuisine('Asian')">Asian</span>
-            <span class="hero-pill" onclick="filterByCuisine('Café')">Café</span>
-        </div>
-    </div>
-
-    <!-- TRUST BAR -->
-    <div class="trust-bar" id="trust-bar">
-        <div class="trust-item">
-            <div class="trust-icon">
-                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            </div>
+        <!-- Header -->
+        <div class="dash-header">
             <div>
-                <div class="trust-num" id="trust-count">—</div>
-                <div class="trust-label">Restaurants</div>
+                <div class="dash-logo">Tawelty<span>.</span></div>
+                <div id="manager-title">Loading…</div>
             </div>
-        </div>
-        <div class="trust-item">
-            <div class="trust-icon">
-                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <div>
-                <div class="trust-num">Instant</div>
-                <div class="trust-label">Confirmation</div>
-            </div>
-        </div>
-        <div class="trust-item">
-            <div class="trust-icon">
-                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            </div>
-            <div>
-                <div class="trust-num">WhatsApp</div>
-                <div class="trust-label">Confirmation</div>
-            </div>
-        </div>
-        <div class="trust-item">
-            <div class="trust-icon">
-                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            </div>
-            <div>
-                <div class="trust-num">Free</div>
-                <div class="trust-label">No booking fees</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="container">
-
-        <!-- HOME PAGE -->
-        <div id="home-page" class="page-section active-section">
-            <div class="section-header">
-                <div class="section-title">Available Restaurants</div>
-                <span class="section-link" onclick="openSearch()">Filter →</span>
-            </div>
-            <div id="loader-main" class="loader-wrap">Loading restaurants…</div>
-            <div id="restaurant-list-container" class="grid"></div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                    <a href="index_ar.html" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.6); font-size:0.75rem; font-weight:500; font-family:'DM Sans',sans-serif; padding:7px 14px; border-radius:20px; cursor:pointer; text-decoration:none;">عربية</a>
+                    <button class="btn-logout" onclick="logout()">Sign Out</button>
+                </div>
         </div>
 
-        <!-- BOOKING PAGE -->
-        <div id="booking-page" class="page-section">
-            <div class="form-box">
-                <button class="form-back" onclick="goHome()">
-                    <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                    Back to Restaurants
+        <!-- Tabs -->
+        <div class="view-tabs">
+            <button id="tab-active" class="tab-btn active" onclick="setView('active')">🔴 Live</button>
+            <button id="tab-past"   class="tab-btn" onclick="setView('past')">Past</button>
+            <button id="tab-history" class="tab-btn" onclick="setView('history')">Canceled</button>
+            <button id="tab-blocked" class="tab-btn" onclick="setView('blocked')">🚫 Blocked</button>
+            <button id="tab-waitlist" class="tab-btn" onclick="setView('waitlist')" style="color:var(--gold-dark); border:1.5px solid var(--border-gold);">⏳ Waitlist</button>
+            <button id="tab-profile" class="tab-btn" onclick="setView('profile')" style="color:var(--blue); border:1.5px solid rgba(36,113,163,0.3);">✨ Profile</button>
+            <button id="btn-pause-today" class="tab-btn" onclick="togglePauseToday()">⏸ Pause</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="time-card" id="current-hour-display">--:--:--</div>
+            <div class="stat-card">
+                <span class="stat-val" id="live-guests">0</span>
+                <span class="stat-limit" id="max-guests">/ 0 Cap</span>
+                <span class="stat-label">Live Guests</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-val" id="live-tables">0</span>
+                <span class="stat-limit" id="max-tables">/ 0 Tables</span>
+                <span class="stat-label">Live Tables</span>
+            </div>
+        </div>
+
+        <!-- Bookings -->
+        <div id="bookings-list">
+            <div class="empty-state"><div class="icon">⏳</div>Connecting…</div>
+        </div>
+
+        <!-- ── BLOCKED DATES PANEL ── -->
+        <div id="blocked-panel" class="hidden">
+
+            <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
+                <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Manage Blocked Dates</div>
+                <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">Block full days or specific time slots — customers won't be able to book them online.</div>
+            </div>
+
+            <!-- ADD NEW BLOCK CARD -->
+            <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:14px;">
+                <div style="font-size:0.65rem; font-weight:700; color:var(--gold-dark); text-transform:uppercase; letter-spacing:2px; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                    <span style="width:3px; height:14px; background:var(--gold); border-radius:2px; display:inline-block;"></span>
+                    Add New Block
+                </div>
+
+                <label class="modal-label">Select Date</label>
+                <input type="date" id="block-date" class="modal-input" style="margin-bottom:14px;" onchange="onBlockDateChange()">
+
+                <label class="modal-label">Block Type</label>
+                <div style="display:flex; gap:8px; margin-bottom:14px;">
+                    <button id="block-type-full" class="tab-btn active" style="flex:1; border:1.5px solid var(--charcoal);" onclick="setBlockType('full')">🚫 Full Day</button>
+                    <button id="block-type-slots" class="tab-btn" style="flex:1; border:1.5px solid var(--border);" onclick="setBlockType('slots')">🕐 Specific Times</button>
+                </div>
+
+                <!-- SLOT PICKER (shown when type = slots) -->
+                <div id="slot-picker" class="hidden">
+                    <label class="modal-label">Select Time Slots to Block</label>
+                    <div id="block-slot-grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:7px; margin-bottom:14px;">
+                        <div style="grid-column:1/-1; text-align:center; color:var(--text-hint); font-size:0.82rem; padding:10px;">Select a date first</div>
+                    </div>
+                </div>
+
+                <button onclick="saveBlock()" style="width:100%; padding:13px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.88rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.2s;">
+                    Save Block
                 </button>
-                <h2 id="selected-restaurant-title">Book a Table</h2>
+                <div id="block-save-msg" style="display:none; background:var(--green-pale); color:var(--green); border:1px solid rgba(39,174,96,0.25); padding:10px 14px; border-radius:var(--radius-sm); text-align:center; font-size:0.82rem; font-weight:600; margin-top:10px;"></div>
+            </div>
 
-                <!-- STEP 1 -->
-                <div id="step1">
-                    <label>Full Name</label>
-                    <input type="text" class="input-field" id="name" placeholder="First and Last Name">
-
-                    <label>Phone Number (WhatsApp)</label>
-                    <div class="phone-group">
-                        <select id="phone-code" class="code-select">
-                            <option value="963" selected>🇸🇾 +963 Syria</option>
-                            <option value="961">🇱🇧 +961 Lebanon</option>
-                            <option value="971">🇦🇪 +971 UAE</option>
-                            <option value="966">🇸🇦 +966 Saudi Arabia</option>
-                            <option value="962">🇯🇴 +962 Jordan</option>
-                            <option value="964">🇮🇶 +964 Iraq</option>
-                            <option value="20">🇪🇬 +20 Egypt</option>
-                            <option value="974">🇶🇦 +974 Qatar</option>
-                            <option value="965">🇰🇼 +965 Kuwait</option>
-                            <option value="968">🇴🇲 +968 Oman</option>
-                            <option value="973">🇧🇭 +973 Bahrain</option>
-                            <option value="967">🇾🇪 +967 Yemen</option>
-                            <option value="212">🇲🇦 +212 Morocco</option>
-                            <option value="216">🇹🇳 +216 Tunisia</option>
-                            <option value="213">🇩🇿 +213 Algeria</option>
-                            <option value="218">🇱🇾 +218 Libya</option>
-                            <option value="249">🇸🇩 +249 Sudan</option>
-                            <option value="90">🇹🇷 +90 Turkey</option>
-                            <option value="98">🇮🇷 +98 Iran</option>
-                            <option value="44">🇬🇧 +44 United Kingdom</option>
-                            <option value="33">🇫🇷 +33 France</option>
-                            <option value="49">🇩🇪 +49 Germany</option>
-                            <option value="39">🇮🇹 +39 Italy</option>
-                            <option value="34">🇪🇸 +34 Spain</option>
-                            <option value="31">🇳🇱 +31 Netherlands</option>
-                            <option value="32">🇧🇪 +32 Belgium</option>
-                            <option value="41">🇨🇭 +41 Switzerland</option>
-                            <option value="43">🇦🇹 +43 Austria</option>
-                            <option value="48">🇵🇱 +48 Poland</option>
-                            <option value="351">🇵🇹 +351 Portugal</option>
-                            <option value="30">🇬🇷 +30 Greece</option>
-                            <option value="46">🇸🇪 +46 Sweden</option>
-                            <option value="47">🇳🇴 +47 Norway</option>
-                            <option value="45">🇩🇰 +45 Denmark</option>
-                            <option value="358">🇫🇮 +358 Finland</option>
-                            <option value="7">🇷🇺 +7 Russia</option>
-                            <option value="380">🇺🇦 +380 Ukraine</option>
-                            <option value="1">🇺🇸 +1 United States</option>
-                            <option value="1">🇨🇦 +1 Canada</option>
-                            <option value="52">🇲🇽 +52 Mexico</option>
-                            <option value="55">🇧🇷 +55 Brazil</option>
-                            <option value="54">🇦🇷 +54 Argentina</option>
-                            <option value="57">🇨🇴 +57 Colombia</option>
-                            <option value="56">🇨🇱 +56 Chile</option>
-                            <option value="51">🇵🇪 +51 Peru</option>
-                            <option value="91">🇮🇳 +91 India</option>
-                            <option value="92">🇵🇰 +92 Pakistan</option>
-                            <option value="880">🇧🇩 +880 Bangladesh</option>
-                            <option value="94">🇱🇰 +94 Sri Lanka</option>
-                            <option value="86">🇨🇳 +86 China</option>
-                            <option value="81">🇯🇵 +81 Japan</option>
-                            <option value="82">🇰🇷 +82 South Korea</option>
-                            <option value="65">🇸🇬 +65 Singapore</option>
-                            <option value="60">🇲🇾 +60 Malaysia</option>
-                            <option value="62">🇮🇩 +62 Indonesia</option>
-                            <option value="63">🇵🇭 +63 Philippines</option>
-                            <option value="66">🇹🇭 +66 Thailand</option>
-                            <option value="84">🇻🇳 +84 Vietnam</option>
-                            <option value="61">🇦🇺 +61 Australia</option>
-                            <option value="64">🇳🇿 +64 New Zealand</option>
-                            <option value="27">🇿🇦 +27 South Africa</option>
-                            <option value="234">🇳🇬 +234 Nigeria</option>
-                            <option value="254">🇰🇪 +254 Kenya</option>
-                            <option value="233">🇬🇭 +233 Ghana</option>
-                            <option value="251">🇪🇹 +251 Ethiopia</option>
-                            <option value="255">🇹🇿 +255 Tanzania</option>
-                            <option value="256">🇺🇬 +256 Uganda</option>
-                        </select>
-                        <input type="tel" class="input-field" id="phone" placeholder="09…" style="margin-bottom:0;">
-                    </div>
-
-                    <div style="display:flex; gap:10px; margin-top:4px;">
-                        <div style="flex:1;">
-                            <label>Date</label>
-                            <input type="date" class="input-field" id="date" onchange="updateTimeSlots()" style="margin-bottom:0;">
-                        </div>
-                        <div style="flex:1;">
-                            <label>Guests</label>
-                            <input type="number" class="input-field" id="persons" value="2" min="1" max="20" onchange="updateTimeSlots()" style="margin-bottom:0;">
-                        </div>
-                    </div>
-
-                    <label style="margin-top:18px;">Available Times</label>
-                    <div id="time-grid" class="time-grid">
-                        <div style="grid-column:1/-1; text-align:center; color:var(--text-hint); padding:20px; font-size:0.85rem;">Please select date & guests first</div>
-                    </div>
-                    <input type="hidden" id="selected-time-value">
-
-                    <button class="btn-primary" onclick="goToReview()">Continue →</button>
+            <!-- CURRENT BLOCKS LIST -->
+            <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px;">
+                <div style="font-size:0.65rem; font-weight:700; color:var(--gold-dark); text-transform:uppercase; letter-spacing:2px; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                    <span style="width:3px; height:14px; background:var(--gold); border-radius:2px; display:inline-block;"></span>
+                    Currently Blocked
                 </div>
-
-                <!-- STEP 2 -->
-                <div id="step2" style="display:none;">
-                    <h2 style="margin-bottom:6px;">Confirm Details</h2>
-                    <p style="color:var(--text-muted); font-size:0.83rem; margin-bottom:16px;">Please review your booking before confirming.</p>
-                    <div class="review-box">
-                        <p><strong>Venue:</strong> <span id="rev-loc"></span></p>
-                        <p><strong>Name:</strong> <span id="rev-name"></span></p>
-                        <p><strong>Phone:</strong> <span id="rev-phone-display"></span></p>
-                        <p><strong>Time:</strong> <span id="rev-time-display"></span></p>
-                        <p><strong>Guests:</strong> <span id="rev-guests"></span></p>
-                        <p><strong>Duration:</strong> <span id="rev-duration"></span></p>
-                    </div>
-
-                    <div class="policy-box">
-                        <input type="checkbox" id="policy-check" onchange="toggleConfirmBtn()">
-                        <span>I understand that the table is held for exactly <strong>15 minutes</strong>, after which it may be released.</span>
-                    </div>
-
-                    <button id="btn-confirm-final" class="btn-primary" onclick="sendEmail()" disabled>Confirm Booking</button>
-                    <button class="btn-ghost" onclick="switchFormStep('step2', 'step1')">← Edit Details</button>
-                </div>
-
-                <!-- STEP 3 -->
-                <div id="step3" style="display:none; text-align:center; padding:24px 10px;">
-                    <div class="success-animation">✓</div>
-                    <h2 style="font-size:2rem; margin-bottom:10px;">Request Sent!</h2>
-                    <p style="color:var(--text-muted); margin-bottom:28px; line-height:1.7; font-size:0.9rem;">
-                        Your booking request was received.<br>
-                        Please wait for confirmation via <strong>WhatsApp</strong>.
-                    </p>
-                    <button class="btn-primary" onclick="goHome()">Back to Restaurants</button>
+                <div id="current-blocks-list">
+                    <div class="empty-state" style="padding:20px 0;"><div class="icon">✅</div>No dates blocked.</div>
                 </div>
             </div>
         </div>
 
-        <!-- MANAGE PAGE -->
-        <div id="manage-page" class="page-section">
-            <div class="form-box">
-                <h2 style="margin-bottom:24px;">My Bookings</h2>
-                <label>Search by WhatsApp Number</label>
-                <div class="phone-group">
-                    <select id="manage-code" class="code-select">
-                            <option value="963" selected>🇸🇾 +963 Syria</option>
-                            <option value="961">🇱🇧 +961 Lebanon</option>
-                            <option value="971">🇦🇪 +971 UAE</option>
-                            <option value="966">🇸🇦 +966 Saudi Arabia</option>
-                            <option value="962">🇯🇴 +962 Jordan</option>
-                            <option value="964">🇮🇶 +964 Iraq</option>
-                            <option value="20">🇪🇬 +20 Egypt</option>
-                            <option value="974">🇶🇦 +974 Qatar</option>
-                            <option value="965">🇰🇼 +965 Kuwait</option>
-                            <option value="968">🇴🇲 +968 Oman</option>
-                            <option value="973">🇧🇭 +973 Bahrain</option>
-                            <option value="967">🇾🇪 +967 Yemen</option>
-                            <option value="212">🇲🇦 +212 Morocco</option>
-                            <option value="216">🇹🇳 +216 Tunisia</option>
-                            <option value="213">🇩🇿 +213 Algeria</option>
-                            <option value="218">🇱🇾 +218 Libya</option>
-                            <option value="249">🇸🇩 +249 Sudan</option>
-                            <option value="90">🇹🇷 +90 Turkey</option>
-                            <option value="98">🇮🇷 +98 Iran</option>
-                            <option value="44">🇬🇧 +44 United Kingdom</option>
-                            <option value="33">🇫🇷 +33 France</option>
-                            <option value="49">🇩🇪 +49 Germany</option>
-                            <option value="39">🇮🇹 +39 Italy</option>
-                            <option value="34">🇪🇸 +34 Spain</option>
-                            <option value="31">🇳🇱 +31 Netherlands</option>
-                            <option value="32">🇧🇪 +32 Belgium</option>
-                            <option value="41">🇨🇭 +41 Switzerland</option>
-                            <option value="43">🇦🇹 +43 Austria</option>
-                            <option value="48">🇵🇱 +48 Poland</option>
-                            <option value="351">🇵🇹 +351 Portugal</option>
-                            <option value="30">🇬🇷 +30 Greece</option>
-                            <option value="46">🇸🇪 +46 Sweden</option>
-                            <option value="47">🇳🇴 +47 Norway</option>
-                            <option value="45">🇩🇰 +45 Denmark</option>
-                            <option value="358">🇫🇮 +358 Finland</option>
-                            <option value="7">🇷🇺 +7 Russia</option>
-                            <option value="380">🇺🇦 +380 Ukraine</option>
-                            <option value="1">🇺🇸 +1 United States</option>
-                            <option value="1">🇨🇦 +1 Canada</option>
-                            <option value="52">🇲🇽 +52 Mexico</option>
-                            <option value="55">🇧🇷 +55 Brazil</option>
-                            <option value="54">🇦🇷 +54 Argentina</option>
-                            <option value="57">🇨🇴 +57 Colombia</option>
-                            <option value="56">🇨🇱 +56 Chile</option>
-                            <option value="51">🇵🇪 +51 Peru</option>
-                            <option value="91">🇮🇳 +91 India</option>
-                            <option value="92">🇵🇰 +92 Pakistan</option>
-                            <option value="880">🇧🇩 +880 Bangladesh</option>
-                            <option value="94">🇱🇰 +94 Sri Lanka</option>
-                            <option value="86">🇨🇳 +86 China</option>
-                            <option value="81">🇯🇵 +81 Japan</option>
-                            <option value="82">🇰🇷 +82 South Korea</option>
-                            <option value="65">🇸🇬 +65 Singapore</option>
-                            <option value="60">🇲🇾 +60 Malaysia</option>
-                            <option value="62">🇮🇩 +62 Indonesia</option>
-                            <option value="63">🇵🇭 +63 Philippines</option>
-                            <option value="66">🇹🇭 +66 Thailand</option>
-                            <option value="84">🇻🇳 +84 Vietnam</option>
-                            <option value="61">🇦🇺 +61 Australia</option>
-                            <option value="64">🇳🇿 +64 New Zealand</option>
-                            <option value="27">🇿🇦 +27 South Africa</option>
-                            <option value="234">🇳🇬 +234 Nigeria</option>
-                            <option value="254">🇰🇪 +254 Kenya</option>
-                            <option value="233">🇬🇭 +233 Ghana</option>
-                            <option value="251">🇪🇹 +251 Ethiopia</option>
-                            <option value="255">🇹🇿 +255 Tanzania</option>
-                            <option value="256">🇺🇬 +256 Uganda</option>
-                        </select>
-                    <input type="tel" id="manage-phone" class="input-field" placeholder="Number…" style="margin-bottom:0;">
-                </div>
-                <button class="btn-primary" style="margin-top:0;" onclick="findBookings()">Find My Bookings</button>
-                <div id="user-bookings-list" style="margin-top:24px;"></div>
+        <!-- ── WAITLIST PANEL ── -->
+        <div id="waitlist-panel" class="hidden">
+            <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
+                <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Waitlist</div>
+                <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">Customers waiting for a slot to open up. Contact them via WhatsApp and mark as done.</div>
+            </div>
+            <div id="waitlist-container">
+                <div class="empty-state"><div class="icon">⏳</div>Loading waitlist…</div>
             </div>
         </div>
 
-    </div><!-- /container -->
+        <!-- ── PROFILE EDITOR PANEL ── -->
+        <div id="profile-panel" class="hidden">
+            <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
+                <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Restaurant Profile</div>
+                <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">This is what customers see when they tap your restaurant. Keep it updated to attract more bookings.</div>
+            </div>
 
-    <!-- SEARCH MODAL -->
-    <div id="search-modal" class="modal">
+            <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
+                <div class="section-title-staff">About Your Restaurant</div>
+
+                <label class="modal-label">Description</label>
+                <textarea id="prof-description" style="width:100%; padding:12px 14px; background:var(--input-bg); border:1.5px solid transparent; border-radius:var(--radius-md); font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text-main); outline:none; resize:vertical; min-height:100px; transition:all 0.2s; margin-bottom:0;" placeholder="Tell customers about your restaurant — atmosphere, specialties, history…" oninput="this.style.borderColor='var(--gold)'"></textarea>
+            </div>
+
+            <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
+                <div class="section-title-staff">Photo Gallery</div>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">Add up to 6 photos. The first card image is set from the admin. These are extra gallery photos.</p>
+
+                <div id="gallery-preview" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;"></div>
+
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="prof-gallery-url" class="modal-input" placeholder="Paste image URL…" style="flex:1; margin-bottom:0;">
+                    <input type="file" id="prof-gallery-file" accept="image/*" style="display:none;" onchange="handleGalleryUpload(event)">
+                    <button class="btn-upload" onclick="document.getElementById('prof-gallery-file').click()">📁</button>
+                    <button style="background:var(--charcoal); color:white; border:none; border-radius:var(--radius-sm); padding:0 14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; font-size:0.82rem;" onclick="addGalleryUrl()">Add</button>
+                </div>
+            </div>
+
+            <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
+                <div class="section-title-staff">Menu</div>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">Upload menu as images or link a PDF.</p>
+
+                <div id="menu-preview" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;"></div>
+
+                <label class="modal-label">Add Menu Image</label>
+                <div style="display:flex; gap:8px; margin-bottom:12px;">
+                    <input type="text" id="prof-menu-url" class="modal-input" placeholder="Paste menu image URL…" style="flex:1; margin-bottom:0;">
+                    <input type="file" id="prof-menu-file" accept="image/*" style="display:none;" onchange="handleMenuUpload(event)">
+                    <button class="btn-upload" onclick="document.getElementById('prof-menu-file').click()">📁</button>
+                    <button style="background:var(--charcoal); color:white; border:none; border-radius:var(--radius-sm); padding:0 14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; font-size:0.82rem;" onclick="addMenuUrl()">Add</button>
+                </div>
+
+                <label class="modal-label">Menu PDF Link (optional)</label>
+                <input type="text" id="prof-menu-pdf" class="modal-input" placeholder="https://… link to your PDF menu" style="margin-bottom:0;">
+            </div>
+
+            <button onclick="saveProfile()" style="width:100%; padding:14px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.9rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.2s; margin-bottom:8px;">Save Profile</button>
+            <div id="profile-save-msg" style="display:none; background:var(--green-pale); color:var(--green); border:1px solid rgba(39,174,96,0.25); padding:12px; border-radius:var(--radius-sm); text-align:center; font-size:0.82rem; font-weight:600;"></div>
+        </div>
+
+        <!-- FAB -->
+        <div class="action-bar">
+            <button class="btn-add" onclick="openModal('add')">＋</button>
+        </div>
+
+        <audio id="notif-sound" src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjQ1LjEwMAAAAAAAAAAAAAAA//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWgAAAA0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQZAAABi0eU5sAAAAPo8pzYAAAACWjL0AAAACWjL0AAAAD/88AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//uQZAABAAABAAAAAAABAAAAAAABAAAAAAABAAAAAAABAAAAAAA=" preload="auto"></audio>
+    </div>
+
+    <!-- ── BOOKING MODAL ── -->
+    <div id="booking-modal" class="modal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeSearch()">×</button>
-            <h2>Find a Restaurant</h2>
+            <h3 id="modal-title">New Reservation</h3>
+            <input type="hidden" id="edit-id">
 
-            <label>Name or Area</label>
-            <input type="text" id="search-input" class="search-input" placeholder="e.g. Old City, Mezzeh…" onkeyup="applyFilters()">
+            <label class="modal-label">Guest Name</label>
+            <input type="text" id="m-name" class="modal-input" placeholder="Name">
 
-            <div class="filter-row">
+            <label class="modal-label" style="margin-top:12px;">Phone</label>
+            <input type="text" id="m-phone" class="modal-input" placeholder="Phone number">
+
+            <div class="modal-row">
                 <div>
-                    <label>City</label>
-                    <select id="filter-city" class="filter-select" onchange="applyFilters()">
-                        <option value="All">All Cities</option>
-                    </select>
+                    <label class="modal-label">Date</label>
+                    <input type="date" id="m-date" class="modal-input">
                 </div>
                 <div>
-                    <label>Cuisine</label>
-                    <select id="filter-cuisine" class="filter-select" onchange="applyFilters()">
-                        <option value="All">All Cuisines</option>
-                    </select>
+                    <label class="modal-label">Time</label>
+                    <select id="m-time" class="modal-input"></select>
+                </div>
+            </div>
+            <div class="modal-row">
+                <div>
+                    <label class="modal-label">Guests</label>
+                    <input type="number" id="m-guests" class="modal-input" value="2" min="1">
+                </div>
+                <div>
+                    <label class="modal-label">Duration (hrs)</label>
+                    <input type="number" id="m-duration" class="modal-input" value="3" min="1">
                 </div>
             </div>
 
-            <label>Price</label>
-            <select id="filter-price" class="filter-select" onchange="applyFilters()">
-                <option value="All">Any Price</option>
-                <option value="$">$ (Budget)</option>
-                <option value="$$">$$ (Medium)</option>
-                <option value="$$$">$$$ (Luxury)</option>
-            </select>
-
-            <button class="btn-primary" onclick="closeSearch()">Show Results</button>
-        </div>
-    </div>
-
-    <!-- REVIEW MODAL -->
-    <div id="review-modal" class="modal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeReview()">×</button>
-            <h2>Rate Your Visit</h2>
-            <h3 id="review-res-name" style="color:var(--gold-dark); margin-bottom:20px; font-size:1.1rem;"></h3>
-
-            <input type="hidden" id="review-booking-id">
-
-            <label>Rating</label>
-            <select id="review-rating" class="input-field">
-                <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
-                <option value="4">⭐⭐⭐⭐ Very Good</option>
-                <option value="3">⭐⭐⭐ Average</option>
-                <option value="2">⭐⭐ Poor</option>
-                <option value="1">⭐ Terrible</option>
-            </select>
-
-            <label>Comments (Optional)</label>
-            <textarea id="review-text" class="input-field" placeholder="Tell us about your experience…" rows="3" style="resize:none; font-family:inherit;"></textarea>
-
-            <button class="btn-primary" style="margin-top:0;" onclick="submitReview()">Submit Review</button>
-        </div>
-    </div>
-
-    <!-- WAITLIST MODAL -->
-    <div id="waitlist-modal" class="modal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeWaitlist()">×</button>
-            <h2>Join Waitlist</h2>
-            <p style="color:var(--text-muted); font-size:0.83rem; margin-bottom:18px; line-height:1.6;">This slot is currently full. Add yourself to the waitlist and the restaurant will contact you if a spot opens up.</p>
-
-            <div style="background:var(--gold-pale); border:1px solid var(--border-gold); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:18px; font-size:0.82rem; color:var(--gold-dark); font-weight:600;">
-                🕒 <span id="wl-slot-display"></span>
-            </div>
-
-            <input type="hidden" id="wl-date">
-            <input type="hidden" id="wl-time">
-            <input type="hidden" id="wl-restaurant">
-            <input type="hidden" id="wl-persons">
-            <input type="hidden" id="wl-duration">
-
-            <label>Full Name</label>
-            <input type="text" class="input-field" id="wl-name" placeholder="First and Last Name">
-
-            <label>WhatsApp Number</label>
-            <div class="phone-group">
-                <select id="wl-code" class="code-select">
-                            <option value="963" selected>🇸🇾 +963 Syria</option>
-                            <option value="961">🇱🇧 +961 Lebanon</option>
-                            <option value="971">🇦🇪 +971 UAE</option>
-                            <option value="966">🇸🇦 +966 Saudi Arabia</option>
-                            <option value="962">🇯🇴 +962 Jordan</option>
-                            <option value="964">🇮🇶 +964 Iraq</option>
-                            <option value="20">🇪🇬 +20 Egypt</option>
-                            <option value="974">🇶🇦 +974 Qatar</option>
-                            <option value="965">🇰🇼 +965 Kuwait</option>
-                            <option value="968">🇴🇲 +968 Oman</option>
-                            <option value="973">🇧🇭 +973 Bahrain</option>
-                            <option value="967">🇾🇪 +967 Yemen</option>
-                            <option value="212">🇲🇦 +212 Morocco</option>
-                            <option value="216">🇹🇳 +216 Tunisia</option>
-                            <option value="213">🇩🇿 +213 Algeria</option>
-                            <option value="218">🇱🇾 +218 Libya</option>
-                            <option value="249">🇸🇩 +249 Sudan</option>
-                            <option value="90">🇹🇷 +90 Turkey</option>
-                            <option value="98">🇮🇷 +98 Iran</option>
-                            <option value="44">🇬🇧 +44 United Kingdom</option>
-                            <option value="33">🇫🇷 +33 France</option>
-                            <option value="49">🇩🇪 +49 Germany</option>
-                            <option value="39">🇮🇹 +39 Italy</option>
-                            <option value="34">🇪🇸 +34 Spain</option>
-                            <option value="31">🇳🇱 +31 Netherlands</option>
-                            <option value="32">🇧🇪 +32 Belgium</option>
-                            <option value="41">🇨🇭 +41 Switzerland</option>
-                            <option value="43">🇦🇹 +43 Austria</option>
-                            <option value="48">🇵🇱 +48 Poland</option>
-                            <option value="351">🇵🇹 +351 Portugal</option>
-                            <option value="30">🇬🇷 +30 Greece</option>
-                            <option value="46">🇸🇪 +46 Sweden</option>
-                            <option value="47">🇳🇴 +47 Norway</option>
-                            <option value="45">🇩🇰 +45 Denmark</option>
-                            <option value="358">🇫🇮 +358 Finland</option>
-                            <option value="7">🇷🇺 +7 Russia</option>
-                            <option value="380">🇺🇦 +380 Ukraine</option>
-                            <option value="1">🇺🇸 +1 United States</option>
-                            <option value="1">🇨🇦 +1 Canada</option>
-                            <option value="52">🇲🇽 +52 Mexico</option>
-                            <option value="55">🇧🇷 +55 Brazil</option>
-                            <option value="54">🇦🇷 +54 Argentina</option>
-                            <option value="57">🇨🇴 +57 Colombia</option>
-                            <option value="56">🇨🇱 +56 Chile</option>
-                            <option value="51">🇵🇪 +51 Peru</option>
-                            <option value="91">🇮🇳 +91 India</option>
-                            <option value="92">🇵🇰 +92 Pakistan</option>
-                            <option value="880">🇧🇩 +880 Bangladesh</option>
-                            <option value="94">🇱🇰 +94 Sri Lanka</option>
-                            <option value="86">🇨🇳 +86 China</option>
-                            <option value="81">🇯🇵 +81 Japan</option>
-                            <option value="82">🇰🇷 +82 South Korea</option>
-                            <option value="65">🇸🇬 +65 Singapore</option>
-                            <option value="60">🇲🇾 +60 Malaysia</option>
-                            <option value="62">🇮🇩 +62 Indonesia</option>
-                            <option value="63">🇵🇭 +63 Philippines</option>
-                            <option value="66">🇹🇭 +66 Thailand</option>
-                            <option value="84">🇻🇳 +84 Vietnam</option>
-                            <option value="61">🇦🇺 +61 Australia</option>
-                            <option value="64">🇳🇿 +64 New Zealand</option>
-                            <option value="27">🇿🇦 +27 South Africa</option>
-                            <option value="234">🇳🇬 +234 Nigeria</option>
-                            <option value="254">🇰🇪 +254 Kenya</option>
-                            <option value="233">🇬🇭 +233 Ghana</option>
-                            <option value="251">🇪🇹 +251 Ethiopia</option>
-                            <option value="255">🇹🇿 +255 Tanzania</option>
-                            <option value="256">🇺🇬 +256 Uganda</option>
-                        </select>
-                <input type="tel" class="input-field" id="wl-phone" placeholder="09…" style="margin-bottom:0;">
-            </div>
-
-            <button class="btn-primary" onclick="submitWaitlist()" id="wl-submit-btn">Add Me to Waitlist</button>
-
-            <div id="wl-success" style="display:none; background:var(--green-pale, #EBF5EB); border:1px solid rgba(39,174,96,0.25); border-radius:var(--radius-sm); padding:14px; text-align:center; margin-top:12px;">
-                <div style="font-size:1.5rem; margin-bottom:6px;">✅</div>
-                <div style="font-weight:700; color:#27AE60; font-size:0.9rem;">You're on the waitlist!</div>
-                <div style="color:var(--text-muted); font-size:0.8rem; margin-top:4px;">We'll reach out on WhatsApp if a spot opens.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── RESTAURANT PROFILE OVERLAY ── -->
-    <div id="profile-overlay" class="profile-overlay">
-        <div class="profile-hero" id="profile-hero">
-            <div class="profile-hero-img" id="profile-hero-img"></div>
-            <div class="profile-hero-overlay"></div>
-            <button class="profile-back-btn" onclick="closeProfile()">
-                <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                Back
-            </button>
-            <div class="profile-hero-info">
-                <div class="profile-name" id="profile-name"></div>
-                <div class="profile-tags" id="profile-tags"></div>
-            </div>
-        </div>
-
-        <!-- Gallery strip -->
-        <div class="gallery-strip" id="profile-gallery"></div>
-
-        <div class="profile-body">
-            <!-- Info grid -->
-            <div class="profile-section">
-                <div class="profile-info-grid" id="profile-info-grid"></div>
-            </div>
-
-            <!-- Description -->
-            <div class="profile-section" id="profile-desc-section" style="display:none;">
-                <div class="profile-section-title">About</div>
-                <div class="profile-description" id="profile-description"></div>
-            </div>
-
-            <!-- Menu -->
-            <div class="profile-section" id="profile-menu-section" style="display:none;">
-                <div class="profile-section-title">Menu</div>
-                <div class="menu-images" id="profile-menu-images"></div>
-            </div>
-
-            <!-- Reviews -->
-            <div class="profile-section" id="profile-reviews-section" style="display:none;">
-                <div class="profile-section-title">Reviews</div>
-                <div class="reviews-summary" id="profile-reviews-summary"></div>
-                <div id="profile-reviews-list"></div>
-            </div>
-        </div>
-
-        <!-- Sticky reserve button -->
-        <div class="profile-reserve-bar">
-            <button class="btn-profile-reserve" id="profile-reserve-btn">Reserve a Table</button>
-        </div>
-    </div>
-
-    <!-- Fullscreen image viewer -->
-    <div class="img-viewer" id="img-viewer" onclick="closeImgViewer()">
-        <button class="img-viewer-close">×</button>
-        <img id="img-viewer-img" src="" alt="">
-    </div>
-
-    <div class="footer">© 2026 Tawelty. All rights reserved.</div>
-
-    <!-- BOTTOM NAV -->
-    <div class="bottom-nav">
-        <div class="nav-tab active" id="nav-home" onclick="goHome()">
-            <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span>Home</span>
-        </div>
-        <div class="nav-tab" id="nav-search" onclick="openSearch()">
-            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <span>Search</span>
-        </div>
-        <div class="nav-tab" id="nav-manage" onclick="openManage()">
-            <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <span>My Bookings</span>
+            <button class="btn-save" onclick="saveBooking()">Save Booking</button>
+            <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
         </div>
     </div>
 
@@ -1146,110 +730,11 @@
      ========================================== -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, doc, query, where, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, doc, getDoc, updateDoc, addDoc, query, where, onSnapshot, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    // ==========================================
-    // 1. UI & NAVIGATION
-    // ==========================================
-    window.updateNavVisuals = (activeId) => {
-        document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-        if (activeId) document.getElementById(activeId).classList.add('active');
-    };
-
-    window.goHome = function() {
-        document.getElementById('booking-page').classList.remove('active-section');
-        document.getElementById('manage-page').classList.remove('active-section');
-        document.getElementById('home-page').classList.add('active-section');
-        updateNavVisuals('nav-home');
-        window.scrollTo(0, 0);
-    }
-
-    window.openManage = () => {
-        document.getElementById('home-page').classList.remove('active-section');
-        document.getElementById('booking-page').classList.remove('active-section');
-        document.getElementById('manage-page').classList.add('active-section');
-        updateNavVisuals('nav-manage');
-        window.scrollTo(0, 0);
-    }
-
-    window.openSearch = () => {
-        document.getElementById('search-modal').style.display = 'block';
-        updateNavVisuals('nav-search');
-    }
-
-    window.closeSearch = () => {
-        document.getElementById('search-modal').style.display = 'none';
-        updateNavVisuals('nav-home');
-    }
-
-    window.switchFormStep = (hide, show) => {
-        document.getElementById(hide).style.display = 'none';
-        document.getElementById(show).style.display = 'block';
-    }
-
-    window.toggleConfirmBtn = () => {
-        const check = document.getElementById('policy-check');
-        document.getElementById('btn-confirm-final').disabled = !check.checked;
-    }
-
-    window.openReview = (id, resName) => {
-        document.getElementById('review-booking-id').value = id;
-        document.getElementById('review-res-name').innerText = resName;
-        document.getElementById('review-modal').style.display = 'block';
-    };
-
-    window.closeReview = () => {
-        document.getElementById('review-modal').style.display = 'none';
-        document.getElementById('review-text').value = '';
-        document.getElementById('review-rating').value = '5';
-    };
-
-    // hero search inline
-    window.heroSearch = () => {
-        const val = document.getElementById('hero-search-input').value.toLowerCase();
-        const filtered = window.allRestaurants.filter(r =>
-            r.name.toLowerCase().includes(val) || r.location.toLowerCase().includes(val)
-        );
-        renderList(filtered);
-    };
-
-    window.filterByCuisine = (cuisine) => {
-        const filtered = window.allRestaurants.filter(r =>
-            r.cuisine && r.cuisine.toLowerCase().includes(cuisine.toLowerCase())
-        );
-        renderList(filtered);
-        goHome();
-    };
-
-    // Global Vars
-    window.allRestaurants = [];
-    window.selectedRestaurant = "";
-    window.selectedSlotDuration = 3;
-    window.selectedFullPhone = "";
-
-    const timeToIndex = (timeStr) => {
-        const [h, m] = timeStr.split(':').map(Number);
-        return (h * 2) + (m === 30 ? 1 : 0);
-    };
-
-    const indexToTime = (idx) => {
-        const h = Math.floor(idx / 2);
-        const m = (idx % 2 === 0) ? "00" : "30";
-        return `${h}:${m}`;
-    };
-
-    const cityTrans = {
-        "Damascus": "Damascus", "Rif Damascus": "Rif Damascus",
-        "Aleppo": "Aleppo", "Homs": "Homs",
-        "Latakia": "Latakia", "Tartus": "Tartus", "Hama": "Hama"
-    };
-
-    // ==========================================
-    // 2. FIREBASE SETUP
-    // ==========================================
     const firebaseConfig = {
-      apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8", // PUT YOUR REAL API KEY HERE
+      apiKey: "AIzaSyCwphvl0-46YHHS-Vpvq4hpqZAxVNZamC8", // ADD YOUR REAL API KEY HERE
       authDomain: "tawelty-realtime.firebaseapp.com",
       projectId: "tawelty-realtime",
       storageBucket: "tawelty-realtime.firebasestorage.app",
@@ -1258,697 +743,928 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    // ==========================================
-    // 3. CORE LOGIC
-    // ==========================================
-    window.onload = async function() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('date').setAttribute('min', today);
-        const loader = document.getElementById('loader-main');
+    const AUDIO_SRC = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.m4a";
 
-        const heroSection = document.querySelector(".hero-container");
-        if (heroSection) {
-            onSnapshot(doc(db, "app_settings", "homepage"), (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data && data.backgroundImage) {
-                        heroSection.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(26,23,20,0.80)), url('${data.backgroundImage}')`;
+    let currentRestaurant = "";
+    let currentRestaurantNameAr = "";
+    let maxGuests = 0;
+    let maxTables = 0;
+    let openTime = 12;
+    let closeTime = 22;
+    let vipThreshold = 3;
+    let latestSnapshot = null;
+    let unsubscribe = null;
+    window.currentView = 'active';
+
+    window.onload = () => {
+        setInterval(recalculateDashboard, 10000);
+        document.getElementById('notif-sound').src = AUDIO_SRC;
+
+        const unlocker = () => {
+            const sound = document.getElementById('notif-sound');
+            if (sound) {
+                sound.muted = true;
+                sound.play().then(() => { sound.pause(); sound.currentTime = 0; sound.muted = false; }).catch(e => {});
+            }
+            document.removeEventListener('click', unlocker);
+            document.removeEventListener('touchstart', unlocker);
+        };
+        document.addEventListener('click', unlocker);
+        document.addEventListener('touchstart', unlocker);
+    };
+
+    // ── AUTH ──
+    window.login = () => {
+        const rawUsername = document.getElementById('email').value.trim().toLowerCase().replace(/\s+/g, '_');
+        const pass = document.getElementById('password').value;
+        const sound = document.getElementById('notif-sound');
+        if (sound) { sound.play().catch(e => {}); sound.pause(); }
+
+        // Convert username to email automatically
+        const email = rawUsername.includes('@') ? rawUsername : `${rawUsername}@tawelty.com`;
+
+        signInWithEmailAndPassword(auth, email, pass).catch(e => {
+            const msg = document.getElementById('login-msg');
+            msg.innerText = "Login failed. Check your username and password.";
+            msg.classList.remove('hidden');
+        });
+    };
+
+    window.logout = () => {
+        if (unsubscribe) unsubscribe();
+        signOut(auth).then(() => { window.location.reload(); });
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            try {
+                const managerSnap = await getDoc(doc(db, "managers", user.email));
+                if (!managerSnap.exists()) {
+                    // Not a manager — check if it's the admin
+                    if (user.email === "admin@tawelty.com") {
+                        window.location.href = "../admin.html";
+                        return;
+                    }
+                    // Unknown account — sign out
+                    signOut(auth);
+                    document.getElementById('login-view').classList.remove('hidden');
+                    document.getElementById('dashboard-view').classList.add('hidden');
+                    const msg = document.getElementById('login-msg');
+                    msg.innerText = "This account does not have staff access.";
+                    msg.classList.remove('hidden');
+                    return;
+                }
+
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('dashboard-view').classList.remove('hidden');
+
+                currentRestaurant = managerSnap.data().restaurant;
+                document.getElementById('manager-title').innerText = currentRestaurant;
+
+                const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
+                const resSnap = await getDocs(q);
+                if (!resSnap.empty) {
+                    const d = resSnap.docs[0].data();
+                    currentRestaurantNameAr = d.nameAr || currentRestaurant;
+                    maxGuests = d.capacity || 20;
+                    maxTables = d.tables || 10;
+                    openTime = d.openTime || 12;
+                    closeTime = d.closeTime || 22;
+                    vipThreshold = d.vipThreshold || 3;
+                    document.getElementById('max-guests').innerText = "/ " + maxGuests + " Cap";
+                    document.getElementById('max-tables').innerText = "/ " + maxTables + " Tables";
+
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const btnPause = document.getElementById('btn-pause-today');
+                    if (d.closedDates && d.closedDates.includes(todayStr)) {
+                        btnPause.innerText = "▶ Re-Open Today";
+                        btnPause.classList.add('paused');
                     }
                 }
-            });
+                startRealtimeListener();
+
+            } catch (error) {
+                console.error(error);
+                signOut(auth);
+            }
+        } else {
+            document.getElementById('login-view').classList.remove('hidden');
+            document.getElementById('dashboard-view').classList.add('hidden');
         }
+    });
+
+    // ── REALTIME ──
+    function startRealtimeListener() {
+        if (!currentRestaurant) return;
+        const sound = document.getElementById('notif-sound');
+        const q = query(collection(db, "reservations"), where("restaurant", "==", currentRestaurant));
+        let isFirstLoad = true;
+
+        unsubscribe = onSnapshot(q, async (snapshot) => {
+            latestSnapshot = snapshot;
+            recalculateDashboard();
+            await renderListFromSnapshot(snapshot);
+
+            if (!isFirstLoad) {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const d = change.doc.data();
+                        if (!d.archived && d.source !== "Manager" && d.status === "Pending") {
+                            sound.currentTime = 0;
+                            sound.play().catch(e => console.log("Sound error:", e));
+                            if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+                        }
+                    }
+                });
+            }
+            isFirstLoad = false;
+        });
+    }
+
+    // ── CRM HISTORY ──
+    window.checkCustomerHistory = async (phone) => {
+        if (!phone || phone.trim() === "" || phone === "N/A") return { cancels: 0, noShows: 0, successes: 0 };
+        const q = query(collection(db, "reservations"), where("phone", "==", phone));
+        try {
+            const snapshot = await getDocs(q);
+            let cancels = 0, noShows = 0, successes = 0;
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            const cutoff = ninetyDaysAgo.toISOString().split('T')[0];
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.status === "Accepted" || data.status === "Seated" || data.status === "Finished") successes++;
+                if (data.date && data.date >= cutoff) {
+                    if (data.status === "No-Show") noShows++;
+                    else if (data.archived === true || data.status === "Declined") cancels++;
+                }
+            });
+            return { cancels, noShows, successes };
+        } catch (e) { return { cancels: 0, noShows: 0, successes: 0 }; }
+    };
+
+    window.togglePauseToday = async () => {
+        if (!currentRestaurant) return;
+        const btn = document.getElementById('btn-pause-today');
+        const originalText = btn.innerText;
+        btn.innerText = "Wait…";
 
         try {
-            const querySnapshot = await getDocs(collection(db, "restaurants"));
-            window.allRestaurants = [];
-            let cuisines = new Set();
-            let cities = new Set();
+            const todayStr = new Date().toISOString().split('T')[0];
+            const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
+            const snap = await getDocs(q);
 
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                if (data.isOpen === false) return;
-                data.id = doc.id;
-                if (!data.cuisine) data.cuisine = "General";
-                if (!data.price) data.price = "$$";
-                if (!data.city) data.city = "Damascus";
-                cuisines.add(data.cuisine);
-                cities.add(data.city);
-                window.allRestaurants.push(data);
-            });
+            if (!snap.empty) {
+                const resDoc = snap.docs[0];
+                let closedDates = resDoc.data().closedDates || [];
 
-            window.allRestaurants.sort((a, b) => a.name.localeCompare(b.name));
+                if (closedDates.includes(todayStr)) {
+                    closedDates = closedDates.filter(d => d !== todayStr);
+                    await updateDoc(doc(db, "restaurants", resDoc.id), { closedDates });
+                    btn.innerText = "⏸ Pause";
+                    btn.classList.remove('paused');
+                    alert("Bookings RE-OPENED for today.");
+                } else {
+                    if (confirm("Stop all new online bookings for today?")) {
+                        closedDates.push(todayStr);
+                        await updateDoc(doc(db, "restaurants", resDoc.id), { closedDates });
+                        btn.innerText = "▶ Re-Open Today";
+                        btn.classList.add('paused');
+                        alert("Bookings PAUSED for today.");
+                    } else { btn.innerText = originalText; }
+                }
+            }
+        } catch (e) { alert("Error updating status."); btn.innerText = originalText; }
+    };
 
-            // update trust bar count
-            const trustCount = document.getElementById('trust-count');
-            if (trustCount) trustCount.textContent = window.allRestaurants.length + '+';
+    // setView is defined below alongside the blocked dates feature
 
-            const cuisineSelect = document.getElementById('filter-cuisine');
-            cuisines.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c; opt.innerText = c;
-                cuisineSelect.appendChild(opt);
-            });
+    function recalculateDashboard() {
+        if (!latestSnapshot) return;
+        const now = new Date();
+        const h = now.getHours();
+        const m = now.getMinutes().toString().padStart(2, '0');
+        const s = now.getSeconds().toString().padStart(2, '0');
+        document.getElementById('current-hour-display').innerText = `${h}:${m}:${s}`;
 
-            const citySelect = document.getElementById('filter-city');
-            cities.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c;
-                opt.innerText = cityTrans[c] || c;
-                citySelect.appendChild(opt);
-            });
+        let liveGuests = 0, liveTables = 0;
+        const todayStr = now.toISOString().split('T')[0];
 
-            renderList(window.allRestaurants);
+        latestSnapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.date === todayStr && !data.archived) {
+                if (data.status === 'Seated') {
+                    // Seated = physically in the restaurant, count immediately
+                    liveGuests += parseInt(data.persons);
+                    liveTables += Math.ceil(parseInt(data.persons) / 4);
+                } else if (data.status === 'Accepted') {
+                    // Accepted = check time window
+                    const startHour = parseInt(data.time.split(':')[0]);
+                    const startMin = parseInt(data.time.split(':')[1]) || 0;
+                    const endHour = startHour + (data.duration || 3);
+                    const nowMinutes = h * 60 + now.getMinutes();
+                    const startMinutes = startHour * 60 + startMin;
+                    const endMinutes = endHour * 60;
+                    if (nowMinutes >= startMinutes && nowMinutes < endMinutes) {
+                        liveGuests += parseInt(data.persons);
+                        liveTables += Math.ceil(parseInt(data.persons) / 4);
+                    }
+                }
+            }
+        });
 
-        } catch (error) {
-            console.error(error);
-        } finally {
-            if (loader) loader.style.display = 'none';
+        const gEl = document.getElementById('live-guests');
+        gEl.innerText = liveGuests;
+        document.getElementById('live-tables').innerText = liveTables;
+
+        if (liveGuests >= maxGuests) gEl.style.color = "var(--red)";
+        else if (liveGuests >= maxGuests * 0.8) gEl.style.color = "var(--orange)";
+        else gEl.style.color = "var(--text-main)";
+    }
+
+    async function renderListFromSnapshot(snapshot) {
+        const list = document.getElementById('bookings-list');
+        const allDocs = [];
+        // Use local date to avoid UTC timezone issues
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+
+        snapshot.forEach(doc => {
+            const d = doc.data();
+            if (window.currentView === 'active') {
+                // Seated always stays in Live until marked Finished
+                if (d.status === 'Seated') {
+                    allDocs.push({ id: doc.id, ...d });
+                } else if (!d.archived && d.status !== 'Declined' && d.date >= todayStr) {
+                    allDocs.push({ id: doc.id, ...d });
+                }
+            } else if (window.currentView === 'past') {
+                // Seated must not appear in Past
+                if (!d.archived && d.status !== 'Declined' && d.status !== 'Seated' && d.date < todayStr) {
+                    allDocs.push({ id: doc.id, ...d });
+                }
+            } else if (window.currentView === 'history') {
+                if (d.archived || d.status === 'Declined') allDocs.push({ id: doc.id, ...d });
+            }
+        });
+
+        if (allDocs.length === 0) {
+            list.innerHTML = `<div class="empty-state"><div class="icon">📋</div>No ${window.currentView} bookings.</div>`;
+            return;
+        }
+
+        allDocs.sort((a, b) => {
+            if (a.date !== b.date) return window.currentView === 'active' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+            return parseInt(a.time) - parseInt(b.time);
+        });
+
+        let html = '';
+        let lastDate = null;
+
+        for (const b of allDocs) {
+            if (b.date !== lastDate) {
+                const dStr = new Date(b.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+                html += `<div class="date-header">${dStr}</div>`;
+                lastDate = b.date;
+            }
+
+            let history = { cancels: 0, noShows: 0, successes: 0 };
+            if (b.status === 'Pending' || window.currentView === 'active') {
+                history = await window.checkCustomerHistory(b.phone);
+            }
+
+            let badgesHtml = "<div class='badges-row'>";
+            if (history.successes >= vipThreshold) badgesHtml += `<div class="vip-badge">🌟 VIP · ${history.successes} Visits</div>`;
+            if (history.noShows >= 2) badgesHtml += `<div class="red-flag">🚩 ${history.noShows} No-Shows (90 days)</div>`;
+            else if (history.cancels >= 3) badgesHtml += `<div class="yellow-flag">⚠️ ${history.cancels} Cancels (90 days)</div>`;
+            badgesHtml += "</div>";
+
+            const safeName  = b.name.replace(/'/g, "\\'");
+            const safePhone = (b.phone || "").replace(/'/g, "\\'");
+            let buttons = '';
+            const cardClass = `status-${b.status}`;
+
+            if (window.currentView === 'active' || window.currentView === 'past') {
+                if (b.status === 'Pending') {
+                    buttons = `<div class="btn-decision-row">
+                        <button class="btn-decision btn-accept" onclick="updateBookingStatus('${b.id}','Accepted',true,'${safePhone}','${safeName}')">✓ Accept</button>
+                        <button class="btn-decision btn-decline" onclick="updateBookingStatus('${b.id}','Declined',true,'${safePhone}','${safeName}')">✕ Decline</button>
+                    </div>`;
+                } else if (b.status === 'Accepted' && b.date === todayStr && window.currentView === 'active') {
+                    buttons = `<div class="btn-decision-row">
+                        <button class="btn-decision btn-seated" onclick="updateBookingStatus('${b.id}','Seated',false)">✅ Seated</button>
+                        <button class="btn-decision btn-noshow" onclick="updateBookingStatus('${b.id}','No-Show',false)">🚫 No-Show</button>
+                    </div>`;
+                } else if (b.status === 'Seated' && b.date === todayStr && window.currentView === 'active') {
+                    buttons = `<div class="btn-decision-row">
+                        <button class="btn-decision btn-finish" onclick="updateBookingStatus('${b.id}','Finished',false)">🏁 Mark as Finished — Clear Table</button>
+                    </div>`;
+                } else if (b.status === 'Seated') {
+                    buttons = `<div class="status-label" style="color:var(--blue);">✅ IN RESTAURANT (SEATED)</div>`;
+                } else if (b.status === 'Finished') {
+                    buttons = `<div class="status-label" style="color:var(--text-muted);">🏁 COMPLETED</div>`;
+                } else if (b.status === 'No-Show') {
+                    buttons = `<div class="status-label" style="color:var(--red);">🚫 NO-SHOW</div>`;
+                } else {
+                    buttons = `<div class="status-label" style="color:var(--green);">✅ ACCEPTED</div>`;
+                }
+
+                buttons += `<div class="actions">
+                    <button class="btn-icon" onclick="openModal('edit','${b.id}','${safeName}','${safePhone}','${b.date}','${b.time}',${b.persons},${b.duration||3})">✏️</button>
+                    <button class="btn-icon delete" onclick="archiveBooking('${b.id}')" style="color:var(--red);">🗑</button>
+                </div>`;
+            } else {
+                buttons = `<div class="status-label" style="color:var(--text-hint);">❌ ${b.status}</div>`;
+            }
+
+            let reviewHtml = '';
+            if (b.isReviewed) {
+                const stars = '⭐'.repeat(b.rating);
+                const comment = b.reviewText ? `<div class="comment">"${b.reviewText}"</div>` : '';
+                reviewHtml = `<div class="review-box">
+                    <p>Customer Review:</p>
+                    <div class="stars">${stars}</div>
+                    ${comment}
+                </div>`;
+            }
+
+            let askReviewBtn = '';
+            if (b.date < todayStr && (b.status === 'Accepted' || b.status === 'Seated' || b.status === 'Finished') && !b.isReviewed && b.phone && b.phone !== "N/A") {
+                askReviewBtn = `<button class="btn-ask-review" onclick="askForReview('${safePhone}','${safeName}')">📲 Ask for Review via WhatsApp</button>`;
+            }
+
+            html += `
+            <div class="booking-card ${cardClass}">
+                <div class="card-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <h3 class="card-title">${b.name}</h3>
+                </div>
+                <div class="card-meta">
+                    <span>🕒 ${b.time}</span>
+                    <span>👤 ${b.persons} guests</span>
+                    <span>📞 ${b.phone}</span>
+                </div>
+                ${badgesHtml}
+                ${buttons}
+                ${reviewHtml}
+                ${askReviewBtn}
+            </div>`;
+        }
+        list.innerHTML = html;
+    }
+
+    // ── MODAL ──
+    window.openModal = (mode, id, name, phone, date, time, guests, duration) => {
+        const modal = document.getElementById('booking-modal');
+        const timeSelect = document.getElementById('m-time');
+        timeSelect.innerHTML = "";
+        for (let i = openTime; i <= closeTime; i++) {
+            const o1 = document.createElement('option'); o1.value = i + ":00"; o1.innerText = i + ":00"; timeSelect.appendChild(o1);
+            const o2 = document.createElement('option'); o2.value = i + ":30"; o2.innerText = i + ":30"; timeSelect.appendChild(o2);
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('m-date').min = today;
+
+        if (mode === 'edit') {
+            document.getElementById('modal-title').innerText = "Edit Booking";
+            document.getElementById('edit-id').value = id;
+            document.getElementById('m-name').value = name;
+            document.getElementById('m-phone').value = phone;
+            document.getElementById('m-date').value = date;
+            document.getElementById('m-time').value = time;
+            document.getElementById('m-guests').value = guests;
+            document.getElementById('m-duration').value = duration || 3;
+        } else {
+            document.getElementById('modal-title').innerText = "New Reservation";
+            document.getElementById('edit-id').value = "";
+            document.getElementById('m-name').value = "";
+            document.getElementById('m-phone').value = "";
+            document.getElementById('m-date').value = today;
+            document.getElementById('m-guests').value = 2;
+            document.getElementById('m-duration').value = 3;
+        }
+        modal.style.display = 'flex';
+    };
+
+    window.closeModal = () => document.getElementById('booking-modal').style.display = 'none';
+
+    window.saveBooking = async () => {
+        const id = document.getElementById('edit-id').value;
+        const name = document.getElementById('m-name').value || "Walk-in";
+        const phone = document.getElementById('m-phone').value || "N/A";
+        const date = document.getElementById('m-date').value;
+        const time = document.getElementById('m-time').value;
+        const guests = parseInt(document.getElementById('m-guests').value);
+        const duration = parseInt(document.getElementById('m-duration').value);
+
+        if (!date || !time) return alert("Date and time are required.");
+
+        const btn = document.querySelector('#booking-modal .btn-save');
+        const original = btn.innerText;
+        btn.innerText = "Saving…";
+
+        try {
+            if (id) {
+                await updateDoc(doc(db, "reservations", id), { name, phone, date, time, persons: guests, duration });
+            } else {
+                await addDoc(collection(db, "reservations"), {
+                    restaurant: currentRestaurant, name, phone, date, time,
+                    persons: guests, duration, status: "Accepted",
+                    source: "Manager", createdAt: new Date()
+                });
+            }
+            closeModal();
+        } catch (e) { alert(e.message); }
+        finally { btn.innerText = original; }
+    };
+
+    window.updateBookingStatus = async (id, newStatus, sendWhatsapp = false, phone = "", name = "") => {
+        if (newStatus === 'No-Show' && !confirm("Mark as No-Show? This will penalize the customer and remove them from live capacity.")) return;
+        if (newStatus === 'Finished' && !confirm("Mark as Finished? This will instantly free up the table.")) return;
+
+        try {
+            await updateDoc(doc(db, "reservations", id), { status: newStatus });
+            if (sendWhatsapp && phone) {
+                let clean = phone.replace(/\D/g, '');
+                if (clean.startsWith('0')) clean = "963" + clean.substring(1);
+                const msg = newStatus === "Accepted"
+                    ? `Hello ${name}, your reservation at ${currentRestaurant} is CONFIRMED! ✅\nمرحبًا ${name}، تم تأكيد حجزك في ${currentRestaurant}! ✅`
+                    : `Hello ${name}, unfortunately we cannot accept your reservation at ${currentRestaurant}. ❌\nمرحبًا ${name}، للأسف لا يمكننا قبول حجزك في ${currentRestaurant}. ❌`;
+                window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+            }
+        } catch (e) { alert("Error: " + e.message); }
+    };
+
+    window.askForReview = (phone, name) => {
+        let clean = phone.replace(/\D/g, '');
+        if (clean.startsWith('0')) clean = "963" + clean.substring(1);
+        const msg = `Hi ${name}, thank you for dining at ${currentRestaurant}! We'd love your feedback. Visit My Bookings on our site to leave a review: https://taweltysy.com\n\nمرحبًا ${name}، شكرًا لزيارتك ${currentRestaurant}! نود سماع رأيك. قم بزيارة "حجوزاتي" في موقعنا لإضافة تقييم: https://taweltysy.com`;
+        window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+    };
+
+    window.archiveBooking = async (id) => {
+        if (confirm("Archive/cancel this booking?")) {
+            await updateDoc(doc(db, "reservations", id), { archived: true });
         }
     };
 
-    window.renderList = (data) => {
-        const container = document.getElementById('restaurant-list-container');
-        if (!container) return;
-        if (data.length === 0) {
-            container.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:var(--text-muted); padding:40px;'>No restaurants found.</p>";
+    // ==========================================
+    // BLOCKED DATES & SLOTS FEATURE
+    // ==========================================
+    let blockType = 'full';
+    let selectedBlockSlots = new Set();
+    let currentResDocId = null;
+    let currentResData = null;
+
+    async function loadResDoc() {
+        if (!currentRestaurant) return;
+        const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+            currentResDocId = snap.docs[0].id;
+            currentResData = snap.docs[0].data();
+        }
+    }
+
+    window.setBlockType = (type) => {
+        blockType = type;
+        const btnFull  = document.getElementById('block-type-full');
+        const btnSlots = document.getElementById('block-type-slots');
+        const slotPicker = document.getElementById('slot-picker');
+
+        if (type === 'full') {
+            btnFull.classList.add('active');   btnFull.style.borderColor = 'var(--charcoal)';
+            btnSlots.classList.remove('active'); btnSlots.style.borderColor = 'var(--border)';
+            slotPicker.classList.add('hidden');
+        } else {
+            btnSlots.classList.add('active');  btnSlots.style.borderColor = 'var(--charcoal)';
+            btnFull.classList.remove('active'); btnFull.style.borderColor = 'var(--border)';
+            slotPicker.classList.remove('hidden');
+            renderBlockSlotGrid();
+        }
+    };
+
+    window.onBlockDateChange = () => {
+        selectedBlockSlots.clear();
+        if (blockType === 'slots') renderBlockSlotGrid();
+    };
+
+    function renderBlockSlotGrid() {
+        const grid = document.getElementById('block-slot-grid');
+        const dateVal = document.getElementById('block-date').value;
+        if (!dateVal) {
+            grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-hint); font-size:0.82rem; padding:10px;">Select a date first</div>`;
+            return;
+        }
+        const blockedSlots = (currentResData && currentResData.blockedSlots && currentResData.blockedSlots[dateVal]) || [];
+        let html = '';
+        for (let h = openTime; h < closeTime; h++) {
+            for (let m of ['00', '30']) {
+                const slot = `${h}:${m}`;
+                const isAlready = blockedSlots.includes(slot);
+                const isSelected = selectedBlockSlots.has(slot);
+                let cls = 'block-slot-btn';
+                if (isAlready) cls += ' already-blocked';
+                else if (isSelected) cls += ' selected';
+                const onclick = isAlready ? '' : `onclick="toggleBlockSlot('${slot}')"`;
+                html += `<button class="${cls}" ${onclick}>${slot}</button>`;
+            }
+        }
+        grid.innerHTML = html;
+    }
+
+    window.toggleBlockSlot = (slot) => {
+        if (selectedBlockSlots.has(slot)) selectedBlockSlots.delete(slot);
+        else selectedBlockSlots.add(slot);
+        renderBlockSlotGrid();
+    };
+
+    window.saveBlock = async () => {
+        const dateVal = document.getElementById('block-date').value;
+        if (!dateVal) return alert("Please select a date first.");
+        if (!currentResDocId) { await loadResDoc(); if (!currentResDocId) return alert("Restaurant not loaded yet."); }
+
+        const resRef = doc(db, "restaurants", currentResDocId);
+
+        if (blockType === 'full') {
+            let closedDates = currentResData.closedDates || [];
+            if (closedDates.includes(dateVal)) { showBlockMsg("This date is already fully blocked."); return; }
+            closedDates.push(dateVal);
+            let blockedSlots = { ...(currentResData.blockedSlots || {}) };
+            delete blockedSlots[dateVal];
+            await updateDoc(resRef, { closedDates, blockedSlots });
+            currentResData.closedDates = closedDates;
+            currentResData.blockedSlots = blockedSlots;
+            showBlockMsg(`✅ ${dateVal} fully blocked!`);
+        } else {
+            if (selectedBlockSlots.size === 0) return alert("Please select at least one time slot.");
+            let blockedSlots = { ...(currentResData.blockedSlots || {}) };
+            const existing = blockedSlots[dateVal] || [];
+            const merged = [...new Set([...existing, ...selectedBlockSlots])].sort();
+            blockedSlots[dateVal] = merged;
+            await updateDoc(resRef, { blockedSlots });
+            currentResData.blockedSlots = blockedSlots;
+            const count = selectedBlockSlots.size;
+            selectedBlockSlots.clear();
+            showBlockMsg(`✅ ${count} slot(s) blocked on ${dateVal}!`);
+        }
+
+        document.getElementById('block-date').value = '';
+        renderCurrentBlocks();
+        if (blockType === 'slots') renderBlockSlotGrid();
+    };
+
+    function showBlockMsg(text) {
+        const el = document.getElementById('block-save-msg');
+        el.innerText = text;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    window.renderCurrentBlocks = () => {
+        const container = document.getElementById('current-blocks-list');
+        if (!currentResData) return;
+        const closedDates = currentResData.closedDates || [];
+        const blockedSlots = currentResData.blockedSlots || {};
+        const today = new Date().toISOString().split('T')[0];
+
+        const entries = [];
+        closedDates.filter(d => d >= today).sort().forEach(d => entries.push({ date: d, type: 'full' }));
+        Object.keys(blockedSlots).filter(d => d >= today).sort().forEach(d => {
+            if (blockedSlots[d] && blockedSlots[d].length > 0)
+                entries.push({ date: d, type: 'slots', slots: blockedSlots[d] });
+        });
+
+        if (entries.length === 0) {
+            container.innerHTML = `<div class="empty-state" style="padding:20px 0;"><div class="icon">✅</div>No upcoming blocked dates.</div>`;
             return;
         }
 
         let html = '';
-        data.forEach((branch) => {
-            const capacity = branch.capacity || 20;
-            const tables = branch.tables || 10;
-            const onlineTables = branch.onlineTables !== undefined ? branch.onlineTables : tables;
-            const duration = branch.duration || 3;
-            const openTime = branch.openTime !== undefined ? branch.openTime : 12;
-            const closeTime = branch.closeTime !== undefined ? branch.closeTime : 22;
-
-            const formatH = (h) => {
-                const ampm = h >= 12 ? 'PM' : 'AM';
-                const h12 = h % 12 || 12;
-                return `${h12}:00 ${ampm}`;
-            };
-            const hoursText = `${formatH(openTime)} – ${formatH(closeTime)}`;
-
-            const safeName = branch.name.replace(/'/g, "\\'");
-            const safeImg = (branch.image || '').replace(/'/g, "\\'");
-            const engCity = branch.city || "Damascus";
-            const safeClosedDates = (branch.closedDates || []).join(',');
-            const safeDesc = (branch.description || '').replace(/'/g, "\\'").substring(0, 100);
-
+        entries.forEach(e => {
+            const dStr = new Date(e.date).toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+            const typeLabel = e.type === 'full'
+                ? `<span style="color:var(--red); font-weight:700;">🚫 Full Day Blocked</span>`
+                : `<span style="color:var(--orange); font-weight:700;">🕐 ${e.slots.length} slots: ${e.slots.join(', ')}</span>`;
             html += `
-            <div class="card" onclick="openProfile('${branch.id}')">
-                <div class="card-img-wrapper">
-                    <div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div>
-                    <div class="card-badge">${branch.cuisine}</div>
+            <div class="block-item">
+                <div style="flex:1; min-width:0;">
+                    <div class="block-item-date">${dStr}</div>
+                    <div class="block-item-type">${typeLabel}</div>
                 </div>
-                <div class="card-content">
-                    <div class="card-tags">
-                        <span class="tag tag-cuisine">${branch.cuisine}</span>
-                        <span class="tag tag-price">${branch.price}</span>
-                    </div>
-                    <h3 class="card-title">${branch.name}</h3>
-                    <div class="card-details">
-                        <span class="card-row">
-                            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                            ${engCity} · ${branch.location}
-                        </span>
-                        <span class="card-row">
-                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            ${hoursText}
-                        </span>
-                        ${safeDesc ? `<span class="card-row" style="color:var(--text-hint); font-style:italic; font-size:0.78rem; margin-top:2px;">${safeDesc}${branch.description && branch.description.length > 100 ? '…' : ''}</span>` : ''}
-                    </div>
-                    <button class="btn-card" onclick="event.stopPropagation(); openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${onlineTables}, ${openTime}, ${closeTime}, '${safeClosedDates}')">
-                        Reserve a Table
-                        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                    </button>
-                </div>
+                <button class="btn-unblock" onclick="removeBlock('${e.date}','${e.type}')">Remove</button>
             </div>`;
         });
         container.innerHTML = html;
-    }
+    };
 
-    window.applyFilters = () => {
-        const search = document.getElementById('search-input').value.toLowerCase();
-        const city = document.getElementById('filter-city').value;
-        const cuisine = document.getElementById('filter-cuisine').value;
-        const price = document.getElementById('filter-price').value;
-
-        const filtered = window.allRestaurants.filter(r => {
-            const matchesName = r.name.toLowerCase().includes(search) || r.location.toLowerCase().includes(search);
-            const matchesCity = city === "All" || r.city === city;
-            const matchesCuisine = cuisine === "All" || r.cuisine === cuisine;
-            const matchesPrice = price === "All" || r.price === price;
-            return matchesName && matchesCity && matchesCuisine && matchesPrice;
-        });
-        renderList(filtered);
-    }
-
-    window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close, closedDatesStr) {
-        window.selectedRestaurant = name;
-        window.currentCapacity = capacity;
-        window.currentDuration = duration;
-        window.currentTablesLimit = tables || 10;
-        window.currentOpen = open;
-        window.currentClose = close;
-        window.currentClosedDates = closedDatesStr ? closedDatesStr.split(',') : [];
-
-        document.getElementById('selected-restaurant-title').innerText = name;
-        document.getElementById('date').value = "";
-        document.getElementById('time-grid').innerHTML = "<div style='grid-column:1/-1; text-align:center; color:var(--text-hint); padding:20px; font-size:0.85rem;'>Please select date & guests first</div>";
-        document.getElementById('selected-time-value').value = "";
-        document.getElementById('persons').value = "2";
-
-        document.getElementById('policy-check').checked = false;
-        document.getElementById('btn-confirm-final').disabled = true;
-
-        document.getElementById('home-page').classList.remove('active-section');
-        document.getElementById('manage-page').classList.remove('active-section');
-        document.getElementById('booking-page').classList.add('active-section');
-        window.switchFormStep('step2', 'step1');
-        window.switchFormStep('step3', 'step1');
-
-        updateNavVisuals('');
-        window.scrollTo(0, 0);
-    }
-
-    window.updateTimeSlots = async () => {
-        const dateInput = document.getElementById('date').value;
-        const grid = document.getElementById('time-grid');
-        const personsInput = document.getElementById('persons').value || 0;
-        const groupSize = parseInt(personsInput) || 2;
-        const resName = window.selectedRestaurant;
-
-        document.getElementById('selected-time-value').value = "";
-
-        if (!dateInput) {
-            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:var(--text-hint); padding:20px; font-size:0.85rem;'>Please select a date</div>";
-            return;
+    window.removeBlock = async (date, type) => {
+        if (!confirm(`Remove block for ${date}?`)) return;
+        if (!currentResDocId) return;
+        const resRef = doc(db, "restaurants", currentResDocId);
+        if (type === 'full') {
+            let closedDates = (currentResData.closedDates || []).filter(d => d !== date);
+            await updateDoc(resRef, { closedDates });
+            currentResData.closedDates = closedDates;
+        } else {
+            let blockedSlots = { ...(currentResData.blockedSlots || {}) };
+            delete blockedSlots[date];
+            await updateDoc(resRef, { blockedSlots });
+            currentResData.blockedSlots = blockedSlots;
         }
+        renderCurrentBlocks();
+    };
 
-        const todayStr = new Date().toISOString().split('T')[0];
-        if (dateInput < todayStr) {
-            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#C0392B; padding:20px; font-size:0.85rem;'>⚠️ Cannot book in the past</div>";
-            return;
-        }
+    // Override setView to handle all tabs including profile
+    window.setView = (view) => {
+        window.currentView = view;
+        document.getElementById('tab-active').classList.toggle('active', view === 'active');
+        document.getElementById('tab-past').classList.toggle('active', view === 'past');
+        document.getElementById('tab-history').classList.toggle('active', view === 'history');
+        document.getElementById('tab-blocked').classList.toggle('active', view === 'blocked');
+        document.getElementById('tab-waitlist').classList.toggle('active', view === 'waitlist');
+        document.getElementById('tab-profile').classList.toggle('active', view === 'profile');
 
-        if (window.currentClosedDates && window.currentClosedDates.includes(dateInput)) {
-            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#C0392B; padding:20px; font-weight:600;'>🚫 Bookings are paused for this day.<br><span style='font-size:0.8rem; color:var(--text-hint); font-weight:normal;'>Please select another date.</span></div>";
-            return;
-        }
+        document.getElementById('bookings-list').classList.toggle('hidden', ['blocked','waitlist','profile'].includes(view));
+        document.getElementById('blocked-panel').classList.toggle('hidden', view !== 'blocked');
+        document.getElementById('waitlist-panel').classList.toggle('hidden', view !== 'waitlist');
+        document.getElementById('profile-panel').classList.toggle('hidden', view !== 'profile');
 
-        grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:var(--text-hint); padding:20px; font-size:0.85rem;'>Checking availability…</div>";
-
-        const guestLimit = window.currentCapacity || 20;
-        const tableLimit = window.currentTablesLimit || 10;
-        const startIdx = (window.currentOpen !== undefined ? window.currentOpen : 12) * 2;
-        const endIdx = (window.currentClose !== undefined ? window.currentClose : 22) * 2;
-        const dur3 = (window.currentDuration || 3) * 2;
-        const dur2 = Math.max(2, (window.currentDuration || 3) - 1) * 2;
-        const dur1 = 2;
-
-        const isToday = dateInput === todayStr;
-        const now = new Date();
-        const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
-        const currentIdx = Math.floor(currentTotalMinutes / 30);
-
-        try {
-            // Check for partially blocked slots on this date
-            const resQ = query(collection(db, "restaurants"), where("name", "==", resName));
-            const resSnap = await getDocs(resQ);
-            let blockedSlots = [];
-            if (!resSnap.empty) {
-                const resData = resSnap.docs[0].data();
-                blockedSlots = (resData.blockedSlots && resData.blockedSlots[dateInput]) || [];
-            }
-
-            const q = query(collection(db, "reservations"), where("restaurant", "==", resName), where("date", "==", dateInput));
-            const snapshot = await getDocs(q);
-
-            let guestMap = new Array(48).fill(0);
-            let tableMap = new Array(48).fill(0);
-
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                if (data.status !== 'Declined' && !data.archived) {
-                    const bookingStartIdx = timeToIndex(data.time);
-                    const bookingDur = data.duration || 3;
-                    const bookingSlots = bookingDur * 2;
-                    const guests = parseInt(data.persons) || 0;
-                    const tablesUsed = Math.ceil(guests / 4);
-                    for (let i = 0; i < bookingSlots; i++) {
-                        if (bookingStartIdx + i < 48) {
-                            guestMap[bookingStartIdx + i] += guests;
-                            tableMap[bookingStartIdx + i] += tablesUsed;
-                        }
-                    }
-                }
-            });
-
-            const doesItFit = (start, slots) => {
-                const tablesNeeded = Math.ceil(groupSize / 4);
-                for (let i = 0; i < slots; i++) {
-                    if (start + i < 48) {
-                        if ((guestMap[start + i] + groupSize) > guestLimit) return false;
-                        if ((tableMap[start + i] + tablesNeeded) > tableLimit) return false;
-                    }
-                }
-                return true;
-            };
-
-            let html = '';
-            let hasManagerBlock = false;
-
-            for (let idx = startIdx; idx < endIdx; idx++) {
-                const timeString = indexToTime(idx);
-                if (isToday && idx <= currentIdx) {
-                    html += `<div class="time-slot disabled">${timeString}</div>`;
-                    continue;
-                }
-                // Check if this slot is manually blocked by the manager
-                if (blockedSlots.includes(timeString)) {
-                    hasManagerBlock = true;
-                    html += `<div class="time-slot disabled" title="Reserved — contact restaurant">—</div>`;
-                    continue;
-                }
-                if (doesItFit(idx, dur3)) {
-                    html += `<div class="time-slot" onclick="selectSlot(this, '${timeString}', ${dur3 / 2})">${timeString}</div>`;
-                } else if (doesItFit(idx, dur2)) {
-                    html += `<div class="time-slot warning" onclick="selectSlot(this, '${timeString}', ${dur2 / 2})">${timeString}</div>`;
-                } else if (doesItFit(idx, dur1)) {
-                    html += `<div class="time-slot warning" onclick="selectSlot(this, '${timeString}', 1)">${timeString}</div>`;
-                } else {
-                    html += `<div class="time-slot disabled" style="cursor:pointer; border-color:var(--border-gold); color:var(--gold-dark); font-size:0.7rem;" onclick="openWaitlist('${timeString}', '${dateInput}', ${groupSize}, ${window.currentDuration || 3})" title="Join waitlist">${timeString}<br>⏳</div>`;
-                }
-            }
-            grid.innerHTML = html;
-
-            // Show waitlist hint if any slot is full
-            if (html.includes('openWaitlist')) {
-                const hint = document.createElement('div');
-                hint.style.cssText = 'grid-column:1/-1; text-align:center; font-size:0.75rem; color:var(--gold-dark); margin-top:6px;';
-                hint.innerHTML = `💡 Slots showing <strong>⏳</strong> are fully booked — tap them to join the waitlist.`;
-                grid.appendChild(hint);
-            }
-
-            // Show call-us message only when manager has blocked specific slots
-            if (hasManagerBlock) {
-                const notice = document.createElement('div');
-                notice.style.cssText = 'grid-column:1/-1; background:var(--gold-pale); border:1px solid var(--border-gold); border-radius:var(--radius-sm); padding:12px 14px; margin-top:4px; text-align:center;';
-                notice.innerHTML = `<span style="font-size:0.82rem; color:var(--gold-dark); font-weight:600;">Some times are reserved. Call us to check availability for those slots.</span>`;
-                grid.appendChild(notice);
-            }
-        } catch (error) {
-            console.error("Firebase Error: ", error);
-            grid.innerHTML = `<div style='grid-column:1/-1; text-align:center; color:#C0392B; padding:20px; font-size:0.85rem;'>⚠️ Network error. Please try again.</div>`;
+        if (view === 'blocked') {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('block-date').setAttribute('min', today);
+            loadResDoc().then(() => renderCurrentBlocks());
+        } else if (view === 'waitlist') {
+            loadWaitlist();
+        } else if (view === 'profile') {
+            loadProfileEditor();
+        } else {
+            if (latestSnapshot) renderListFromSnapshot(latestSnapshot);
         }
     };
 
-    window.selectSlot = function(el, time, duration) {
-        document.querySelectorAll('.time-slot').forEach(div => div.classList.remove('selected'));
-        el.classList.add('selected');
-        document.getElementById('selected-time-value').value = time;
-        window.selectedSlotDuration = duration;
+    // ── PROFILE EDITOR ──
+    let profileGallery = [];
+    let profileMenuImages = [];
+
+    async function loadProfileEditor() {
+        if (!currentResDocId) await loadResDoc();
+        if (!currentResData) return;
+
+        document.getElementById('prof-description').value = currentResData.description || '';
+        document.getElementById('prof-menu-pdf').value = currentResData.menuPdfUrl || '';
+
+        profileGallery = [...(currentResData.gallery || [])];
+        profileMenuImages = [...(currentResData.menuImages || [])];
+
+        renderGalleryPreview();
+        renderMenuPreview();
     }
 
-    window.goToReview = async () => {
-        try {
-            const nameInp = document.getElementById('name');
-            const numInp = document.getElementById('phone');
-            const dateInp = document.getElementById('date');
-            const timeInp = document.getElementById('selected-time-value');
-            const persInp = document.getElementById('persons');
-
-            if (!nameInp || !nameInp.value) return alert("Please enter your name.");
-            if (!numInp || !numInp.value) return alert("Please enter your phone number.");
-            if (!dateInp || !dateInp.value) return alert("Please select a date.");
-            if (!timeInp || !timeInp.value) return alert("Please select a time from the list.");
-
-            let cleanNum = numInp.value.replace(/^0+/, '');
-            const code = document.getElementById('phone-code').value;
-            window.selectedFullPhone = (code ? code : "") + cleanNum;
-
-            if (!window.selectedSlotDuration) window.selectedSlotDuration = 3;
-
-            document.getElementById('rev-loc').innerText = window.selectedRestaurant;
-            document.getElementById('rev-name').innerText = nameInp.value;
-            document.getElementById('rev-phone-display').innerText = "+" + window.selectedFullPhone;
-            document.getElementById('rev-time-display').innerText = `${timeInp.value}  ${dateInp.value}`;
-            document.getElementById('rev-guests').innerText = persInp.value;
-            document.getElementById('rev-duration').innerText = window.selectedSlotDuration + " hours";
-
-            window.switchFormStep('step1', 'step2');
-        } catch (e) {
-            console.error(e);
-            alert("Error: " + e.message);
+    function renderGalleryPreview() {
+        const container = document.getElementById('gallery-preview');
+        if (profileGallery.length === 0) {
+            container.innerHTML = `<div style="grid-column:1/-1; color:var(--text-hint); font-size:0.78rem; text-align:center; padding:10px 0;">No gallery photos yet.</div>`;
+            return;
         }
+        container.innerHTML = profileGallery.map((img, i) => `
+            <div style="position:relative; aspect-ratio:4/3;">
+                <div style="width:100%; height:100%; background-image:url('${img}'); background-size:cover; background-position:center; border-radius:var(--radius-sm); border:1px solid var(--border);"></div>
+                <button onclick="removeGalleryImg(${i})" style="position:absolute; top:4px; right:4px; background:rgba(192,57,43,0.9); color:white; border:none; border-radius:50%; width:22px; height:22px; font-size:0.7rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+            </div>
+        `).join('');
     }
 
-    window.sendEmail = async function() {
-        document.getElementById('step2').style.display = 'none';
-        const bookingData = {
-            restaurant: window.selectedRestaurant,
-            name: document.getElementById('name').value,
-            phone: window.selectedFullPhone,
-            date: document.getElementById('date').value,
-            time: document.getElementById('selected-time-value').value,
-            persons: document.getElementById('persons').value,
-            status: "Pending",
-            duration: window.selectedSlotDuration,
-            createdAt: new Date()
+    function renderMenuPreview() {
+        const container = document.getElementById('menu-preview');
+        if (profileMenuImages.length === 0) {
+            container.innerHTML = `<div style="color:var(--text-hint); font-size:0.78rem; text-align:center; padding:8px 0;">No menu images yet.</div>`;
+            return;
+        }
+        container.innerHTML = profileMenuImages.map((img, i) => `
+            <div style="position:relative;">
+                <img src="${img}" style="width:100%; border-radius:var(--radius-sm); border:1px solid var(--border);" loading="lazy">
+                <button onclick="removeMenuImg(${i})" style="position:absolute; top:8px; right:8px; background:rgba(192,57,43,0.9); color:white; border:none; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif;">Remove</button>
+            </div>
+        `).join('');
+    }
+
+    window.addGalleryUrl = () => {
+        const url = document.getElementById('prof-gallery-url').value.trim();
+        if (!url) return;
+        if (profileGallery.length >= 6) return alert("Maximum 6 gallery photos.");
+        profileGallery.push(url);
+        document.getElementById('prof-gallery-url').value = '';
+        renderGalleryPreview();
+    };
+
+    window.removeGalleryImg = (index) => {
+        profileGallery.splice(index, 1);
+        renderGalleryPreview();
+    };
+
+    window.handleGalleryUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (profileGallery.length >= 6) return alert("Maximum 6 gallery photos.");
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX = 800;
+                const scale = img.width > MAX ? MAX / img.width : 1;
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                profileGallery.push(canvas.toDataURL('image/jpeg', 0.75));
+                renderGalleryPreview();
+            };
         };
+    };
+
+    window.addMenuUrl = () => {
+        const url = document.getElementById('prof-menu-url').value.trim();
+        if (!url) return;
+        profileMenuImages.push(url);
+        document.getElementById('prof-menu-url').value = '';
+        renderMenuPreview();
+    };
+
+    window.removeMenuImg = (index) => {
+        profileMenuImages.splice(index, 1);
+        renderMenuPreview();
+    };
+
+    window.handleMenuUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX = 1200;
+                const scale = img.width > MAX ? MAX / img.width : 1;
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                profileMenuImages.push(canvas.toDataURL('image/jpeg', 0.8));
+                renderMenuPreview();
+            };
+        };
+    };
+
+    window.saveProfile = async () => {
+        if (!currentResDocId) return alert("Restaurant not loaded.");
+        const description = document.getElementById('prof-description').value.trim();
+        const menuPdfUrl = document.getElementById('prof-menu-pdf').value.trim();
+        const btn = document.querySelector('#profile-panel button[onclick="saveProfile()"]');
+        const msgEl = document.getElementById('profile-save-msg');
+        btn.innerText = 'Saving…'; btn.disabled = true;
+
         try {
-            await addDoc(collection(db, "reservations"), bookingData);
-            document.getElementById('step3').style.display = 'block';
-        } catch (e) {
-            alert("Error: " + e.message);
-            document.getElementById('step2').style.display = 'block';
-        }
-    }
-
-    // ==========================================
-    // 4. MANAGE BOOKINGS & REVIEWS
-    // ==========================================
-    window.findBookings = async () => {
-        const code = document.getElementById('manage-code').value;
-        const num = document.getElementById('manage-phone').value;
-        const list = document.getElementById('user-bookings-list');
-
-        if (!num) return alert("Please enter your phone number.");
-        let cleanNum = num.replace(/^0+/, '');
-        let fullPhone = (code ? code : "") + cleanNum;
-
-        list.innerHTML = "<div style='text-align:center; color:var(--text-muted); padding:20px; font-size:0.85rem;'>Finding your bookings…</div>";
-
-        try {
-            const q = query(collection(db, "reservations"), where("phone", "==", fullPhone));
-            const snapshot = await getDocs(q);
-            let html = "";
-            let count = 0;
-            const todayStr = new Date().toISOString().split('T')[0];
-
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                if (!d.archived && d.status !== 'Declined') {
-                    count++;
-                    const isPastBooking = d.date < todayStr;
-                    let actionHtml = '';
-
-                    if (isPastBooking && d.status === 'Accepted') {
-                        if (d.isReviewed) {
-                            actionHtml = `<p style="color:var(--gold-dark); font-weight:600; margin-top:10px; font-size:13px;">⭐ Your Rating: ${d.rating}/5</p>`;
-                        } else {
-                            actionHtml = `<button class="btn-review" onclick="openReview('${doc.id}', '${d.restaurant.replace(/'/g, "\\'")}')">⭐ Leave a Review</button>`;
-                        }
-                    } else if (!isPastBooking) {
-                        actionHtml = `<button class="btn-cancel-user" onclick="cancelBookingUser('${doc.id}')">Cancel Booking</button>`;
-                    }
-
-                    let statusText = d.status === 'Accepted' ? 'Confirmed ✅' : 'Pending ⏳';
-                    let statusColor = d.status === 'Accepted' ? '#27AE60' : '#E67E22';
-
-                    html += `
-                    <div class="my-booking-card">
-                        <h3>${d.restaurant}</h3>
-                        <p>📅 ${d.date} at ${d.time}</p>
-                        <p>👤 ${d.persons} Guests</p>
-                        <p>Status: <strong style="color:${statusColor}">${statusText}</strong></p>
-                        ${actionHtml}
-                    </div>`;
-                }
+            await updateDoc(doc(db, "restaurants", currentResDocId), {
+                description, gallery: profileGallery,
+                menuImages: profileMenuImages, menuPdfUrl
             });
-
-            if (count === 0) list.innerHTML = "<p style='text-align:center; color:var(--text-muted); font-size:0.85rem;'>No active bookings found for this number.</p>";
-            else list.innerHTML = html;
+            currentResData.description = description;
+            currentResData.gallery = profileGallery;
+            currentResData.menuImages = profileMenuImages;
+            currentResData.menuPdfUrl = menuPdfUrl;
+            msgEl.innerText = '✅ Profile saved! Customers can now see the updates.';
+            msgEl.style.display = 'block';
+            setTimeout(() => msgEl.style.display = 'none', 3500);
         } catch (e) {
-            list.innerHTML = "<p style='text-align:center; color:#C0392B;'>Error finding bookings. Please try again.</p>";
-        }
-    }
-
-    window.cancelBookingUser = async (id) => {
-        if (confirm("Are you sure you want to cancel this booking?")) {
-            await updateDoc(doc(db, "reservations", id), { archived: true });
-            alert("Booking successfully cancelled.");
-            window.findBookings();
-        }
-    }
-
-    window.submitReview = async () => {
-        const id = document.getElementById('review-booking-id').value;
-        const rating = document.getElementById('review-rating').value;
-        const text = document.getElementById('review-text').value;
-        try {
-            await updateDoc(doc(db, "reservations", id), {
-                isReviewed: true,
-                rating: parseInt(rating),
-                reviewText: text,
-                reviewDate: new Date().toISOString()
-            });
-            alert("Thank you for your feedback!");
-            window.closeReview();
-            window.findBookings();
-        } catch (e) {
-            alert("Error submitting review: " + e.message);
+            alert("Error saving profile: " + e.message);
+        } finally {
+            btn.innerText = 'Save Profile'; btn.disabled = false;
         }
     };
 
     // ── WAITLIST ──
-    window.openWaitlist = (time, date, persons, duration) => {
-        document.getElementById('wl-date').value = date;
-        document.getElementById('wl-time').value = time;
-        document.getElementById('wl-restaurant').value = window.selectedRestaurant;
-        document.getElementById('wl-persons').value = persons || 2;
-        document.getElementById('wl-duration').value = duration || 2;
-        document.getElementById('wl-slot-display').innerText = `${window.selectedRestaurant} · ${date} at ${time} · ${persons || 2} guests`;
-        document.getElementById('wl-name').value = '';
-        document.getElementById('wl-phone').value = '';
-        document.getElementById('wl-success').style.display = 'none';
-        document.getElementById('wl-submit-btn').style.display = 'block';
-        document.getElementById('waitlist-modal').style.display = 'block';
-    };
-
-    window.closeWaitlist = () => {
-        document.getElementById('waitlist-modal').style.display = 'none';
-    };
-
-    window.submitWaitlist = async () => {
-        const name = document.getElementById('wl-name').value.trim();
-        const phone = document.getElementById('wl-phone').value.trim();
-        const code = document.getElementById('wl-code').value;
-        const date = document.getElementById('wl-date').value;
-        const time = document.getElementById('wl-time').value;
-        const restaurant = document.getElementById('wl-restaurant').value;
-        const persons = parseInt(document.getElementById('wl-persons').value) || 2;
-        const duration = parseInt(document.getElementById('wl-duration').value) || 2;
-
-        if (!name) return alert("Please enter your name.");
-        if (!phone) return alert("Please enter your phone number.");
-
-        const btn = document.getElementById('wl-submit-btn');
-        btn.innerText = "Adding…";
-        btn.disabled = true;
-
-        const cleanPhone = (code || "") + phone.replace(/^0+/, '');
-
-        try {
-            await addDoc(collection(db, "waitlist"), {
-                restaurant, name,
-                phone: cleanPhone,
-                date, time,
-                persons, duration,
-                createdAt: new Date(),
-                contacted: false
-            });
-            btn.style.display = 'none';
-            document.getElementById('wl-success').style.display = 'block';
-        } catch (e) {
-            alert("Error: " + e.message);
-            btn.innerText = "Add Me to Waitlist";
-            btn.disabled = false;
-        }
-    };
-
-    // ==========================================
-    // RESTAURANT PROFILE OVERLAY
-    // ==========================================
-    window.openProfile = async (restaurantId) => {
-        const overlay = document.getElementById('profile-overlay');
-        overlay.style.display = 'block';
-        overlay.classList.add('open');
-        overlay.scrollTop = 0;
-        document.body.style.overflow = 'hidden';
-
-        // Find restaurant data from allRestaurants
-        const branch = window.allRestaurants.find(r => r.id === restaurantId);
-        if (!branch) return;
-
-        const formatH = (h) => {
-            const ampm = h >= 12 ? 'PM' : 'AM';
-            return `${h % 12 || 12}:00 ${ampm}`;
-        };
-
-        // Hero image
-        const heroImg = document.getElementById('profile-hero-img');
-        heroImg.style.backgroundImage = `url('${branch.image || 'https://via.placeholder.com/800x400'}')`;
-
-        // Name & tags
-        document.getElementById('profile-name').innerText = branch.name;
-        document.getElementById('profile-tags').innerHTML = `
-            <span class="profile-tag">${branch.cuisine}</span>
-            <span class="profile-tag gold">${branch.price}</span>
-            ${branch.city ? `<span class="profile-tag">${branch.city}</span>` : ''}
-        `;
-
-        // Gallery
-        const gallery = document.getElementById('profile-gallery');
-        const allPhotos = [branch.image, ...(branch.gallery || [])].filter(Boolean);
-        if (allPhotos.length > 1) {
-            gallery.innerHTML = allPhotos.map((img, i) =>
-                `<div class="gallery-thumb ${i === 0 ? 'active' : ''}" style="background-image:url('${img}')" onclick="switchHeroImg('${img}', this)"></div>`
-            ).join('');
-            gallery.style.display = 'flex';
-        } else {
-            gallery.innerHTML = '';
-            gallery.style.display = 'none';
-        }
-
-        // Info grid
-        document.getElementById('profile-info-grid').innerHTML = `
-            <div class="profile-info-item">
-                <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                <div>
-                    <div class="profile-info-label">Location</div>
-                    <div class="profile-info-value">${branch.city || 'Damascus'} · ${branch.location}</div>
-                </div>
-            </div>
-            <div class="profile-info-item">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <div>
-                    <div class="profile-info-label">Hours</div>
-                    <div class="profile-info-value">${formatH(branch.openTime || 12)} – ${formatH(branch.closeTime || 22)}</div>
-                </div>
-            </div>
-            <div class="profile-info-item">
-                <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                <div>
-                    <div class="profile-info-label">Price Range</div>
-                    <div class="profile-info-value">${branch.price}</div>
-                </div>
-            </div>
-            <div class="profile-info-item">
-                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <div>
-                    <div class="profile-info-label">Cuisine</div>
-                    <div class="profile-info-value">${branch.cuisine}</div>
-                </div>
-            </div>
-        `;
-
-        // Description
-        if (branch.description) {
-            document.getElementById('profile-desc-section').style.display = 'block';
-            document.getElementById('profile-description').innerText = branch.description;
-        } else {
-            document.getElementById('profile-desc-section').style.display = 'none';
-        }
-
-        // Menu
-        const menuSection = document.getElementById('profile-menu-section');
-        const menuImages = document.getElementById('profile-menu-images');
-        const menuItems = branch.menuImages || [];
-        const menuPdf = branch.menuPdfUrl || '';
-        if (menuItems.length > 0 || menuPdf) {
-            menuSection.style.display = 'block';
-            let menuHtml = menuItems.map(img =>
-                `<img class="menu-img" src="${img}" alt="Menu" onclick="openImgViewer('${img}')" loading="lazy">`
-            ).join('');
-            if (menuPdf) {
-                menuHtml += `<a href="${menuPdf}" target="_blank" class="menu-pdf-btn">📄 View Full Menu (PDF)</a>`;
-            }
-            menuImages.innerHTML = menuHtml;
-        } else {
-            menuSection.style.display = 'none';
-        }
-
-        // Reviews — fetch from Firestore
-        const reviewsSection = document.getElementById('profile-reviews-section');
+    async function loadWaitlist() {
+        const container = document.getElementById('waitlist-container');
+        container.innerHTML = `<div class="empty-state"><div class="icon">⏳</div>Loading…</div>`;
         try {
             const q = query(
-                collection(db, "reservations"),
-                where("restaurant", "==", branch.name),
-                where("isReviewed", "==", true)
+                collection(db, "waitlist"),
+                where("restaurant", "==", currentRestaurant)
             );
             const snap = await getDocs(q);
-            if (!snap.empty) {
-                let totalRating = 0; let count = 0; let reviewsHtml = '';
-                snap.forEach(d => {
-                    const rv = d.data();
-                    totalRating += rv.rating || 0; count++;
-                    const stars = '⭐'.repeat(rv.rating || 0);
-                    const date = rv.reviewDate ? new Date(rv.reviewDate).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '';
-                    reviewsHtml += `
-                    <div class="review-item">
-                        <div class="review-item-header">
-                            <span class="review-item-name">${rv.name || 'Guest'}</span>
-                            <span class="review-item-date">${date}</span>
+            if (snap.empty) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">✅</div>No one on the waitlist.</div>`;
+                return;
+            }
+
+            // Group by date+time
+            const groups = {};
+            snap.forEach(d => {
+                const data = { id: d.id, ...d.data() };
+                const key = `${data.date}__${data.time}`;
+                if (!groups[key]) groups[key] = { date: data.date, time: data.time, entries: [] };
+                groups[key].entries.push(data);
+            });
+
+            // Sort groups by date then time
+            const sorted = Object.values(groups).sort((a, b) => {
+                if (a.date !== b.date) return a.date.localeCompare(b.date);
+                return a.time.localeCompare(b.time);
+            });
+
+            const today = new Date().toISOString().split('T')[0];
+            let html = '';
+            sorted.forEach(group => {
+                if (group.date < today) return; // skip past dates
+                const dStr = new Date(group.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+                html += `<div class="wl-group-header">📅 ${dStr} &nbsp;·&nbsp; 🕒 ${group.time} &nbsp;·&nbsp; ${group.entries.length} waiting</div>`;
+
+                group.entries.forEach(entry => {
+                    const addedDate = entry.createdAt?.toDate ? entry.createdAt.toDate().toLocaleDateString('en-GB') : '';
+                    const contactedClass = entry.contacted ? 'contacted' : '';
+                    const contactedLabel = entry.contacted ? ' ✅ Contacted' : '';
+                    let cleanPhone = entry.phone.replace(/\D/g, '');
+                    if (cleanPhone.startsWith('0')) cleanPhone = '963' + cleanPhone.substring(1);
+                    const waMsg = encodeURIComponent(`Hello ${entry.name}, a spot has opened up at ${currentRestaurant} on ${group.date} at ${group.time}. Would you like to book it?`);
+
+                    html += `
+                    <div class="wl-card ${contactedClass}" id="wl-card-${entry.id}">
+                        <div style="flex:1; min-width:0;">
+                            <div class="wl-name">${entry.name}${contactedLabel}</div>
+                            <div class="wl-meta">📞 ${entry.phone} &nbsp;·&nbsp; Added ${addedDate}</div>
                         </div>
-                        <div class="review-item-stars">${stars}</div>
-                        ${rv.reviewText ? `<div class="review-item-text">"${rv.reviewText}"</div>` : ''}
+                        <div class="wl-actions">
+                            <button class="btn-wl-contact" onclick="contactWaitlist('${entry.id}', '${cleanPhone}', '${waMsg}')">💬 WhatsApp</button>
+                            <button class="btn-wl-contact" style="background:var(--gold); color:var(--charcoal);" onclick="bookFromWaitlist('${entry.id}', '${entry.name.replace(/'/g,"\\'")}', '${cleanPhone}', '${group.date}', '${group.time}', ${entry.persons || 2}, ${entry.duration || 2})">✓ Book</button>
+                            <button class="btn-wl-remove" onclick="removeWaitlist('${entry.id}')">✕</button>
+                        </div>
                     </div>`;
                 });
-                const avg = (totalRating / count).toFixed(1);
-                const summaryStars = '⭐'.repeat(Math.round(totalRating / count));
-                document.getElementById('profile-reviews-summary').innerHTML = `
-                    <div class="reviews-score">${avg}</div>
-                    <div>
-                        <div class="reviews-stars">${summaryStars}</div>
-                        <div style="color:white; font-weight:600; font-size:0.88rem;">${count} review${count !== 1 ? 's' : ''}</div>
-                        <div class="reviews-count">Based on verified visits</div>
-                    </div>
-                `;
-                document.getElementById('profile-reviews-list').innerHTML = reviewsHtml;
-                reviewsSection.style.display = 'block';
-            } else {
-                reviewsSection.style.display = 'none';
-            }
-        } catch (e) { reviewsSection.style.display = 'none'; }
+            });
 
-        // Reserve button
-        const capacity = branch.capacity || 20;
-        const onlineTables = branch.onlineTables !== undefined ? branch.onlineTables : (branch.tables || 10);
-        const safeImg = (branch.image || '').replace(/'/g, "\\'");
-        const safeName = branch.name.replace(/'/g, "\\'");
-        const safeClosedDates = (branch.closedDates || []).join(',');
-        document.getElementById('profile-reserve-btn').onclick = () => {
-            closeProfile();
-            openBooking(safeName, safeImg, capacity, branch.duration || 3, onlineTables, branch.openTime || 12, branch.closeTime || 22, safeClosedDates);
-        };
+            container.innerHTML = html || `<div class="empty-state"><div class="icon">✅</div>No upcoming waitlist entries.</div>`;
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = `<div class="empty-state" style="color:var(--red);">Error loading waitlist.</div>`;
+        }
+    }
+
+    window.contactWaitlist = async (id, phone, waMsg) => {
+        const clean = phone;
+        const msg = encodeURIComponent(decodeURIComponent(waMsg));
+        // Build bilingual message
+        const entry = document.getElementById(`wl-card-${id}`);
+        const name = entry ? entry.querySelector('.wl-name').innerText : '';
+        const bilingualMsg = encodeURIComponent(
+            `A spot has opened up at ${currentRestaurant}. Would you like to book it? 🎉\nتم توفر مقعد في ${currentRestaurant}. هل تريد حجزه؟ 🎉`
+        );
+        window.open(`https://wa.me/${phone}?text=${bilingualMsg}`, '_blank');
+        // Mark as contacted
+        try {
+            await updateDoc(doc(db, "waitlist", id), { contacted: true });
+            const card = document.getElementById(`wl-card-${id}`);
+            if (card) card.classList.add('contacted');
+        } catch (e) { console.error(e); }
     };
 
-    window.closeProfile = () => {
-        const overlay = document.getElementById('profile-overlay');
-        overlay.style.display = 'none';
-        overlay.classList.remove('open');
-        document.body.style.overflow = '';
+    window.removeWaitlist = async (id) => {
+        if (!confirm("Remove this person from the waitlist?")) return;
+        try {
+            await deleteDoc(doc(db, "waitlist", id));
+            const card = document.getElementById(`wl-card-${id}`);
+            if (card) card.remove();
+        } catch (e) { alert("Error: " + e.message); }
     };
 
-    window.switchHeroImg = (imgUrl, thumbEl) => {
-        document.getElementById('profile-hero-img').style.backgroundImage = `url('${imgUrl}')`;
-        document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
-        thumbEl.classList.add('active');
-    };
-
-    window.openImgViewer = (imgUrl) => {
-        document.getElementById('img-viewer-img').src = imgUrl;
-        document.getElementById('img-viewer').style.display = 'flex';
-    };
-
-    window.closeImgViewer = () => {
-        document.getElementById('img-viewer').style.display = 'none';
+    window.bookFromWaitlist = async (waitlistId, name, phone, date, time, persons, duration) => {
+        persons = persons || 2;
+        duration = duration || 2;
+        if (!confirm(`Book a table for ${name} on ${date} at ${time} for ${persons} guest(s)?\n\nThis will create a confirmed reservation and remove them from the waitlist.`)) return;
+        try {
+            await addDoc(collection(db, "reservations"), {
+                restaurant: currentRestaurant,
+                name, phone, date, time,
+                persons, duration,
+                status: "Accepted",
+                source: "Waitlist",
+                createdAt: new Date()
+            });
+            await deleteDoc(doc(db, "waitlist", waitlistId));
+            const card = document.getElementById(`wl-card-${waitlistId}`);
+            if (card) card.remove();
+            let clean = phone.replace(/\D/g, '');
+            if (clean.startsWith('0')) clean = "963" + clean.substring(1);
+            const msg = `Hello ${name}, your reservation at ${currentRestaurant} on ${date} at ${time} for ${persons} guest(s) is CONFIRMED! ✅\nمرحبًا ${name}، تم تأكيد حجزك في ${currentRestaurantNameAr || currentRestaurant} بتاريخ ${date} الساعة ${time} لـ ${persons} ضيوف! ✅`;
+            window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+        } catch (e) { alert("Error: " + e.message); }
     };
 </script>
 </body>
