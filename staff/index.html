@@ -996,12 +996,16 @@
         snapshot.forEach(doc => {
             const d = doc.data();
             if (window.currentView === 'active') {
-                // Live = anything not archived, not declined, not finished, not no-show
-                if (!d.archived && d.status !== 'Declined' && d.status !== 'Finished' && d.status !== 'No-Show') {
+                // Seated always stays in Live regardless of date
+                if (d.status === 'Seated') {
+                    allDocs.push({ id: doc.id, ...d });
+                }
+                // Pending/Accepted only count as Live if today or in the future
+                else if (!d.archived && (d.status === 'Pending' || d.status === 'Accepted') && d.date >= todayStr) {
                     allDocs.push({ id: doc.id, ...d });
                 }
             } else if (window.currentView === 'past') {
-                // Past = finished/no-show from any date, OR old accepted bookings from past dates
+                // Past = finished/no-show from any date, OR old pending/accepted bookings from past dates
                 if (!d.archived && d.status !== 'Declined' && d.status !== 'Seated') {
                     if (d.status === 'Finished' || d.status === 'No-Show' || d.date < todayStr) {
                         allDocs.push({ id: doc.id, ...d });
