@@ -999,7 +999,10 @@
         snapshot.forEach(doc => {
             const d = doc.data();
             if (window.currentView === 'active') {
-                if (!d.archived && d.status !== 'Declined' && d.status !== 'Finished' && d.status !== 'No-Show') {
+                if (d.status === 'Seated') {
+                    allDocs.push({ id: doc.id, ...d });
+                }
+                else if (!d.archived && (d.status === 'Pending' || d.status === 'Accepted') && d.date >= todayStr) {
                     allDocs.push({ id: doc.id, ...d });
                 }
             } else if (window.currentView === 'past') {
