@@ -1255,7 +1255,7 @@
 
             renderList(window.allRestaurants);
 
-            // Check if URL has ?restaurant= parameter and auto-open that restaurant
+            // Check if URL has ?restaurant= parameter and auto-open booking form
             const urlParams = new URLSearchParams(window.location.search);
             const targetRestaurant = urlParams.get('restaurant');
             if (targetRestaurant) {
@@ -1263,7 +1263,14 @@
                     r.name.toLowerCase() === targetRestaurant.toLowerCase()
                 );
                 if (match) {
-                    setTimeout(() => openProfile(match.id), 400);
+                    setTimeout(() => {
+                        const capacity = match.capacity || 20;
+                        const onlineTables = match.onlineTables !== undefined ? match.onlineTables : (match.tables || 10);
+                        const safeImg = (match.image || '').replace(/'/g, "\\'");
+                        const safeClosedDates = (match.closedDates || []).join(',');
+                        const safeNameAr = (match.nameAr || '').replace(/'/g, "\\'");
+                        openBookingAr(match.name, safeNameAr, safeImg, capacity, match.duration || 3, onlineTables, match.openTime || 12, match.closeTime || 22, safeClosedDates);
+                    }, 400);
                 }
             }
 
