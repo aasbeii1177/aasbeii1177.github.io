@@ -1111,6 +1111,11 @@
                 askReviewBtn = `<button class="btn-ask-review" onclick="askForReview('${safePhone}','${safeName}')">📲 Ask for Review via WhatsApp</button>`;
             }
 
+            let reminderBtn = '';
+            if (b.status === 'Accepted' && b.date >= todayStr && b.phone && b.phone !== "N/A") {
+                reminderBtn = `<button class="btn-ask-review" style="background:rgba(52,152,219,0.08); color:#2980b9; border-color:rgba(52,152,219,0.25);" onclick="sendReminder('${safePhone}','${safeName}','${b.date}','${b.time}','${b.persons}')">⏰ Send Reminder via WhatsApp</button>`;
+            }
+
             html += `
             <div class="booking-card ${cardClass}">
                 <div class="card-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -1124,6 +1129,7 @@
                 ${badgesHtml}
                 ${buttons}
                 ${reviewHtml}
+                ${reminderBtn}
                 ${askReviewBtn}
             </div>`;
         }
@@ -1216,7 +1222,15 @@
     window.askForReview = (phone, name) => {
         let clean = phone.replace(/\D/g, '');
         if (clean.startsWith('0')) clean = "963" + clean.substring(1);
-        const msg = `Hi ${name}, thank you for dining at ${currentRestaurant}! We'd love your feedback. Visit My Bookings on our site to leave a review: https://taweltysy.com\n\nمرحبًا ${name}، شكرًا لزيارتك ${currentRestaurant}! نود سماع رأيك. قم بزيارة "حجوزاتي" في موقعنا لإضافة تقييم: https://taweltysy.com`;
+        const msg = `Hi ${name}, thank you for dining at ${currentRestaurant}! We'd love your feedback. Visit My Bookings on our site to leave a review: https://taweltysy.com\n\nمرحبًا ${name}، شكرًا لزيارتك ${currentRestaurantNameAr || currentRestaurant}! نود سماع رأيك. قم بزيارة "حجوزاتي" في موقعنا لإضافة تقييم: https://taweltysy.com`;
+        window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+    };
+
+    window.sendReminder = (phone, name, date, time, persons) => {
+        let clean = phone.replace(/\D/g, '');
+        if (clean.startsWith('0')) clean = "963" + clean.substring(1);
+        const arName = currentRestaurantNameAr || currentRestaurant;
+        const msg = `Hi ${name}, this is a reminder that you have a reservation at ${currentRestaurant} on ${date} at ${time} for ${persons} guest(s). We look forward to seeing you! 😊\n\nمرحبًا ${name}، نذكرك بحجزك في ${arName} بتاريخ ${date} الساعة ${time} لـ ${persons} ضيوف. نتطلع لرؤيتك! 😊`;
         window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
