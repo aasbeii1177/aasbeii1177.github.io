@@ -1322,6 +1322,19 @@
 
             renderList(window.allRestaurants);
 
+            // Check if URL has ?restaurant= parameter and auto-open that restaurant
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetRestaurant = urlParams.get('restaurant');
+            if (targetRestaurant) {
+                const match = window.allRestaurants.find(r =>
+                    r.name.toLowerCase() === targetRestaurant.toLowerCase()
+                );
+                if (match) {
+                    // Small delay to let the cards render first
+                    setTimeout(() => openProfile(match.id), 400);
+                }
+            }
+
         } catch (error) {
             console.error(error);
         } finally {
