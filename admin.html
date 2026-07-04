@@ -1034,6 +1034,7 @@
                     </div>
                     <div style="flex-shrink:0;">
                         <button class="btn-action" style="background:rgba(201,168,76,0.12); color:var(--gold-dark);" onclick="openAccountsPanel('${safeName}')">👤</button>
+                        <button class="btn-action" style="background:rgba(39,174,96,0.1); color:#27ae60;" onclick="copyBookingLink('${safeName}')" title="Copy booking link">🔗</button>
                         <button class="btn-action btn-edit" onclick="startEdit('${doc.id}','${safeName}','${safeLoc}','${safeImg}',${safeCap},${safeTabs},${safeOnlineTabs},'${safeCus}','${safePri}',${safeDur},${safeOpen},${safeClose},'${safeCity}',${isOpen},${safeVip})">✏️</button>
                         <button class="btn-action btn-delete" onclick="deleteRestaurant('${doc.id}','${safeName}')">🗑️</button>
                     </div>
@@ -1383,7 +1384,16 @@
     // ==========================================
     let currentAccountsRestaurant = '';
 
-    window.openAccountsPanel = async (restaurantName) => {
+    window.copyBookingLink = (restaurantName) => {
+        const encoded = encodeURIComponent(restaurantName);
+        const link = `https://taweltysy.com/?restaurant=${encoded}`;
+        navigator.clipboard.writeText(link).then(() => {
+            showSuccess(`🔗 Link copied! Share it with ${restaurantName}`);
+        }).catch(() => {
+            // Fallback for older browsers
+            prompt('Copy this link:', link);
+        });
+    };
         currentAccountsRestaurant = restaurantName;
         document.getElementById('accounts-modal-title').innerText = `${restaurantName}`;
         document.getElementById('accounts-modal-sub').innerText = 'Manager accounts for this restaurant';
