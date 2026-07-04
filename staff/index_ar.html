@@ -778,18 +778,21 @@
     };
 
     // ── AUTH ──
+    let isExplicitLogin = false;
+
     window.login = () => {
         const rawUsername = document.getElementById('email').value.trim().toLowerCase().replace(/\s+/g, '_');
         const pass = document.getElementById('password').value;
         const sound = document.getElementById('notif-sound');
         if (sound) { sound.play().catch(e => {}); sound.pause(); }
 
-        // Convert username to email automatically
         const email = rawUsername.includes('@') ? rawUsername : `${rawUsername}@tawelty.com`;
+        isExplicitLogin = true;
 
         signInWithEmailAndPassword(auth, email, pass).catch(e => {
+            isExplicitLogin = false;
             const msg = document.getElementById('login-msg');
-            msg.innerText = "Login failed. Check your username and password.";
+            msg.innerText = "فشل تسجيل الدخول. تحقق من اسم المستخدم وكلمة المرور.";
             msg.classList.remove('hidden');
         });
     };
@@ -804,13 +807,17 @@
             try {
                 const managerSnap = await getDoc(doc(db, "managers", user.email));
                 if (!managerSnap.exists()) {
-                    // Not a manager — check if it's the admin
                     if (user.email === "admin@tawelty.com") {
-                        window.location.href = "../admin.html";
+                        if (isExplicitLogin) {
+                            window.location.href = "../admin.html";
+                        } else {
+                            await signOut(auth);
+                            document.getElementById('login-view').classList.remove('hidden');
+                            document.getElementById('dashboard-view').classList.add('hidden');
+                        }
                         return;
                     }
-                    // Unknown account — sign out
-                    signOut(auth);
+                    await signOut(auth);
                     document.getElementById('login-view').classList.remove('hidden');
                     document.getElementById('dashboard-view').classList.add('hidden');
                     const msg = document.getElementById('login-msg');
