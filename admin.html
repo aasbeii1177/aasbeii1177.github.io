@@ -1390,10 +1390,11 @@
         navigator.clipboard.writeText(link).then(() => {
             showSuccess(`🔗 Link copied! Share it with ${restaurantName}`);
         }).catch(() => {
-            // Fallback for older browsers
             prompt('Copy this link:', link);
         });
     };
+
+    window.openAccountsPanel = async (restaurantName) => {
         currentAccountsRestaurant = restaurantName;
         document.getElementById('accounts-modal-title').innerText = `${restaurantName}`;
         document.getElementById('accounts-modal-sub').innerText = 'Manager accounts for this restaurant';
