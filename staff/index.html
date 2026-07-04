@@ -785,8 +785,10 @@
 
         // Convert username to email automatically
         const email = rawUsername.includes('@') ? rawUsername : `${rawUsername}@tawelty.com`;
+        isExplicitLogin = true;
 
         signInWithEmailAndPassword(auth, email, pass).catch(e => {
+            isExplicitLogin = false;
             const msg = document.getElementById('login-msg');
             msg.innerText = "Login failed. Check your username and password.";
             msg.classList.remove('hidden');
@@ -798,18 +800,27 @@
         signOut(auth).then(() => { window.location.reload(); });
     };
 
+    let isExplicitLogin = false;
+
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
                 const managerSnap = await getDoc(doc(db, "managers", user.email));
                 if (!managerSnap.exists()) {
-                    // Not a manager — check if it's the admin
                     if (user.email === "admin@tawelty.com") {
-                        window.location.href = "../admin.html";
+                        if (isExplicitLogin) {
+                            // User typed admin credentials — redirect to admin portal
+                            window.location.href = "../admin.html";
+                        } else {
+                            // Auto-restored admin session — sign out silently, show login
+                            await signOut(auth);
+                            document.getElementById('login-view').classList.remove('hidden');
+                            document.getElementById('dashboard-view').classList.add('hidden');
+                        }
                         return;
                     }
                     // Unknown account — sign out
-                    signOut(auth);
+                    await signOut(auth);
                     document.getElementById('login-view').classList.remove('hidden');
                     document.getElementById('dashboard-view').classList.add('hidden');
                     const msg = document.getElementById('login-msg');
