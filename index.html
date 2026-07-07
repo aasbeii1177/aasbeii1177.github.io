@@ -1532,10 +1532,10 @@
                     spotsHtml = `<span class="match-spots waitlist" onclick="event.stopPropagation(); openWaitlist('${m.time}', '${m.date}', 1, 3)">⏳ Join Waitlist</span>`;
                     cardClass += ' full';
                 } else if (pct >= 0.8) {
-                    spotsHtml = `<span class="match-spots low">⚠️ ${remaining} left</span>`;
+                    spotsHtml = `<span class="match-spots low">⚠️ Only ${remaining} left!</span>`;
                     onclick = `onclick="selectMatch('${m.id}', '${m.date}', '${m.time}', '${m.emoji} ${m.team1} vs ${m.team2}', ${m.capacity}, ${booked}, this)"`;
                 } else {
-                    spotsHtml = `<span class="match-spots available">✅ ${remaining} spots</span>`;
+                    spotsHtml = `<span class="match-spots available">✅ Available</span>`;
                     onclick = `onclick="selectMatch('${m.id}', '${m.date}', '${m.time}', '${m.emoji} ${m.team1} vs ${m.team2}', ${m.capacity}, ${booked}, this)"`;
                 }
 
@@ -1549,7 +1549,6 @@
                         <div class="match-meta">
                             <span>📅 ${dateFormatted}</span>
                             <span>⏰ ${m.time}</span>
-                            <span>🎟 ${m.capacity} total spots</span>
                         </div>
                     </div>
                     ${spotsHtml}
