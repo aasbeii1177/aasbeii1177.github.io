@@ -678,6 +678,63 @@
 
             <button onclick="saveProfile()" style="width:100%; padding:14px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.9rem; font-weight:700; font-family:'Cairo',sans-serif; cursor:pointer; transition:background 0.2s; margin-bottom:8px;">حفظ الملف</button>
             <div id="profile-save-msg" style="display:none; background:var(--green-pale); color:var(--green); border:1px solid rgba(39,174,96,0.25); padding:12px; border-radius:var(--radius-sm); text-align:center; font-size:0.82rem; font-weight:600;"></div>
+
+            <!-- MATCH SCHEDULE — fan zone only -->
+            <div id="staff-matches-section" style="display:none; margin-top:16px;">
+                <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
+                    <div style="font-family:'Amiri',serif; font-size:1.3rem; color:white; margin-bottom:4px; text-align:right;">⚽ جدول المباريات</div>
+                    <div style="font-size:0.78rem; color:rgba(255,255,255,0.4); text-align:right; font-family:'Cairo',sans-serif;">أدر المباريات القادمة. سيراها الزبائن كخيارات حجز.</div>
+                </div>
+
+                <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
+                    <div class="section-title-staff">المباريات القادمة</div>
+                    <div id="staff-matches-list">
+                        <div style="color:var(--text-hint); font-size:0.82rem; text-align:center; padding:12px 0;">جاري التحميل…</div>
+                    </div>
+                </div>
+
+                <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
+                    <div class="section-title-staff">إضافة مباراة جديدة</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div>
+                            <label class="modal-label">الفريق الأول</label>
+                            <input type="text" id="staff-match-team1" class="modal-input" placeholder="مثال: فرنسا" style="text-align:right; direction:rtl;">
+                        </div>
+                        <div>
+                            <label class="modal-label">الفريق الثاني</label>
+                            <input type="text" id="staff-match-team2" class="modal-input" placeholder="مثال: المغرب" style="text-align:right; direction:rtl;">
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div>
+                            <label class="modal-label">التاريخ</label>
+                            <input type="date" id="staff-match-date" class="modal-input">
+                        </div>
+                        <div>
+                            <label class="modal-label">وقت الانطلاق</label>
+                            <input type="time" id="staff-match-time" class="modal-input">
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                        <div>
+                            <label class="modal-label">الرياضة</label>
+                            <select id="staff-match-emoji" class="modal-input">
+                                <option value="⚽">⚽ كرة القدم</option>
+                                <option value="🏀">🏀 كرة السلة</option>
+                                <option value="🎾">🎾 تنس</option>
+                                <option value="🏉">🏉 راغبي</option>
+                                <option value="🏆">🏆 أخرى</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label">عدد المقاعد</label>
+                            <input type="number" id="staff-match-capacity" class="modal-input" placeholder="مثال: 50">
+                        </div>
+                    </div>
+                    <button onclick="staffAddMatch()" style="width:100%; padding:13px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.88rem; font-weight:700; font-family:'Cairo',sans-serif; cursor:pointer;">+ إضافة مباراة</button>
+                    <div id="staff-match-msg" style="display:none; margin-top:10px; text-align:center; font-size:0.78rem; font-weight:600; color:var(--green); font-family:'Cairo',sans-serif;"></div>
+                </div>
+            </div>
         </div>
 
         <!-- FAB -->
@@ -1462,7 +1519,78 @@
 
         renderGalleryPreview();
         renderMenuPreview();
+
+        const isFanzone = currentResData.venueType === 'fanzone';
+        document.getElementById('staff-matches-section').style.display = isFanzone ? 'block' : 'none';
+        if (isFanzone) loadStaffMatchesList();
     }
+
+    async function loadStaffMatchesList() {
+        const list = document.getElementById('staff-matches-list');
+        list.innerHTML = '<div style="color:var(--text-hint); font-size:0.82rem; text-align:center; padding:10px 0;">جاري التحميل…</div>';
+        try {
+            const snap = await getDocs(collection(db, "restaurants", currentResDocId, "matches"));
+            if (snap.empty) {
+                list.innerHTML = '<div style="color:var(--text-hint); font-size:0.82rem; text-align:center; padding:10px 0; font-family:Cairo,sans-serif;">لا توجد مباريات بعد.</div>';
+                return;
+            }
+            const matches = [];
+            snap.forEach(d => matches.push({ id: d.id, ...d.data() }));
+            matches.sort((a, b) => a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date));
+            const today = new Date().toISOString().split('T')[0];
+            let html = '';
+            matches.forEach(m => {
+                const isPast = m.date < today;
+                html += `
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-direction:row-reverse; padding:12px 14px; background:${isPast ? 'var(--input-bg)' : 'white'}; border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:8px; opacity:${isPast ? '0.5' : '1'};">
+                    <div style="text-align:right;">
+                        <div style="font-weight:700; font-size:0.88rem; font-family:'Cairo',sans-serif;">${m.emoji} ${m.team1} vs ${m.team2}</div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px; font-family:'Cairo',sans-serif;">📅 ${m.date} · ⏰ ${m.time} · 🎟 ${m.capacity} مقعد${isPast ? ' · منتهية' : ''}</div>
+                    </div>
+                    <button onclick="staffDeleteMatch('${m.id}')" style="background:var(--red-pale,rgba(192,57,43,0.08)); color:var(--red); border:none; border-radius:var(--radius-sm); padding:6px 12px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'Cairo',sans-serif; flex-shrink:0;">حذف</button>
+                </div>`;
+            });
+            list.innerHTML = html;
+        } catch(e) {
+            list.innerHTML = '<div style="color:var(--red); font-size:0.82rem; text-align:center; font-family:Cairo,sans-serif;">خطأ في التحميل.</div>';
+        }
+    }
+
+    window.staffAddMatch = async () => {
+        const team1 = document.getElementById('staff-match-team1').value.trim();
+        const team2 = document.getElementById('staff-match-team2').value.trim();
+        const date = document.getElementById('staff-match-date').value;
+        const time = document.getElementById('staff-match-time').value;
+        const emoji = document.getElementById('staff-match-emoji').value;
+        const capacity = parseInt(document.getElementById('staff-match-capacity').value);
+        const msgEl = document.getElementById('staff-match-msg');
+
+        if (!team1 || !team2 || !date || !time || !capacity) { alert("الرجاء تعبئة جميع حقول المباراة."); return; }
+        if (!currentResDocId) { alert("لم يتم تحميل المطعم."); return; }
+
+        try {
+            await addDoc(collection(db, "restaurants", currentResDocId, "matches"), {
+                team1, team2, date, time, emoji, capacity, createdAt: new Date()
+            });
+            document.getElementById('staff-match-team1').value = '';
+            document.getElementById('staff-match-team2').value = '';
+            document.getElementById('staff-match-date').value = '';
+            document.getElementById('staff-match-time').value = '';
+            document.getElementById('staff-match-capacity').value = '';
+            msgEl.innerText = `✅ تمت الإضافة: ${emoji} ${team1} vs ${team2}`;
+            msgEl.style.display = 'block';
+            setTimeout(() => msgEl.style.display = 'none', 3000);
+            loadStaffMatchesList();
+        } catch(e) { alert("خطأ: " + e.message); }
+    };
+
+    window.staffDeleteMatch = async (matchId) => {
+        if (!confirm("هل تريد حذف هذه المباراة؟")) return;
+        try {
+            await deleteDoc(doc(db, "restaurants", currentResDocId, "matches", matchId));
+            loadStaffMatchesList();
+        } catch(e) { alert("خطأ: " + e.message); }
+    };
 
     function renderGalleryPreview() {
         const container = document.getElementById('gallery-preview');
