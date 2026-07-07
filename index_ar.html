@@ -1470,10 +1470,10 @@
                     spotsHtml = `<span class="match-spots waitlist" onclick="event.stopPropagation(); openWaitlist('${m.time}', '${m.date}', 1, 3)">⏳ انضم للانتظار</span>`;
                     cardClass += ' full';
                 } else if (pct >= 0.8) {
-                    spotsHtml = `<span class="match-spots low">⚠️ ${remaining} متبقي</span>`;
+                    spotsHtml = `<span class="match-spots low">⚠️ ${remaining} متبقي فقط!</span>`;
                     onclick = `onclick="selectMatch('${m.id}', '${m.date}', '${m.time}', '${m.emoji} ${m.team1} vs ${m.team2}', ${m.capacity}, ${booked}, this)"`;
                 } else {
-                    spotsHtml = `<span class="match-spots available">✅ ${remaining} مقعد</span>`;
+                    spotsHtml = `<span class="match-spots available">✅ متاح</span>`;
                     onclick = `onclick="selectMatch('${m.id}', '${m.date}', '${m.time}', '${m.emoji} ${m.team1} vs ${m.team2}', ${m.capacity}, ${booked}, this)"`;
                 }
 
@@ -1487,7 +1487,6 @@
                         <div class="match-meta">
                             <span>📅 ${dateFormatted}</span>
                             <span>⏰ ${m.time}</span>
-                            <span>🎟 ${m.capacity} مقعد</span>
                         </div>
                     </div>
                     ${spotsHtml}
