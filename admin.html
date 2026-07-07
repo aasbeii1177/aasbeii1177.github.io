@@ -535,6 +535,13 @@
 
             <div class="field-row" style="margin-top:14px;">
                 <div>
+                    <label>Venue Type</label>
+                    <select id="res-venue-type" onchange="toggleVenueType()">
+                        <option value="restaurant">🍽 Restaurant</option>
+                        <option value="fanzone">⚽ Fan Zone / Event Venue</option>
+                    </select>
+                </div>
+                <div id="cuisine-field">
                     <label>Cuisine</label>
                     <input type="text" id="res-cuisine" placeholder="e.g. Syrian">
                 </div>
@@ -587,6 +594,56 @@
                 <option value="true" selected>🟢 Active — Visible to Customers</option>
                 <option value="false">🔴 Hidden — Disabled</option>
             </select>
+
+            <!-- FAN ZONE MATCH MANAGEMENT — only shown for fanzone venues -->
+            <div id="matches-section" style="display:none; margin-top:28px;">
+                <div class="section-title">⚽ Match Schedule</div>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">Add matches/events for this fan zone. Customers will see these as booking options instead of time slots.</p>
+
+                <div id="matches-list" style="margin-bottom:14px;"></div>
+
+                <div style="background:var(--input-bg); border-radius:var(--radius-md); padding:16px; border:1px solid var(--border);">
+                    <div class="section-title" style="margin-bottom:12px;">Add New Match</div>
+                    <div class="field-row" style="margin-bottom:10px;">
+                        <div>
+                            <label>Team 1</label>
+                            <input type="text" id="match-team1" class="input-field" placeholder="e.g. France">
+                        </div>
+                        <div>
+                            <label>Team 2</label>
+                            <input type="text" id="match-team2" class="input-field" placeholder="e.g. Morocco">
+                        </div>
+                    </div>
+                    <div class="field-row" style="margin-bottom:10px;">
+                        <div>
+                            <label>Date</label>
+                            <input type="date" id="match-date" class="input-field">
+                        </div>
+                        <div>
+                            <label>Kick-off Time</label>
+                            <input type="time" id="match-time" class="input-field">
+                        </div>
+                    </div>
+                    <div class="field-row" style="margin-bottom:10px;">
+                        <div>
+                            <label>Sport Emoji</label>
+                            <select id="match-emoji" class="input-field">
+                                <option value="⚽">⚽ Football</option>
+                                <option value="🏀">🏀 Basketball</option>
+                                <option value="🎾">🎾 Tennis</option>
+                                <option value="🏉">🏉 Rugby</option>
+                                <option value="🏆">🏆 Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Spots Available</label>
+                            <input type="number" id="match-capacity" class="input-field" placeholder="e.g. 50">
+                        </div>
+                    </div>
+                    <button class="btn-primary btn-green" style="width:auto; padding:10px 20px;" onclick="addMatch()">+ Add Match</button>
+                    <div id="match-add-msg" style="display:none; margin-top:8px; font-size:0.78rem; color:var(--green); font-weight:600;"></div>
+                </div>
+            </div>
 
             <div class="section-title" style="margin-top:28px;">3 · Restaurant Profile</div>
             <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">Optional but recommended — this is what customers see on the restaurant profile page.</p>
@@ -911,6 +968,7 @@
         const rClose = document.getElementById('res-close').value || "22";
         const rCus = document.getElementById('res-cuisine').value || "General";
         const rPri = document.getElementById('res-price').value || "$$";
+        const rVenueType = document.getElementById('res-venue-type').value || "restaurant";
         const rVip = document.getElementById('res-vip').value || "3";
         const rIsOpen = document.getElementById('res-isopen').value === "true";
         const rDesc = document.getElementById('res-description').value.trim();
@@ -934,6 +992,7 @@
                 duration: parseInt(rDur), openTime: parseInt(rOpen),
                 closeTime: parseInt(rClose), cuisine: rCus, price: rPri,
                 vipThreshold: parseInt(rVip), isOpen: rIsOpen,
+                venueType: rVenueType,
                 description: rDesc, menuPdfUrl: rMenuPdf, gallery: [], menuImages: []
             });
             const secondaryApp = initializeApp(firebaseConfig, "Secondary-" + Date.now());
@@ -963,6 +1022,7 @@
         const rClose = document.getElementById('res-close').value;
         const rCus = document.getElementById('res-cuisine').value;
         const rPri = document.getElementById('res-price').value;
+        const rVenueType = document.getElementById('res-venue-type').value || "restaurant";
         const rVip = document.getElementById('res-vip').value || "3";
         const rIsOpen = document.getElementById('res-isopen').value === "true";
         const rDesc = document.getElementById('res-description').value.trim();
@@ -982,6 +1042,7 @@
                 duration: parseInt(rDur), openTime: parseInt(rOpen),
                 closeTime: parseInt(rClose), cuisine: rCus, price: rPri,
                 vipThreshold: parseInt(rVip), isOpen: rIsOpen,
+                venueType: rVenueType,
                 description: rDesc, menuPdfUrl: rMenuPdf
             });
             if (rName !== editingOldName) {
@@ -1056,6 +1117,12 @@
         } catch(e) { console.error(e); }
         document.getElementById('res-name').value = name;
         document.getElementById('res-name-ar').value = resData.nameAr || '';
+        document.getElementById('res-venue-type').value = resData.venueType || 'restaurant';
+        toggleVenueType();
+        if ((resData.venueType || 'restaurant') === 'fanzone') {
+            currentMatchesResId = id;
+            loadMatchesList(id);
+        }
         document.getElementById('res-city').value = city || "Damascus";
         document.getElementById('res-location').value = loc;
         if (img.length > 500) {
@@ -1383,6 +1450,94 @@
     // ACCOUNTS MANAGEMENT
     // ==========================================
     let currentAccountsRestaurant = '';
+
+    window.toggleVenueType = () => {
+        const type = document.getElementById('res-venue-type').value;
+        const isFanzone = type === 'fanzone';
+        document.getElementById('cuisine-field').style.display = isFanzone ? 'none' : '';
+        document.getElementById('matches-section').style.display = isFanzone ? 'block' : 'none';
+        if (isFanzone && editingId) loadMatchesList(editingId);
+    };
+
+    let currentMatchesResId = '';
+
+    window.loadMatchesList = async (resId) => {
+        currentMatchesResId = resId;
+        const list = document.getElementById('matches-list');
+        list.innerHTML = '<div style="color:var(--text-hint); font-size:0.82rem;">Loading…</div>';
+        try {
+            const snap = await getDocs(collection(db, "restaurants", resId, "matches"));
+            if (snap.empty) {
+                list.innerHTML = '<div style="color:var(--text-hint); font-size:0.82rem; padding:8px 0;">No matches yet. Add one below.</div>';
+                return;
+            }
+            let html = '';
+            snap.forEach(d => {
+                const m = d.data();
+                html += `
+                <div style="display:flex; align-items:center; justify-content:space-between; background:white; border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:8px;">
+                    <div>
+                        <div style="font-weight:700; font-size:0.9rem;">${m.emoji} ${m.team1} vs ${m.team2}</div>
+                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">📅 ${m.date} · ⏰ ${m.time} · 🎟 ${m.capacity} spots</div>
+                    </div>
+                    <button onclick="deleteMatch('${resId}','${d.id}')" style="background:var(--red-pale); color:var(--red); border:none; border-radius:var(--radius-sm); padding:6px 12px; font-size:0.75rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif;">🗑️ Remove</button>
+                </div>`;
+            });
+            list.innerHTML = html;
+        } catch(e) {
+            list.innerHTML = '<div style="color:var(--red); font-size:0.82rem;">Error loading matches.</div>';
+        }
+    };
+
+    window.addMatch = async () => {
+        const team1 = document.getElementById('match-team1').value.trim();
+        const team2 = document.getElementById('match-team2').value.trim();
+        const date = document.getElementById('match-date').value;
+        const time = document.getElementById('match-time').value;
+        const emoji = document.getElementById('match-emoji').value;
+        const capacity = parseInt(document.getElementById('match-capacity').value);
+        const msgEl = document.getElementById('match-add-msg');
+
+        if (!team1 || !team2 || !date || !time || !capacity) {
+            alert("Please fill all match fields.");
+            return;
+        }
+        if (!currentMatchesResId && !editingId) {
+            alert("Please save the venue first before adding matches.");
+            return;
+        }
+
+        const resId = currentMatchesResId || editingId;
+
+        try {
+            await addDoc(collection(db, "restaurants", resId, "matches"), {
+                team1, team2, date, time, emoji, capacity,
+                createdAt: new Date()
+            });
+            document.getElementById('match-team1').value = '';
+            document.getElementById('match-team2').value = '';
+            document.getElementById('match-date').value = '';
+            document.getElementById('match-time').value = '';
+            document.getElementById('match-capacity').value = '';
+            msgEl.innerText = `✅ Match added: ${emoji} ${team1} vs ${team2}`;
+            msgEl.style.display = 'block';
+            setTimeout(() => msgEl.style.display = 'none', 3000);
+            loadMatchesList(resId);
+        } catch(e) {
+            alert("Error: " + e.message);
+        }
+    };
+
+    window.deleteMatch = async (resId, matchId) => {
+        if (!confirm("Remove this match?")) return;
+        try {
+            const { deleteDoc: dd } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+            await dd(doc(db, "restaurants", resId, "matches", matchId));
+            loadMatchesList(resId);
+        } catch(e) {
+            alert("Error: " + e.message);
+        }
+    };
 
     window.copyBookingLink = (restaurantName) => {
         const encoded = encodeURIComponent(restaurantName);
