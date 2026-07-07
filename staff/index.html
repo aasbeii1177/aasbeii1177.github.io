@@ -1122,6 +1122,7 @@
                     <h3 class="card-title">${b.name}</h3>
                 </div>
                 <div class="card-meta">
+                    ${b.matchName ? `<span style="color:var(--gold-dark); font-weight:700;">${b.matchName}</span>` : ''}
                     <span>🕒 ${b.time}</span>
                     <span>👤 ${b.persons} guests</span>
                     <span>📞 ${b.phone}</span>
