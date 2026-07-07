@@ -549,6 +549,14 @@
             <button id="btn-pause-today" class="tab-btn" onclick="togglePauseToday()">⏸ إيقاف</button>
         </div>
 
+        <!-- Search bar -->
+        <div id="search-bar" style="margin-bottom:10px;">
+            <input type="text" id="booking-search" placeholder="🔍 ابحث بالاسم أو رقم الهاتف…"
+                oninput="filterBookings(this.value)"
+                style="width:100%; padding:11px 16px; background:white; border:1.5px solid var(--border); border-radius:var(--radius-md); font-family:'Cairo',sans-serif; font-size:0.88rem; color:var(--text-main); outline:none; transition:border 0.2s; box-sizing:border-box; text-align:right; direction:rtl;"
+                onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+
         <!-- Stats -->
         <div class="stats-grid">
             <div class="time-card" id="current-hour-display">--:--:--</div>
@@ -1475,9 +1483,31 @@
         renderCurrentBlocks();
     };
 
+    window.filterBookings = (query) => {
+        const q = query.toLowerCase().trim();
+        const cards = document.querySelectorAll('.booking-card');
+        cards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            card.style.display = q === '' || text.includes(q) ? '' : 'none';
+        });
+        document.querySelectorAll('.date-header').forEach(header => {
+            let next = header.nextElementSibling;
+            let hasVisible = false;
+            while (next && !next.classList.contains('date-header')) {
+                if (next.style.display !== 'none') hasVisible = true;
+                next = next.nextElementSibling;
+            }
+            header.style.display = hasVisible ? '' : 'none';
+        });
+    };
+
     // Override setView to handle all tabs including profile
     window.setView = (view) => {
         window.currentView = view;
+        const searchEl = document.getElementById('booking-search');
+        if (searchEl) { searchEl.value = ''; filterBookings(''); }
+        const searchBar = document.getElementById('search-bar');
+        if (searchBar) searchBar.style.display = ['active','past','history'].includes(view) ? '' : 'none';
         document.getElementById('tab-active').classList.toggle('active', view === 'active');
         document.getElementById('tab-past').classList.toggle('active', view === 'past');
         document.getElementById('tab-history').classList.toggle('active', view === 'history');
