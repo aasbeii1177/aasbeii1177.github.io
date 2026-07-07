@@ -979,6 +979,7 @@
         const rCus = rVenueType === 'fanzone'
             ? (document.getElementById('res-category').value.trim() || 'Fan Zone')
             : (document.getElementById('res-cuisine').value || "General");
+        const rPri = document.getElementById('res-price').value || "$$";
         const rVip = document.getElementById('res-vip').value || "3";
         const rIsOpen = document.getElementById('res-isopen').value === "true";
         const rDesc = document.getElementById('res-description').value.trim();
