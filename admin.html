@@ -545,6 +545,10 @@
                     <label>Cuisine</label>
                     <input type="text" id="res-cuisine" placeholder="e.g. Syrian">
                 </div>
+                <div id="category-field" style="display:none;">
+                    <label>Category <span style="color:var(--text-hint); font-weight:400; text-transform:none; letter-spacing:0; font-size:0.65rem;">shown on card</span></label>
+                    <input type="text" id="res-category" placeholder="e.g. Golden Zone, Sports Bar…">
+                </div>
                 <div>
                     <label>Price Range</label>
                     <select id="res-price">
@@ -916,9 +920,10 @@
         const rDur = document.getElementById('res-duration').value || "3";
         const rOpen = document.getElementById('res-open').value || "12";
         const rClose = document.getElementById('res-close').value || "22";
-        const rCus = document.getElementById('res-cuisine').value || "General";
-        const rPri = document.getElementById('res-price').value || "$$";
         const rVenueType = document.getElementById('res-venue-type').value || "restaurant";
+        const rCus = rVenueType === 'fanzone'
+            ? (document.getElementById('res-category').value.trim() || 'Fan Zone')
+            : (document.getElementById('res-cuisine').value || "General");
         const rVip = document.getElementById('res-vip').value || "3";
         const rIsOpen = document.getElementById('res-isopen').value === "true";
         const rDesc = document.getElementById('res-description').value.trim();
@@ -970,9 +975,10 @@
         const rDur = document.getElementById('res-duration').value;
         const rOpen = document.getElementById('res-open').value;
         const rClose = document.getElementById('res-close').value;
-        const rCus = document.getElementById('res-cuisine').value;
-        const rPri = document.getElementById('res-price').value;
         const rVenueType = document.getElementById('res-venue-type').value || "restaurant";
+        const rCus = rVenueType === 'fanzone'
+            ? (document.getElementById('res-category').value.trim() || 'Fan Zone')
+            : (document.getElementById('res-cuisine').value || "General");
         const rVip = document.getElementById('res-vip').value || "3";
         const rIsOpen = document.getElementById('res-isopen').value === "true";
         const rDesc = document.getElementById('res-description').value.trim();
@@ -1069,6 +1075,9 @@
         document.getElementById('res-name-ar').value = resData.nameAr || '';
         document.getElementById('res-venue-type').value = resData.venueType || 'restaurant';
         toggleVenueType();
+        if (resData.venueType === 'fanzone') {
+            document.getElementById('res-category').value = resData.cuisine || '';
+        }
         document.getElementById('res-city').value = city || "Damascus";
         document.getElementById('res-location').value = loc;
         if (img.length > 500) {
@@ -1139,7 +1148,7 @@
 
     function clearInputs() {
         ['res-name','res-name-ar','res-location','res-image','res-capacity','res-tables',
-         'res-online-tables', 'res-duration','res-open','res-close','res-cuisine',
+         'res-online-tables', 'res-duration','res-open','res-close','res-cuisine','res-category',
          'mgr-username','mgr-pass','res-description','res-menu-pdf'].forEach(id => {
             document.getElementById(id).value = "";
         });
@@ -1399,7 +1408,9 @@
 
     window.toggleVenueType = () => {
         const type = document.getElementById('res-venue-type').value;
-        document.getElementById('cuisine-field').style.display = type === 'fanzone' ? 'none' : '';
+        const isFanzone = type === 'fanzone';
+        document.getElementById('cuisine-field').style.display = isFanzone ? 'none' : '';
+        document.getElementById('category-field').style.display = isFanzone ? '' : 'none';
     };
 
     window.copyBookingLink = (restaurantName) => {
