@@ -1342,7 +1342,7 @@
             <div class="card" onclick="openProfile('${branch.id}')">
                 <div class="card-img-wrapper">
                     <div class="card-img" style="background-image: url('${branch.image || 'https://via.placeholder.com/500x200'}');"></div>
-                    <div class="card-badge">${branch.cuisine}</div>
+                    <div class="card-badge">${branch.cuisine || (branch.venueType === 'fanzone' ? 'فان زون' : 'General')}</div>
                 </div>
                 <div class="card-content">
                     <div class="card-tags">
