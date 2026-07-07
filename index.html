@@ -466,7 +466,32 @@
         /* ── FOOTER ── */
         .footer { text-align: center; padding: 24px 20px; color: var(--text-hint); font-size: 0.78rem; }
 
-        /* ── PROFILE OVERLAY ── */
+        /* ── MATCH CARDS (Fan Zone) ── */
+        .match-card {
+            background: white; border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 16px 18px;
+            margin-bottom: 10px; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .match-card:hover { border-color: var(--gold); box-shadow: 0 4px 16px rgba(201,168,76,0.12); }
+        .match-card.selected { border-color: var(--charcoal); background: var(--charcoal); color: white; }
+        .match-card.full { opacity: 0.6; cursor: default; border-color: var(--border); }
+        .match-teams {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem; font-weight: 700; color: var(--text-main);
+            margin-bottom: 4px;
+        }
+        .match-card.selected .match-teams { color: white; }
+        .match-meta { font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 12px; }
+        .match-card.selected .match-meta { color: rgba(255,255,255,0.6); }
+        .match-spots {
+            font-size: 0.78rem; font-weight: 700; padding: 5px 12px;
+            border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+        }
+        .match-spots.available { background: rgba(39,174,96,0.1); color: #27ae60; }
+        .match-spots.low { background: rgba(230,126,34,0.1); color: #e67e22; }
+        .match-spots.full { background: rgba(192,57,43,0.1); color: var(--red); }
+        .match-spots.waitlist { background: rgba(201,168,76,0.1); color: var(--gold-dark); cursor: pointer; }
         .profile-overlay {
             display: none; position: fixed; inset: 0; z-index: 998;
             background: var(--cream); overflow-y: auto; overflow-x: hidden;
@@ -1335,7 +1360,7 @@
                         const onlineTables = match.onlineTables !== undefined ? match.onlineTables : (match.tables || 10);
                         const safeImg = (match.image || '').replace(/'/g, "\\'");
                         const safeClosedDates = (match.closedDates || []).join(',');
-                        openBooking(match.name, safeImg, capacity, match.duration || 3, onlineTables, match.openTime || 12, match.closeTime || 22, safeClosedDates);
+                        openBooking(match.name, safeImg, capacity, match.duration || 3, onlineTables, match.openTime || 12, match.closeTime || 22, safeClosedDates, match.venueType || 'restaurant', match.id);
                     }, 400);
                 }
             }
@@ -1377,6 +1402,8 @@
             const safeClosedDates = (branch.closedDates || []).join(',');
             const safeDesc = (branch.description || '').replace(/'/g, "\\'").substring(0, 100);
 
+            const safeVenueType = branch.venueType || 'restaurant';
+
             html += `
             <div class="card" onclick="openProfile('${branch.id}')">
                 <div class="card-img-wrapper">
@@ -1400,7 +1427,7 @@
                         </span>
                         ${safeDesc ? `<span class="card-row" style="color:var(--text-hint); font-style:italic; font-size:0.78rem; margin-top:2px;">${safeDesc}${branch.description && branch.description.length > 100 ? '…' : ''}</span>` : ''}
                     </div>
-                    <button class="btn-card" onclick="event.stopPropagation(); openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${onlineTables}, ${openTime}, ${closeTime}, '${safeClosedDates}')">
+                    <button class="btn-card" onclick="event.stopPropagation(); openBooking('${safeName}', '${safeImg}', ${capacity}, ${duration}, ${onlineTables}, ${openTime}, ${closeTime}, '${safeClosedDates}', '${safeVenueType}', '${branch.id}')">
                         Reserve a Table
                         <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
@@ -1426,7 +1453,7 @@
         renderList(filtered);
     }
 
-    window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close, closedDatesStr) {
+    window.openBooking = function(name, imgUrl, capacity, duration, tables, open, close, closedDatesStr, venueType, resId) {
         window.selectedRestaurant = name;
         window.currentCapacity = capacity;
         window.currentDuration = duration;
@@ -1434,28 +1461,122 @@
         window.currentOpen = open;
         window.currentClose = close;
         window.currentClosedDates = closedDatesStr ? closedDatesStr.split(',') : [];
+        window.currentVenueType = venueType || 'restaurant';
+        window.currentResId = resId || '';
 
         document.getElementById('selected-restaurant-title').innerText = name;
         document.getElementById('date').value = "";
-        document.getElementById('time-grid').innerHTML = "<div style='grid-column:1/-1; text-align:center; color:var(--text-hint); padding:20px; font-size:0.85rem;'>Please select date & guests first</div>";
         document.getElementById('selected-time-value').value = "";
         document.getElementById('persons').value = "2";
-
         document.getElementById('policy-check').checked = false;
         document.getElementById('btn-confirm-final').disabled = true;
+
+        if (window.currentVenueType === 'fanzone') {
+            // Hide date/persons row, show match cards instead
+            document.getElementById('time-grid').innerHTML = "<div style='text-align:center; color:var(--text-hint); padding:20px; font-size:0.85rem;'>⏳ Loading matches…</div>";
+            document.getElementById('date-persons-row') && (document.getElementById('date-persons-row').style.display = 'none');
+            loadMatchCards();
+        } else {
+            document.getElementById('date-persons-row') && (document.getElementById('date-persons-row').style.display = '');
+            document.getElementById('time-grid').innerHTML = "<div style='grid-column:1/-1; text-align:center; color:var(--text-hint); padding:20px; font-size:0.85rem;'>Please select date & guests first</div>";
+        }
 
         document.getElementById('home-page').classList.remove('active-section');
         document.getElementById('manage-page').classList.remove('active-section');
         document.getElementById('booking-page').classList.add('active-section');
         window.switchFormStep('step2', 'step1');
         window.switchFormStep('step3', 'step1');
-
         updateNavVisuals('');
         window.scrollTo(0, 0);
     }
 
+    window.loadMatchCards = async () => {
+        const grid = document.getElementById('time-grid');
+        const resId = window.currentResId;
+        if (!resId) { grid.innerHTML = "<div style='text-align:center; color:var(--red); padding:20px;'>Error loading matches.</div>"; return; }
+
+        try {
+            const snap = await getDocs(collection(db, "restaurants", resId, "matches"));
+            if (snap.empty) {
+                grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:var(--text-hint); padding:20px;'>No matches scheduled yet. Check back soon!</div>";
+                return;
+            }
+
+            const matches = [];
+            snap.forEach(d => matches.push({ id: d.id, ...d.data() }));
+            matches.sort((a, b) => a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date));
+
+            const bookingSnaps = await getDocs(query(collection(db, "reservations"), where("restaurant", "==", window.selectedRestaurant)));
+            const bookedByMatch = {};
+            bookingSnaps.forEach(d => {
+                const r = d.data();
+                if (r.matchId && (r.status === 'Pending' || r.status === 'Accepted' || r.status === 'Seated')) {
+                    bookedByMatch[r.matchId] = (bookedByMatch[r.matchId] || 0) + (parseInt(r.persons) || 1);
+                }
+            });
+
+            const today = new Date().toISOString().split('T')[0];
+            let html = '';
+
+            matches.forEach(m => {
+                if (m.date < today) return;
+                const booked = bookedByMatch[m.id] || 0;
+                const remaining = m.capacity - booked;
+                const pct = m.capacity > 0 ? booked / m.capacity : 0;
+
+                let spotsHtml = '';
+                let cardClass = 'match-card';
+                let onclick = '';
+
+                if (remaining <= 0) {
+                    spotsHtml = `<span class="match-spots waitlist" onclick="event.stopPropagation(); openWaitlist('${m.time}', '${m.date}', 1, 3)">⏳ Join Waitlist</span>`;
+                    cardClass += ' full';
+                } else if (pct >= 0.8) {
+                    spotsHtml = `<span class="match-spots low">⚠️ ${remaining} left</span>`;
+                    onclick = `onclick="selectMatch('${m.id}', '${m.date}', '${m.time}', '${m.emoji} ${m.team1} vs ${m.team2}', ${m.capacity}, ${booked}, this)"`;
+                } else {
+                    spotsHtml = `<span class="match-spots available">✅ ${remaining} spots</span>`;
+                    onclick = `onclick="selectMatch('${m.id}', '${m.date}', '${m.time}', '${m.emoji} ${m.team1} vs ${m.team2}', ${m.capacity}, ${booked}, this)"`;
+                }
+
+                const dateObj = new Date(m.date + 'T12:00:00');
+                const dateFormatted = dateObj.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
+
+                html += `
+                <div class="${cardClass}" ${onclick} style="grid-column:1/-1;">
+                    <div>
+                        <div class="match-teams">${m.emoji} ${m.team1} vs ${m.team2}</div>
+                        <div class="match-meta">
+                            <span>📅 ${dateFormatted}</span>
+                            <span>⏰ ${m.time}</span>
+                            <span>🎟 ${m.capacity} total spots</span>
+                        </div>
+                    </div>
+                    ${spotsHtml}
+                </div>`;
+            });
+
+            grid.innerHTML = html || "<div style='grid-column:1/-1; text-align:center; color:var(--text-hint); padding:20px;'>No upcoming matches scheduled.</div>";
+        } catch(e) {
+            grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:var(--red); padding:20px;'>Error: " + e.message + "</div>";
+        }
+    };
+
+    window.selectMatch = (matchId, date, time, matchName, capacity, booked, el) => {
+        document.querySelectorAll('.match-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        window.selectedMatchId = matchId;
+        window.selectedMatchName = matchName;
+        document.getElementById('selected-time-value').value = time;
+        document.getElementById('date').value = date;
+        const remaining = capacity - booked;
+        const personsInput = document.getElementById('persons');
+        personsInput.max = remaining;
+        if (parseInt(personsInput.value) > remaining) personsInput.value = 1;
+        window.switchFormStep('step2', 'step1');
+    };
+
     window.updateTimeSlots = async () => {
-        const dateInput = document.getElementById('date').value;
         const grid = document.getElementById('time-grid');
         const personsInput = document.getElementById('persons').value || 0;
         const groupSize = parseInt(personsInput) || 2;
@@ -1636,9 +1757,15 @@
             time: document.getElementById('selected-time-value').value,
             persons: document.getElementById('persons').value,
             status: "Pending",
-            duration: window.selectedSlotDuration,
+            duration: window.selectedSlotDuration || window.currentDuration || 3,
             createdAt: new Date()
         };
+        // Add match info for fan zone bookings
+        if (window.currentVenueType === 'fanzone' && window.selectedMatchId) {
+            bookingData.matchId = window.selectedMatchId;
+            bookingData.matchName = window.selectedMatchName || '';
+            bookingData.venueType = 'fanzone';
+        }
         try {
             await addDoc(collection(db, "reservations"), bookingData);
             document.getElementById('step3').style.display = 'block';
@@ -1943,7 +2070,7 @@
         const safeClosedDates = (branch.closedDates || []).join(',');
         document.getElementById('profile-reserve-btn').onclick = () => {
             closeProfile();
-            openBooking(safeName, safeImg, capacity, branch.duration || 3, onlineTables, branch.openTime || 12, branch.closeTime || 22, safeClosedDates);
+            openBooking(safeName, safeImg, capacity, branch.duration || 3, onlineTables, branch.openTime || 12, branch.closeTime || 22, safeClosedDates, branch.venueType || 'restaurant', branch.id);
         };
     };
 
