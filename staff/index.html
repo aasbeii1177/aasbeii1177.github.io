@@ -548,7 +548,13 @@
             <button id="btn-pause-today" class="tab-btn" onclick="togglePauseToday()">⏸ Pause</button>
         </div>
 
-        <!-- Stats -->
+        <!-- Search bar -->
+        <div id="search-bar" style="margin-bottom:10px; position:relative;">
+            <input type="text" id="booking-search" placeholder="🔍 Search by name or phone…"
+                oninput="filterBookings(this.value)"
+                style="width:100%; padding:11px 16px; background:white; border:1.5px solid var(--border); border-radius:var(--radius-md); font-family:'DM Sans',sans-serif; font-size:0.88rem; color:var(--text-main); outline:none; transition:border 0.2s; box-sizing:border-box;"
+                onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
         <div class="stats-grid">
             <div class="time-card" id="current-hour-display">--:--:--</div>
             <div class="stat-card">
@@ -1466,8 +1472,33 @@
     };
 
     // Override setView to handle all tabs including profile
+    window.filterBookings = (query) => {
+        const q = query.toLowerCase().trim();
+        const cards = document.querySelectorAll('.booking-card');
+        cards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            card.style.display = q === '' || text.includes(q) ? '' : 'none';
+        });
+        // Hide date headers if all cards under them are hidden
+        document.querySelectorAll('.date-header').forEach(header => {
+            let next = header.nextElementSibling;
+            let hasVisible = false;
+            while (next && !next.classList.contains('date-header')) {
+                if (next.style.display !== 'none') hasVisible = true;
+                next = next.nextElementSibling;
+            }
+            header.style.display = hasVisible ? '' : 'none';
+        });
+    };
+
     window.setView = (view) => {
         window.currentView = view;
+        // Clear search on tab switch
+        const searchEl = document.getElementById('booking-search');
+        if (searchEl) { searchEl.value = ''; filterBookings(''); }
+        // Hide search bar on non-booking tabs
+        const searchBar = document.getElementById('search-bar');
+        if (searchBar) searchBar.style.display = ['active','past','history'].includes(view) ? '' : 'none';
         document.getElementById('tab-active').classList.toggle('active', view === 'active');
         document.getElementById('tab-past').classList.toggle('active', view === 'past');
         document.getElementById('tab-history').classList.toggle('active', view === 'history');
