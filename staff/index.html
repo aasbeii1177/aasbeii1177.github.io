@@ -1132,9 +1132,10 @@
                         <button class="btn-decision btn-accept" onclick="updateBookingStatus('${b.id}','Accepted',true,'${safePhone}','${safeName}')">✓ Accept</button>
                         <button class="btn-decision btn-decline" onclick="updateBookingStatus('${b.id}','Declined',true,'${safePhone}','${safeName}')">✕ Decline</button>
                     </div>`;
-                } else if (b.status === 'Accepted' && b.date === todayStr && window.currentView === 'active') {
+                } else if (b.status === 'Accepted' && window.currentView === 'active') {
+                    const checkinLabel = currentResData && currentResData.venueType === 'fanzone' ? '✅ Checked In' : '✅ Seated';
                     buttons = `<div class="btn-decision-row">
-                        <button class="btn-decision btn-seated" onclick="updateBookingStatus('${b.id}','Seated',false)">✅ Seated</button>
+                        <button class="btn-decision btn-seated" onclick="updateBookingStatus('${b.id}','Seated',false)">${checkinLabel}</button>
                         <button class="btn-decision btn-noshow" onclick="updateBookingStatus('${b.id}','No-Show',false)">🚫 No-Show</button>
                     </div>`;
                 } else if (b.status === 'Seated') {
