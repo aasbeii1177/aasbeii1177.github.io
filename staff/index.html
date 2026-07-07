@@ -677,6 +677,63 @@
 
             <button onclick="saveProfile()" style="width:100%; padding:14px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.9rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.2s; margin-bottom:8px;">Save Profile</button>
             <div id="profile-save-msg" style="display:none; background:var(--green-pale); color:var(--green); border:1px solid rgba(39,174,96,0.25); padding:12px; border-radius:var(--radius-sm); text-align:center; font-size:0.82rem; font-weight:600;"></div>
+
+            <!-- MATCH SCHEDULE — only shown for fan zone venues -->
+            <div id="staff-matches-section" style="display:none; margin-top:16px;">
+                <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
+                    <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">⚽ Match Schedule</div>
+                    <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">Manage upcoming matches. Customers will see these as booking options.</div>
+                </div>
+
+                <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
+                    <div class="section-title-staff">Upcoming Matches</div>
+                    <div id="staff-matches-list">
+                        <div style="color:var(--text-hint); font-size:0.82rem; text-align:center; padding:12px 0;">Loading…</div>
+                    </div>
+                </div>
+
+                <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
+                    <div class="section-title-staff">Add New Match</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div>
+                            <label class="modal-label">Team 1</label>
+                            <input type="text" id="staff-match-team1" class="modal-input" placeholder="e.g. France">
+                        </div>
+                        <div>
+                            <label class="modal-label">Team 2</label>
+                            <input type="text" id="staff-match-team2" class="modal-input" placeholder="e.g. Morocco">
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div>
+                            <label class="modal-label">Date</label>
+                            <input type="date" id="staff-match-date" class="modal-input">
+                        </div>
+                        <div>
+                            <label class="modal-label">Kick-off Time</label>
+                            <input type="time" id="staff-match-time" class="modal-input">
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                        <div>
+                            <label class="modal-label">Sport</label>
+                            <select id="staff-match-emoji" class="modal-input">
+                                <option value="⚽">⚽ Football</option>
+                                <option value="🏀">🏀 Basketball</option>
+                                <option value="🎾">🎾 Tennis</option>
+                                <option value="🏉">🏉 Rugby</option>
+                                <option value="🏆">🏆 Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label">Spots Available</label>
+                            <input type="number" id="staff-match-capacity" class="modal-input" placeholder="e.g. 50">
+                        </div>
+                    </div>
+                    <button onclick="staffAddMatch()" style="width:100%; padding:13px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.88rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer;">+ Add Match</button>
+                    <div id="staff-match-msg" style="display:none; margin-top:10px; text-align:center; font-size:0.78rem; font-weight:600; color:var(--green);"></div>
+                </div>
+            </div>
         </div>
 
         <!-- FAB -->
@@ -1452,7 +1509,79 @@
 
         renderGalleryPreview();
         renderMenuPreview();
+
+        // Show match section only for fan zones
+        const isFanzone = currentResData.venueType === 'fanzone';
+        document.getElementById('staff-matches-section').style.display = isFanzone ? 'block' : 'none';
+        if (isFanzone) loadStaffMatchesList();
     }
+
+    async function loadStaffMatchesList() {
+        const list = document.getElementById('staff-matches-list');
+        list.innerHTML = '<div style="color:var(--text-hint); font-size:0.82rem; text-align:center; padding:10px 0;">Loading…</div>';
+        try {
+            const snap = await getDocs(collection(db, "restaurants", currentResDocId, "matches"));
+            if (snap.empty) {
+                list.innerHTML = '<div style="color:var(--text-hint); font-size:0.82rem; text-align:center; padding:10px 0;">No matches yet. Add one below.</div>';
+                return;
+            }
+            const matches = [];
+            snap.forEach(d => matches.push({ id: d.id, ...d.data() }));
+            matches.sort((a, b) => a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date));
+            const today = new Date().toISOString().split('T')[0];
+            let html = '';
+            matches.forEach(m => {
+                const isPast = m.date < today;
+                html += `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:${isPast ? 'var(--input-bg)' : 'white'}; border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:8px; opacity:${isPast ? '0.5' : '1'};">
+                    <div>
+                        <div style="font-weight:700; font-size:0.88rem;">${m.emoji} ${m.team1} vs ${m.team2}</div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">📅 ${m.date} · ⏰ ${m.time} · 🎟 ${m.capacity} spots${isPast ? ' · Past' : ''}</div>
+                    </div>
+                    <button onclick="staffDeleteMatch('${m.id}')" style="background:var(--red-pale,rgba(192,57,43,0.08)); color:var(--red); border:none; border-radius:var(--radius-sm); padding:6px 12px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; flex-shrink:0;">Remove</button>
+                </div>`;
+            });
+            list.innerHTML = html;
+        } catch(e) {
+            list.innerHTML = '<div style="color:var(--red); font-size:0.82rem; text-align:center;">Error loading matches.</div>';
+        }
+    }
+
+    window.staffAddMatch = async () => {
+        const team1 = document.getElementById('staff-match-team1').value.trim();
+        const team2 = document.getElementById('staff-match-team2').value.trim();
+        const date = document.getElementById('staff-match-date').value;
+        const time = document.getElementById('staff-match-time').value;
+        const emoji = document.getElementById('staff-match-emoji').value;
+        const capacity = parseInt(document.getElementById('staff-match-capacity').value);
+        const msgEl = document.getElementById('staff-match-msg');
+
+        if (!team1 || !team2 || !date || !time || !capacity) { alert("Please fill all match fields."); return; }
+        if (!currentResDocId) { alert("Restaurant not loaded."); return; }
+
+        try {
+            await addDoc(collection(db, "restaurants", currentResDocId, "matches"), {
+                team1, team2, date, time, emoji, capacity, createdAt: new Date()
+            });
+            document.getElementById('staff-match-team1').value = '';
+            document.getElementById('staff-match-team2').value = '';
+            document.getElementById('staff-match-date').value = '';
+            document.getElementById('staff-match-time').value = '';
+            document.getElementById('staff-match-capacity').value = '';
+            msgEl.innerText = `✅ Added: ${emoji} ${team1} vs ${team2}`;
+            msgEl.style.display = 'block';
+            setTimeout(() => msgEl.style.display = 'none', 3000);
+            loadStaffMatchesList();
+        } catch(e) { alert("Error: " + e.message); }
+    };
+
+    window.staffDeleteMatch = async (matchId) => {
+        if (!confirm("Remove this match?")) return;
+        try {
+            await deleteDoc(doc(db, "restaurants", currentResDocId, "matches", matchId));
+            loadStaffMatchesList();
+        } catch(e) { alert("Error: " + e.message); }
+    };
 
     function renderGalleryPreview() {
         const container = document.getElementById('gallery-preview');
