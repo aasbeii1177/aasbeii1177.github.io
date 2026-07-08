@@ -1171,13 +1171,17 @@
      ========================================== -->
 <script type="module">
     // ── DAMASCUS TIME (UTC+3, no DST) ──
+    // Damascus is always UTC+3. We shift Date.now() by +3h then use UTC methods
+    // so getUTCHours() returns the correct Damascus hour regardless of browser timezone.
     const damascusNow = () => new Date(Date.now() + 3 * 60 * 60 * 1000);
     const damascusDateStr = () => {
         const d = damascusNow();
         return d.toISOString().split('T')[0];
     };
     const damascusHour = () => damascusNow().getUTCHours();
-    const damascusMinutes = () => damascusNow().getUTCHours() * 60 + damascusNow().getUTCMinutes();
+    const damascusMinute = () => damascusNow().getUTCMinutes();
+    const damascusSecond = () => damascusNow().getUTCSeconds();
+    const damascusMinutes = () => damascusHour() * 60 + damascusMinute();
 
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -1630,7 +1634,7 @@
 
         const isToday = dateInput === todayStr;
         const now = damascusNow();
-        const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+        const currentTotalMinutes = damascusMinutes();
         const currentIdx = Math.floor(currentTotalMinutes / 30);
 
         try {
