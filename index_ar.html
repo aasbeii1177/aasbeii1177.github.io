@@ -1108,6 +1108,16 @@
      ALL ORIGINAL JS — UNCHANGED
      ========================================== -->
 <script type="module">
+    // ── DAMASCUS TIME (UTC+3, no DST) ──
+    const damascusNow = () => new Date(Date.now() + 3 * 60 * 60 * 1000);
+    const damascusDateStr = () => {
+        const d = damascusNow();
+        return d.toISOString().split('T')[0];
+    };
+    const damascusHour = () => damascusNow().getUTCHours();
+    const damascusMinutes = () => damascusNow().getUTCHours() * 60 + damascusNow().getUTCMinutes();
+
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, getDocs, addDoc, doc, getDoc, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -1234,7 +1244,7 @@
     // 3. CORE LOGIC
     // ==========================================
     window.onload = async function() {
-        const today = new Date().toISOString().split('T')[0];
+        const today = damascusDateStr();
         document.getElementById('date').setAttribute('min', today);
         const loader = document.getElementById('loader-main');
 
@@ -1453,11 +1463,18 @@
                 }
             });
 
-            const today = new Date().toISOString().split('T')[0];
+            const now = damascusNow();
+            const today = damascusDateStr();
+            const currentMinutes = damascusMinutes();
             let html = '';
 
             matches.forEach(m => {
                 if (m.date < today) return;
+                if (m.date === today) {
+                    const [mHour, mMin] = m.time.split(':').map(Number);
+                    const matchMinutes = mHour * 60 + mMin;
+                    if (matchMinutes <= currentMinutes) return;
+                }
                 const booked = bookedByMatch[m.id] || 0;
                 const remaining = m.capacity - booked;
                 const pct = m.capacity > 0 ? booked / m.capacity : 0;
@@ -1527,7 +1544,7 @@
             return;
         }
 
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = damascusDateStr();
         if (dateInput < todayStr) {
             grid.innerHTML = "<div style='grid-column:1/-1; text-align:center; color:#C0392B; padding:20px; font-size:0.85rem;'>⚠️ لا يمكن الحجز في تاريخ قديم</div>";
             return;
@@ -1549,7 +1566,7 @@
         const dur1 = 2;
 
         const isToday = dateInput === todayStr;
-        const now = new Date();
+        const now = damascusNow();
         const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
         const currentIdx = Math.floor(currentTotalMinutes / 30);
 
@@ -1731,7 +1748,7 @@
             const snapshot = await getDocs(q);
             let html = "";
             let count = 0;
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = damascusDateStr();
 
             snapshot.forEach(doc => {
                 const d = doc.data();
