@@ -1377,7 +1377,7 @@
                     </div>
                     <button class="btn-card" onclick="event.stopPropagation(); openBookingAr('${safeName}', '${safeNameAr}', '${safeImg}', ${capacity}, ${duration}, ${onlineTables}, ${openTime}, ${closeTime}, '${safeClosedDates}', '${safeVenueType}', '${branch.id}')">
                         <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-                        احجز طاولة
+                        ${branch.btnText || (safeVenueType === 'fanzone' ? 'احجز مقعدًا' : 'احجز طاولة')}
                     </button>
                 </div>
             </div>`;
@@ -1982,6 +1982,7 @@
         const safeName = branch.name.replace(/'/g, "\\'");
         const safeNameAr = (branch.nameAr || '').replace(/'/g, "\\'");
         const safeClosedDates = (branch.closedDates || []).join(',');
+        document.getElementById('profile-reserve-btn').innerText = branch.btnText || (branch.venueType === 'fanzone' ? 'احجز مقعدًا' : 'احجز طاولة');
         document.getElementById('profile-reserve-btn').onclick = () => {
             closeProfile();
             openBookingAr(safeName, safeNameAr, safeImg, capacity, branch.duration || 3, onlineTables, branch.openTime || 12, branch.closeTime || 22, safeClosedDates, branch.venueType || 'restaurant', branch.id);
