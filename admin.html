@@ -596,7 +596,16 @@
             </select>
 
             <label style="margin-top:14px;">Booking Button Text <span style="color:var(--text-hint); font-weight:400; text-transform:none; letter-spacing:0; font-size:0.65rem;">optional — shown on customer card</span></label>
-            <input type="text" id="res-btn-text" placeholder='e.g. "Book a Bean Bag" — leave empty for default'>
+            <div class="field-row" style="margin-top:0;">
+                <div>
+                    <label>English</label>
+                    <input type="text" id="res-btn-text" placeholder='e.g. Book a Bean Bag'>
+                </div>
+                <div>
+                    <label>العربية</label>
+                    <input type="text" id="res-btn-text-ar" placeholder='مثال: احجز بين باق' style="text-align:right; direction:rtl;">
+                </div>
+            </div>
 
             <div class="section-title" style="margin-top:28px;">3 · Restaurant Profile</div>
             <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">Optional but recommended — this is what customers see on the restaurant profile page.</p>
@@ -928,6 +937,7 @@
         const rDesc = document.getElementById('res-description').value.trim();
         const rMenuPdf = document.getElementById('res-menu-pdf').value.trim();
         const rBtnText = document.getElementById('res-btn-text').value.trim();
+        const rBtnTextAr = document.getElementById('res-btn-text-ar').value.trim();
         const mPass = document.getElementById('mgr-pass').value;
         const btn = document.getElementById('btn-submit');
 
@@ -946,7 +956,7 @@
                 duration: parseInt(rDur), openTime: parseInt(rOpen),
                 closeTime: parseInt(rClose), cuisine: rCus, price: rPri,
                 vipThreshold: parseInt(rVip), isOpen: rIsOpen,
-                venueType: rVenueType, btnText: rBtnText,
+                venueType: rVenueType, btnText: rBtnText, btnTextAr: rBtnTextAr,
                 description: rDesc, menuPdfUrl: rMenuPdf, gallery: [], menuImages: []
             });
             const secondaryApp = initializeApp(firebaseConfig, "Secondary-" + Date.now());
@@ -984,6 +994,7 @@
         const rDesc = document.getElementById('res-description').value.trim();
         const rMenuPdf = document.getElementById('res-menu-pdf').value.trim();
         const rBtnText = document.getElementById('res-btn-text').value.trim();
+        const rBtnTextAr = document.getElementById('res-btn-text-ar').value.trim();
         const btn = document.getElementById('btn-submit');
 
         if (!rName || !rLoc || !rCap || !rDur || !rTabs) return alert("All fields required.");
@@ -999,7 +1010,7 @@
                 duration: parseInt(rDur), openTime: parseInt(rOpen),
                 closeTime: parseInt(rClose), cuisine: rCus, price: rPri,
                 vipThreshold: parseInt(rVip), isOpen: rIsOpen,
-                venueType: rVenueType, btnText: rBtnText,
+                venueType: rVenueType, btnText: rBtnText, btnTextAr: rBtnTextAr,
                 description: rDesc, menuPdfUrl: rMenuPdf
             });
             if (rName !== editingOldName) {
@@ -1103,6 +1114,7 @@
         document.getElementById('res-description').value = resData.description || '';
         document.getElementById('res-menu-pdf').value = resData.menuPdfUrl || '';
         document.getElementById('res-btn-text').value = resData.btnText || '';
+        document.getElementById('res-btn-text-ar').value = resData.btnTextAr || '';
         document.getElementById('form-title').innerText = "Edit Venue";
         document.getElementById('btn-submit').innerText = "Save Changes";
         document.getElementById('manager-section').style.display = 'none';
@@ -1151,7 +1163,7 @@
     function clearInputs() {
         ['res-name','res-name-ar','res-location','res-image','res-capacity','res-tables',
          'res-online-tables', 'res-duration','res-open','res-close','res-cuisine','res-category',
-         'mgr-username','mgr-pass','res-description','res-menu-pdf','res-btn-text'].forEach(id => {
+         'mgr-username','mgr-pass','res-description','res-menu-pdf','res-btn-text','res-btn-text-ar'].forEach(id => {
             document.getElementById(id).value = "";
         });
         document.getElementById('res-city').value = "Damascus";
