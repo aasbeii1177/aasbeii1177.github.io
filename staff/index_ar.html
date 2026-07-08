@@ -771,6 +771,7 @@
         <div class="modal-content">
             <h3 id="modal-title">حجز جديد</h3>
             <input type="hidden" id="edit-id">
+            <input type="hidden" id="m-match-id">
 
             <label class="modal-label">اسم الضيف</label>
             <input type="text" id="m-name" class="modal-input" placeholder="الاسم" style="text-align:right; direction:rtl;">
@@ -778,22 +779,34 @@
             <label class="modal-label" style="margin-top:12px;">رقم الهاتف</label>
             <input type="text" id="m-phone" class="modal-input" placeholder="رقم الهاتف" style="direction:ltr; text-align:left;">
 
-            <div class="modal-row">
-                <div>
-                    <label class="modal-label">التاريخ</label>
-                    <input type="date" id="m-date" class="modal-input">
-                </div>
-                <div>
-                    <label class="modal-label">الوقت</label>
-                    <select id="m-time" class="modal-input"></select>
+            <!-- Fan zone: match selector -->
+            <div id="m-match-row" style="display:none; margin-top:12px;">
+                <label class="modal-label">المباراة / الفعالية</label>
+                <select id="m-match" class="modal-input" onchange="onMatchSelected()" style="direction:rtl; text-align:right;">
+                    <option value="">اختر مباراة…</option>
+                </select>
+            </div>
+
+            <!-- Restaurant: date + time -->
+            <div id="m-datetime-row">
+                <div class="modal-row">
+                    <div>
+                        <label class="modal-label">التاريخ</label>
+                        <input type="date" id="m-date" class="modal-input">
+                    </div>
+                    <div>
+                        <label class="modal-label">الوقت</label>
+                        <select id="m-time" class="modal-input"></select>
+                    </div>
                 </div>
             </div>
+
             <div class="modal-row">
                 <div>
                     <label class="modal-label">عدد الضيوف</label>
                     <input type="number" id="m-guests" class="modal-input" value="2" min="1">
                 </div>
-                <div>
+                <div id="m-duration-row">
                     <label class="modal-label">المدة (ساعات)</label>
                     <input type="number" id="m-duration" class="modal-input" value="3" min="1">
                 </div>
@@ -1227,20 +1240,46 @@
     }
 
     // ── MODAL ──
-    window.openModal = (mode, id, name, phone, date, time, guests, duration) => {
+    window.openModal = async (mode, id, name, phone, date, time, guests, duration) => {
         const modal = document.getElementById('booking-modal');
-        const timeSelect = document.getElementById('m-time');
-        timeSelect.innerHTML = "";
-        for (let i = openTime; i <= closeTime; i++) {
-            const o1 = document.createElement('option'); o1.value = i + ":00"; o1.innerText = i + ":00"; timeSelect.appendChild(o1);
-            const o2 = document.createElement('option'); o2.value = i + ":30"; o2.innerText = i + ":30"; timeSelect.appendChild(o2);
+        const isFanzone = currentResData && currentResData.venueType === 'fanzone';
+
+        document.getElementById('m-match-row').style.display = isFanzone ? '' : 'none';
+        document.getElementById('m-datetime-row').style.display = isFanzone ? 'none' : '';
+        document.getElementById('m-duration-row').style.display = isFanzone ? 'none' : '';
+        document.getElementById('m-match-id').value = '';
+
+        if (isFanzone) {
+            const matchSel = document.getElementById('m-match');
+            matchSel.innerHTML = '<option value="">اختر مباراة…</option>';
+            try {
+                const snap = await getDocs(collection(db, "restaurants", currentResDocId, "matches"));
+                const matches = [];
+                snap.forEach(d => matches.push({ id: d.id, ...d.data() }));
+                matches.sort((a, b) => a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date));
+                matches.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    const label = m.team2 ? `${m.emoji} ${m.team1} vs ${m.team2}` : `${m.emoji} ${m.team1}`;
+                    opt.innerText = `${label} — ${m.date} ${m.time}`;
+                    opt.dataset.date = m.date;
+                    opt.dataset.time = m.time;
+                    opt.dataset.name = label;
+                    matchSel.appendChild(opt);
+                });
+            } catch(e) { console.error(e); }
+        } else {
+            const timeSelect = document.getElementById('m-time');
+            timeSelect.innerHTML = "";
+            for (let i = openTime; i <= closeTime; i++) {
+                const o1 = document.createElement('option'); o1.value = i + ":00"; o1.innerText = i + ":00"; timeSelect.appendChild(o1);
+                const o2 = document.createElement('option'); o2.value = i + ":30"; o2.innerText = i + ":30"; timeSelect.appendChild(o2);
+            }
+            document.getElementById('m-date').min = damascusDateStr();
         }
 
-        const today = damascusDateStr();
-        document.getElementById('m-date').min = today;
-
         if (mode === 'edit') {
-            document.getElementById('modal-title').innerText = "Edit Booking";
+            document.getElementById('modal-title').innerText = "تعديل الحجز";
             document.getElementById('edit-id').value = id;
             document.getElementById('m-name').value = name;
             document.getElementById('m-phone').value = phone;
@@ -1249,29 +1288,50 @@
             document.getElementById('m-guests').value = guests;
             document.getElementById('m-duration').value = duration || 3;
         } else {
-            document.getElementById('modal-title').innerText = "New Reservation";
+            document.getElementById('modal-title').innerText = "حجز جديد";
             document.getElementById('edit-id').value = "";
             document.getElementById('m-name').value = "";
             document.getElementById('m-phone').value = "";
-            document.getElementById('m-date').value = today;
+            document.getElementById('m-date').value = damascusDateStr();
             document.getElementById('m-guests').value = 2;
             document.getElementById('m-duration').value = 3;
         }
         modal.style.display = 'flex';
     };
 
+    window.onMatchSelected = () => {
+        const sel = document.getElementById('m-match');
+        if (sel.value) document.getElementById('m-match-id').value = sel.value;
+    };
+
     window.closeModal = () => document.getElementById('booking-modal').style.display = 'none';
 
     window.saveBooking = async () => {
         const id = document.getElementById('edit-id').value;
-        const name = document.getElementById('m-name').value || "Walk-in";
+        const name = document.getElementById('m-name').value || "زبون";
         const phone = document.getElementById('m-phone').value || "N/A";
-        const date = document.getElementById('m-date').value;
-        const time = document.getElementById('m-time').value;
-        const guests = parseInt(document.getElementById('m-guests').value);
-        const duration = parseInt(document.getElementById('m-duration').value);
+        const isFanzone = currentResData && currentResData.venueType === 'fanzone';
 
-        if (!date || !time) return alert("Date and time are required.");
+        let date, time, matchId, matchName, duration;
+
+        if (isFanzone) {
+            const sel = document.getElementById('m-match');
+            const opt = sel.options[sel.selectedIndex];
+            if (!sel.value) { alert("الرجاء اختيار مباراة."); return; }
+            date = opt.dataset.date;
+            time = opt.dataset.time;
+            matchId = sel.value;
+            matchName = opt.dataset.name;
+            duration = 3;
+        } else {
+            date = document.getElementById('m-date').value;
+            time = document.getElementById('m-time').value;
+            duration = parseInt(document.getElementById('m-duration').value) || 3;
+        }
+
+        const guests = parseInt(document.getElementById('m-guests').value);
+
+        if (!date || !time) return alert("التاريخ والوقت مطلوبان");
 
         const btn = document.querySelector('#booking-modal .btn-save');
         const original = btn.innerText;
@@ -1281,11 +1341,13 @@
             if (id) {
                 await updateDoc(doc(db, "reservations", id), { name, phone, date, time, persons: guests, duration });
             } else {
-                await addDoc(collection(db, "reservations"), {
+                const bookingData = {
                     restaurant: currentRestaurant, name, phone, date, time,
                     persons: guests, duration, status: "Accepted",
                     source: "Manager", createdAt: new Date()
-                });
+                };
+                if (matchId) { bookingData.matchId = matchId; bookingData.matchName = matchName; bookingData.venueType = 'fanzone'; }
+                await addDoc(collection(db, "reservations"), bookingData);
             }
             closeModal();
         } catch (e) { alert(e.message); }
