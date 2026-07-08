@@ -699,14 +699,23 @@
                 </div>
 
                 <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
-                    <div class="section-title-staff">Add New Match</div>
+                    <div class="section-title-staff">Add New Match / Event</div>
+
+                    <label class="modal-label">Event Type</label>
+                    <select id="staff-match-type" class="modal-input" onchange="updateMatchForm()" style="margin-bottom:12px;">
+                        <option value="sport">⚽ Sports Match</option>
+                        <option value="cinema">🎬 Cinema / Screening</option>
+                        <option value="concert">🎵 Concert / Live Music</option>
+                        <option value="other">🎯 Other Event</option>
+                    </select>
+
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                         <div>
-                            <label class="modal-label">Team 1</label>
+                            <label class="modal-label" id="label-team1">Team 1</label>
                             <input type="text" id="staff-match-team1" class="modal-input" placeholder="e.g. France">
                         </div>
-                        <div>
-                            <label class="modal-label">Team 2</label>
+                        <div id="team2-field">
+                            <label class="modal-label" id="label-team2">Team 2</label>
                             <input type="text" id="staff-match-team2" class="modal-input" placeholder="e.g. Morocco">
                         </div>
                     </div>
@@ -722,12 +731,16 @@
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
                         <div>
-                            <label class="modal-label">Sport</label>
+                            <label class="modal-label">Icon</label>
                             <select id="staff-match-emoji" class="modal-input">
                                 <option value="⚽">⚽ Football</option>
                                 <option value="🏀">🏀 Basketball</option>
                                 <option value="🎾">🎾 Tennis</option>
                                 <option value="🏉">🏉 Rugby</option>
+                                <option value="🎬">🎬 Cinema</option>
+                                <option value="🎵">🎵 Concert</option>
+                                <option value="🎮">🎮 Gaming</option>
+                                <option value="🎭">🎭 Theater</option>
                                 <option value="🏆">🏆 Other</option>
                             </select>
                         </div>
@@ -1581,7 +1594,7 @@
                 html += `
                 <div style="display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:${isPast ? 'var(--input-bg)' : 'white'}; border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:8px; opacity:${isPast ? '0.5' : '1'};">
                     <div>
-                        <div style="font-weight:700; font-size:0.88rem;">${m.emoji} ${m.team1} vs ${m.team2}</div>
+                        <div style="font-weight:700; font-size:0.88rem;">${m.emoji} ${m.team1}${m.team2 ? ` vs ${m.team2}` : ''}</div>
                         <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">📅 ${m.date} · ⏰ ${m.time} · 🎟 ${m.capacity} spots${isPast ? ' · Past' : ''}</div>
                     </div>
                     <button onclick="staffDeleteMatch('${m.id}')" style="background:var(--red-pale,rgba(192,57,43,0.08)); color:var(--red); border:none; border-radius:var(--radius-sm); padding:6px 12px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; flex-shrink:0;">Remove</button>
@@ -1593,6 +1606,38 @@
         }
     }
 
+    window.updateMatchForm = () => {
+        const type = document.getElementById('staff-match-type').value;
+        const label1 = document.getElementById('label-team1');
+        const label2 = document.getElementById('label-team2');
+        const team1 = document.getElementById('staff-match-team1');
+        const team2 = document.getElementById('staff-match-team2');
+        const team2field = document.getElementById('team2-field');
+        const emojiSel = document.getElementById('staff-match-emoji');
+
+        if (type === 'sport') {
+            label1.innerText = 'Team 1'; team1.placeholder = 'e.g. France';
+            label2.innerText = 'Team 2'; team2.placeholder = 'e.g. Morocco';
+            team2field.style.display = '';
+            emojiSel.value = '⚽';
+        } else if (type === 'cinema') {
+            label1.innerText = 'Movie Name'; team1.placeholder = 'e.g. Gladiator II';
+            label2.innerText = 'Subtitle (optional)'; team2.placeholder = 'e.g. Outdoor Screening';
+            team2field.style.display = '';
+            emojiSel.value = '🎬';
+        } else if (type === 'concert') {
+            label1.innerText = 'Artist / Band'; team1.placeholder = 'e.g. Fairuz Night';
+            label2.innerText = 'Event Title (optional)'; team2.placeholder = 'e.g. Live Concert';
+            team2field.style.display = '';
+            emojiSel.value = '🎵';
+        } else {
+            label1.innerText = 'Event Name'; team1.placeholder = 'e.g. Gaming Tournament';
+            label2.innerText = 'Subtitle (optional)'; team2.placeholder = 'e.g. PS5 Finals';
+            team2field.style.display = '';
+            emojiSel.value = '🏆';
+        }
+    };
+
     window.staffAddMatch = async () => {
         const team1 = document.getElementById('staff-match-team1').value.trim();
         const team2 = document.getElementById('staff-match-team2').value.trim();
@@ -1600,21 +1645,24 @@
         const time = document.getElementById('staff-match-time').value;
         const emoji = document.getElementById('staff-match-emoji').value;
         const capacity = parseInt(document.getElementById('staff-match-capacity').value);
+        const eventType = document.getElementById('staff-match-type').value;
         const msgEl = document.getElementById('staff-match-msg');
 
-        if (!team1 || !team2 || !date || !time || !capacity) { alert("Please fill all match fields."); return; }
+        if (!team1 || !date || !time || !capacity) { alert("Please fill all required fields."); return; }
         if (!currentResDocId) { alert("Restaurant not loaded."); return; }
 
         try {
             await addDoc(collection(db, "restaurants", currentResDocId, "matches"), {
-                team1, team2, date, time, emoji, capacity, createdAt: new Date()
+                team1, team2, date, time, emoji, capacity, eventType,
+                createdAt: new Date()
             });
             document.getElementById('staff-match-team1').value = '';
             document.getElementById('staff-match-team2').value = '';
             document.getElementById('staff-match-date').value = '';
             document.getElementById('staff-match-time').value = '';
             document.getElementById('staff-match-capacity').value = '';
-            msgEl.innerText = `✅ Added: ${emoji} ${team1} vs ${team2}`;
+            const eventLabel = team2 ? `${team1} vs ${team2}` : team1;
+            msgEl.innerText = `✅ Added: ${emoji} ${eventLabel}`;
             msgEl.style.display = 'block';
             setTimeout(() => msgEl.style.display = 'none', 3000);
             loadStaffMatchesList();
