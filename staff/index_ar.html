@@ -702,14 +702,23 @@
                 </div>
 
                 <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
-                    <div class="section-title-staff">إضافة مباراة جديدة</div>
+                    <div class="section-title-staff">إضافة مباراة / فعالية جديدة</div>
+
+                    <label class="modal-label">نوع الفعالية</label>
+                    <select id="staff-match-type" class="modal-input" onchange="updateMatchForm()" style="margin-bottom:12px; text-align:right; direction:rtl;">
+                        <option value="sport">⚽ مباراة رياضية</option>
+                        <option value="cinema">🎬 سينما / عرض</option>
+                        <option value="concert">🎵 حفل موسيقي</option>
+                        <option value="other">🎯 فعالية أخرى</option>
+                    </select>
+
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
                         <div>
-                            <label class="modal-label">الفريق الأول</label>
+                            <label class="modal-label" id="label-team1">الفريق الأول</label>
                             <input type="text" id="staff-match-team1" class="modal-input" placeholder="مثال: فرنسا" style="text-align:right; direction:rtl;">
                         </div>
-                        <div>
-                            <label class="modal-label">الفريق الثاني</label>
+                        <div id="team2-field">
+                            <label class="modal-label" id="label-team2">الفريق الثاني</label>
                             <input type="text" id="staff-match-team2" class="modal-input" placeholder="مثال: المغرب" style="text-align:right; direction:rtl;">
                         </div>
                     </div>
@@ -725,12 +734,16 @@
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
                         <div>
-                            <label class="modal-label">الرياضة</label>
-                            <select id="staff-match-emoji" class="modal-input">
+                            <label class="modal-label">الأيقونة</label>
+                            <select id="staff-match-emoji" class="modal-input" style="direction:rtl;">
                                 <option value="⚽">⚽ كرة القدم</option>
                                 <option value="🏀">🏀 كرة السلة</option>
                                 <option value="🎾">🎾 تنس</option>
                                 <option value="🏉">🏉 راغبي</option>
+                                <option value="🎬">🎬 سينما</option>
+                                <option value="🎵">🎵 حفل موسيقي</option>
+                                <option value="🎮">🎮 ألعاب</option>
+                                <option value="🎭">🎭 مسرح</option>
                                 <option value="🏆">🏆 أخرى</option>
                             </select>
                         </div>
@@ -1589,7 +1602,7 @@
                 html += `
                 <div style="display:flex; align-items:center; justify-content:space-between; flex-direction:row-reverse; padding:12px 14px; background:${isPast ? 'var(--input-bg)' : 'white'}; border:1px solid var(--border); border-radius:var(--radius-md); margin-bottom:8px; opacity:${isPast ? '0.5' : '1'};">
                     <div style="text-align:right;">
-                        <div style="font-weight:700; font-size:0.88rem; font-family:'Cairo',sans-serif;">${m.emoji} ${m.team1} vs ${m.team2}</div>
+                        <div style="font-weight:700; font-size:0.88rem; font-family:'Cairo',sans-serif;">${m.emoji} ${m.team1}${m.team2 ? ` vs ${m.team2}` : ''}</div>
                         <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px; font-family:'Cairo',sans-serif;">📅 ${m.date} · ⏰ ${m.time} · 🎟 ${m.capacity} مقعد${isPast ? ' · منتهية' : ''}</div>
                     </div>
                     <button onclick="staffDeleteMatch('${m.id}')" style="background:var(--red-pale,rgba(192,57,43,0.08)); color:var(--red); border:none; border-radius:var(--radius-sm); padding:6px 12px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'Cairo',sans-serif; flex-shrink:0;">حذف</button>
@@ -1601,6 +1614,33 @@
         }
     }
 
+    window.updateMatchForm = () => {
+        const type = document.getElementById('staff-match-type').value;
+        const label1 = document.getElementById('label-team1');
+        const label2 = document.getElementById('label-team2');
+        const team1 = document.getElementById('staff-match-team1');
+        const team2 = document.getElementById('staff-match-team2');
+        const emojiSel = document.getElementById('staff-match-emoji');
+
+        if (type === 'sport') {
+            label1.innerText = 'الفريق الأول'; team1.placeholder = 'مثال: فرنسا';
+            label2.innerText = 'الفريق الثاني'; team2.placeholder = 'مثال: المغرب';
+            emojiSel.value = '⚽';
+        } else if (type === 'cinema') {
+            label1.innerText = 'اسم الفيلم'; team1.placeholder = 'مثال: غلاديتور 2';
+            label2.innerText = 'وصف (اختياري)'; team2.placeholder = 'مثال: عرض خارجي';
+            emojiSel.value = '🎬';
+        } else if (type === 'concert') {
+            label1.innerText = 'اسم الفنان'; team1.placeholder = 'مثال: ليلة فيروز';
+            label2.innerText = 'عنوان الحفل (اختياري)'; team2.placeholder = 'مثال: حفل موسيقي حي';
+            emojiSel.value = '🎵';
+        } else {
+            label1.innerText = 'اسم الفعالية'; team1.placeholder = 'مثال: بطولة الألعاب';
+            label2.innerText = 'وصف (اختياري)'; team2.placeholder = 'مثال: PS5 نهائي';
+            emojiSel.value = '🏆';
+        }
+    };
+
     window.staffAddMatch = async () => {
         const team1 = document.getElementById('staff-match-team1').value.trim();
         const team2 = document.getElementById('staff-match-team2').value.trim();
@@ -1608,21 +1648,24 @@
         const time = document.getElementById('staff-match-time').value;
         const emoji = document.getElementById('staff-match-emoji').value;
         const capacity = parseInt(document.getElementById('staff-match-capacity').value);
+        const eventType = document.getElementById('staff-match-type').value;
         const msgEl = document.getElementById('staff-match-msg');
 
-        if (!team1 || !team2 || !date || !time || !capacity) { alert("الرجاء تعبئة جميع حقول المباراة."); return; }
+        if (!team1 || !date || !time || !capacity) { alert("الرجاء تعبئة جميع الحقول المطلوبة."); return; }
         if (!currentResDocId) { alert("لم يتم تحميل المطعم."); return; }
 
         try {
             await addDoc(collection(db, "restaurants", currentResDocId, "matches"), {
-                team1, team2, date, time, emoji, capacity, createdAt: new Date()
+                team1, team2, date, time, emoji, capacity, eventType,
+                createdAt: new Date()
             });
             document.getElementById('staff-match-team1').value = '';
             document.getElementById('staff-match-team2').value = '';
             document.getElementById('staff-match-date').value = '';
             document.getElementById('staff-match-time').value = '';
             document.getElementById('staff-match-capacity').value = '';
-            msgEl.innerText = `✅ تمت الإضافة: ${emoji} ${team1} vs ${team2}`;
+            const eventLabel = team2 ? `${team1} vs ${team2}` : team1;
+            msgEl.innerText = `✅ تمت الإضافة: ${emoji} ${eventLabel}`;
             msgEl.style.display = 'block';
             setTimeout(() => msgEl.style.display = 'none', 3000);
             loadStaffMatchesList();
