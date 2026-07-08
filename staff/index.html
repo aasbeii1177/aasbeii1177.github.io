@@ -792,6 +792,16 @@
      ALL ORIGINAL JS — UNCHANGED
      ========================================== -->
 <script type="module">
+    // ── DAMASCUS TIME (UTC+3, no DST) ──
+    const damascusNow = () => new Date(Date.now() + 3 * 60 * 60 * 1000);
+    const damascusDateStr = () => {
+        const d = damascusNow();
+        return d.toISOString().split('T')[0];
+    };
+    const damascusHour = () => damascusNow().getUTCHours();
+    const damascusMinutes = () => damascusNow().getUTCHours() * 60 + damascusNow().getUTCMinutes();
+
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, collection, doc, getDoc, updateDoc, addDoc, query, where, onSnapshot, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -911,7 +921,7 @@
                     document.getElementById('max-guests').innerText = "/ " + maxGuests + " Cap";
                     document.getElementById('max-tables').innerText = "/ " + maxTables + " Tables";
 
-                    const todayStr = new Date().toISOString().split('T')[0];
+                    const todayStr = damascusDateStr();
                     const btnPause = document.getElementById('btn-pause-today');
                     if (d.closedDates && d.closedDates.includes(todayStr)) {
                         btnPause.innerText = "▶ Re-Open Today";
@@ -988,7 +998,7 @@
         btn.innerText = "Wait…";
 
         try {
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = damascusDateStr();
             const q = query(collection(db, "restaurants"), where("name", "==", currentRestaurant));
             const snap = await getDocs(q);
 
@@ -1019,14 +1029,14 @@
 
     function recalculateDashboard() {
         if (!latestSnapshot) return;
-        const now = new Date();
+        const now = damascusNow();
         const h = now.getHours();
         const m = now.getMinutes().toString().padStart(2, '0');
         const s = now.getSeconds().toString().padStart(2, '0');
         document.getElementById('current-hour-display').innerText = `${h}:${m}:${s}`;
 
         let liveGuests = 0, liveTables = 0;
-        const todayStr = now.toISOString().split('T')[0];
+        const todayStr = damascusDateStr();
 
         latestSnapshot.forEach(doc => {
             const data = doc.data();
@@ -1064,8 +1074,8 @@
         const list = document.getElementById('bookings-list');
         const allDocs = [];
         // Use local date to avoid UTC timezone issues
-        const now = new Date();
-        const todayStr = now.toISOString().split('T')[0];
+        const now = damascusNow();
+        const todayStr = damascusDateStr();
 
         snapshot.forEach(doc => {
             const d = doc.data();
@@ -1211,7 +1221,7 @@
             const o2 = document.createElement('option'); o2.value = i + ":30"; o2.innerText = i + ":30"; timeSelect.appendChild(o2);
         }
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = damascusDateStr();
         document.getElementById('m-date').min = today;
 
         if (mode === 'edit') {
@@ -1423,7 +1433,7 @@
         if (!currentResData) return;
         const closedDates = currentResData.closedDates || [];
         const blockedSlots = currentResData.blockedSlots || {};
-        const today = new Date().toISOString().split('T')[0];
+        const today = damascusDateStr();
 
         const entries = [];
         closedDates.filter(d => d >= today).sort().forEach(d => entries.push({ date: d, type: 'full' }));
@@ -1513,7 +1523,7 @@
         document.getElementById('profile-panel').classList.toggle('hidden', view !== 'profile');
 
         if (view === 'blocked') {
-            const today = new Date().toISOString().split('T')[0];
+            const today = damascusDateStr();
             document.getElementById('block-date').setAttribute('min', today);
             loadResDoc().then(() => renderCurrentBlocks());
         } else if (view === 'waitlist') {
@@ -1560,7 +1570,7 @@
             const matches = [];
             snap.forEach(d => matches.push({ id: d.id, ...d.data() }));
             matches.sort((a, b) => a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date));
-            const today = new Date().toISOString().split('T')[0];
+            const today = damascusDateStr();
             let html = '';
             matches.forEach(m => {
                 const isPast = m.date < today;
@@ -1770,7 +1780,7 @@
                 return a.time.localeCompare(b.time);
             });
 
-            const today = new Date().toISOString().split('T')[0];
+            const today = damascusDateStr();
             let html = '';
             sorted.forEach(group => {
                 if (group.date < today) return; // skip past dates
