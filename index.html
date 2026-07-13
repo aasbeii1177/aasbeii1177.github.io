@@ -1600,6 +1600,7 @@
 
     window.updateTimeSlots = async () => {
         const grid = document.getElementById('time-grid');
+        const dateInput = document.getElementById('date').value;
         const personsInput = document.getElementById('persons').value || 0;
         const groupSize = parseInt(personsInput) || 2;
         const resName = window.selectedRestaurant;
