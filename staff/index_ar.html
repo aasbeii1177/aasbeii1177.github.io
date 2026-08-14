@@ -18,7 +18,7 @@
     <meta name="theme-color" content="#1A1714">
     <link rel="apple-touch-icon" href="logo.jpeg">
 
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
         /* ============================================
@@ -26,14 +26,14 @@
            Charcoal + Antique Gold + Warm Cream
         ============================================ */
         :root {
-            --charcoal: #1A1714;
-            --charcoal-soft: #252118;
-            --gold: #C9A84C;
-            --gold-light: #E8D5A3;
-            --gold-pale: #F5EDD8;
-            --gold-dark: #8B6914;
-            --cream: #FAF7F2;
-            --cream-dark: #F0EAE0;
+            --charcoal: #1C1917;
+            --charcoal-soft: #2C2825;
+            --gold: #B8922A;
+            --gold-light: #D4B56A;
+            --gold-pale: #FFF8ED;
+            --gold-dark: #8A6A18;
+            --cream: #F8F6F2;
+            --cream-dark: #EDE8E0;
             --surface: #FFFFFF;
             --bg: #F2EDE6;
             --text-main: #1A1714;
@@ -127,7 +127,7 @@
 
         /* ── DASHBOARD HEADER ── */
         .dash-header {
-            background: var(--charcoal);
+            background: linear-gradient(135deg, var(--charcoal) 0%, #2C2825 100%);
             border-radius: var(--radius-lg);
             padding: 18px 22px;
             display: flex; align-items: center; justify-content: space-between;
@@ -205,6 +205,7 @@
             border: 1px solid var(--border);
             text-align: center;
             direction: ltr;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
         .stat-val {
             display: block; font-size: 2rem;
