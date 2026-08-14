@@ -18,7 +18,7 @@
     <meta name="theme-color" content="#1A1714">
     <link rel="apple-touch-icon" href="logo.jpeg">
 
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         /* ============================================
@@ -26,14 +26,14 @@
            Charcoal + Antique Gold + Warm Cream
         ============================================ */
         :root {
-            --charcoal: #1A1714;
-            --charcoal-soft: #252118;
-            --gold: #C9A84C;
-            --gold-light: #E8D5A3;
-            --gold-pale: #F5EDD8;
-            --gold-dark: #8B6914;
-            --cream: #FAF7F2;
-            --cream-dark: #F0EAE0;
+            --charcoal: #1C1917;
+            --charcoal-soft: #2C2825;
+            --gold: #B8922A;
+            --gold-light: #D4B56A;
+            --gold-pale: #FFF8ED;
+            --gold-dark: #8A6A18;
+            --cream: #F8F6F2;
+            --cream-dark: #EDE8E0;
             --surface: #FFFFFF;
             --bg: #F2EDE6;
             --text-main: #1A1714;
@@ -60,14 +60,14 @@
         html, body { overflow-x: hidden; }
 
         body {
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--bg);
             color: var(--text-main);
             padding: 16px 16px 100px;
             -webkit-font-smoothing: antialiased;
         }
 
-        h1, h2, h3 { font-family: 'Cormorant Garamond', serif; font-weight: 600; margin: 0; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; font-weight: 600; margin: 0; }
 
         .container { max-width: 720px; margin: 0 auto; }
 
@@ -81,7 +81,7 @@
             text-align: center;
         }
         .login-logo {
-            font-family: 'Cormorant Garamond', serif;
+            font-family: 'Playfair Display', serif;
             font-size: 2rem; font-weight: 700;
             color: white; margin-bottom: 4px;
         }
@@ -97,7 +97,7 @@
             border: 1.5px solid rgba(255,255,255,0.12);
             border-radius: var(--radius-md);
             color: white; font-size: 14px;
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             outline: none; margin-bottom: 12px;
             transition: border-color 0.2s;
         }
@@ -118,7 +118,7 @@
             background: var(--gold); color: var(--charcoal);
             border: none; border-radius: var(--radius-md);
             font-size: 0.9rem; font-weight: 700;
-            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            font-family: 'Inter', sans-serif; cursor: pointer;
             margin-top: 4px; transition: background 0.2s;
         }
         .btn-login:hover { background: var(--gold-light); }
@@ -126,7 +126,7 @@
 
         /* ── DASHBOARD HEADER ── */
         .dash-header {
-            background: var(--charcoal);
+            background: linear-gradient(135deg, var(--charcoal) 0%, #2C2825 100%);
             border-radius: var(--radius-lg);
             padding: 18px 22px;
             display: flex; align-items: center; justify-content: space-between;
@@ -134,20 +134,20 @@
             flex-wrap: wrap; gap: 10px;
         }
         .dash-logo {
-            font-family: 'Cormorant Garamond', serif;
+            font-family: 'Playfair Display', serif;
             font-size: 1.4rem; font-weight: 700; color: white;
         }
         .dash-logo span { color: var(--gold); }
         #manager-title {
             font-size: 0.75rem; color: rgba(255,255,255,0.45);
-            font-family: 'DM Sans', sans-serif; font-weight: 500;
+            font-family: 'Inter', sans-serif; font-weight: 500;
             letter-spacing: 0.3px; margin-top: 2px;
         }
         .btn-logout {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.15);
             color: rgba(255,255,255,0.55); font-size: 0.75rem;
-            font-weight: 500; font-family: 'DM Sans', sans-serif;
+            font-weight: 500; font-family: 'Inter', sans-serif;
             padding: 7px 14px; border-radius: 20px; cursor: pointer;
             transition: all 0.2s;
         }
@@ -166,7 +166,7 @@
             padding: 8px 14px; border-radius: var(--radius-sm);
             font-weight: 600; color: var(--text-hint);
             cursor: pointer; transition: all 0.2s;
-            font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem; font-family: 'Inter', sans-serif;
         }
         .tab-btn.active { background: var(--charcoal); color: white; }
         .tab-btn:hover:not(.active) { background: var(--input-bg); color: var(--text-main); }
@@ -195,7 +195,7 @@
             padding: 12px; border-radius: var(--radius-md);
             text-align: center; font-weight: 700;
             font-size: 1.2rem; letter-spacing: 2px;
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
         .stat-card {
             background: white; padding: 18px 16px;
@@ -206,7 +206,7 @@
         .stat-val {
             display: block; font-size: 2rem;
             font-weight: 700; color: var(--text-main);
-            line-height: 1.1; font-family: 'DM Sans', sans-serif;
+            line-height: 1.1; font-family: 'Inter', sans-serif;
         }
         .stat-limit {
             display: block; font-size: 0.72rem;
@@ -235,7 +235,7 @@
             border-radius: var(--radius-lg);
             margin-bottom: 10px;
             border: 1px solid var(--border);
-            border-left: 5px solid var(--border);
+            border-left: 4px solid var(--border);
             display: flex; flex-direction: column; gap: 10px;
             position: relative; transition: box-shadow 0.2s;
         }
@@ -250,7 +250,7 @@
         .status-Declined  { border-left-color: var(--text-hint); background: var(--cream); opacity: 0.7; }
         .status-History   { border-left-color: var(--red); background: var(--red-pale); opacity: 0.7; }
 
-        .card-title { font-size: 1rem; font-weight: 700; color: var(--text-main); font-family: 'DM Sans', sans-serif; }
+        .card-title { font-size: 1rem; font-weight: 700; color: var(--text-main); font-family: 'Inter', sans-serif; }
         .card-meta {
             font-size: 0.8rem; color: var(--text-muted);
             display: flex; gap: 10px; flex-wrap: wrap;
@@ -264,7 +264,7 @@
             flex: 1; padding: 11px;
             border-radius: var(--radius-sm); border: none;
             font-weight: 700; cursor: pointer;
-            font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem; font-family: 'Inter', sans-serif;
             transition: all 0.18s;
         }
         .btn-accept { background: var(--green-pale); color: #1A6B3C; }
@@ -341,7 +341,7 @@
             color: var(--green); padding: 8px 14px;
             border-radius: var(--radius-sm); cursor: pointer;
             font-size: 0.75rem; font-weight: 700;
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             width: 100%; margin-top: 4px; transition: all 0.2s;
         }
         .btn-ask-review:hover { background: var(--green); color: white; }
@@ -377,7 +377,7 @@
             background: var(--input-bg);
             border: 1.5px solid transparent;
             border-radius: var(--radius-md);
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 14px; color: var(--text-main);
             outline: none; transition: all 0.2s;
             margin-bottom: 0;
@@ -393,14 +393,14 @@
             background: var(--charcoal); color: white;
             border: none; border-radius: var(--radius-md);
             font-size: 0.9rem; font-weight: 700;
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             cursor: pointer; margin-top: 18px; transition: background 0.2s;
         }
         .btn-save:hover { background: var(--charcoal-soft); }
         .btn-modal-cancel {
             width: 100%; background: none; border: none;
             color: var(--text-hint); padding: 13px;
-            cursor: pointer; font-family: 'DM Sans', sans-serif;
+            cursor: pointer; font-family: 'Inter', sans-serif;
             font-size: 0.85rem; font-weight: 500; margin-top: 4px;
             transition: color 0.2s;
         }
@@ -443,7 +443,7 @@
             background: #25D366; color: white;
             border: none; border-radius: var(--radius-sm);
             padding: 8px 12px; font-size: 0.75rem; font-weight: 700;
-            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            font-family: 'Inter', sans-serif; cursor: pointer;
             transition: background 0.2s; white-space: nowrap;
         }
         .btn-wl-contact:hover { background: #1da851; }
@@ -452,7 +452,7 @@
             border: 1px solid rgba(192,57,43,0.2);
             border-radius: var(--radius-sm);
             padding: 8px 10px; font-size: 0.75rem; font-weight: 700;
-            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            font-family: 'Inter', sans-serif; cursor: pointer;
             transition: all 0.2s;
         }
         .btn-wl-remove:hover { background: var(--red); color: white; }
@@ -481,7 +481,7 @@
             background: white; border: 1.5px solid var(--border);
             border-radius: var(--radius-sm); cursor: pointer;
             font-size: 0.75rem; font-weight: 600;
-            color: var(--text-main); font-family: 'DM Sans', sans-serif;
+            color: var(--text-main); font-family: 'Inter', sans-serif;
             transition: all 0.15s;
         }
         .block-slot-btn:hover { border-color: var(--red); color: var(--red); }
@@ -501,7 +501,7 @@
             border: 1px solid rgba(192,57,43,0.2);
             padding: 6px 12px; border-radius: var(--radius-sm);
             font-size: 0.72rem; font-weight: 700;
-            font-family: 'DM Sans', sans-serif; cursor: pointer;
+            font-family: 'Inter', sans-serif; cursor: pointer;
             transition: all 0.2s; flex-shrink: 0;
         }
         .btn-unblock:hover { background: var(--red); color: white; }
@@ -518,7 +518,7 @@
         <button class="btn-login" onclick="login()">Enter Dashboard →</button>
         <p id="login-msg" class="hidden"></p>
         <div style="margin-top:20px; text-align:center;">
-            <a href="index_ar.html" style="font-size:0.78rem; color:rgba(255,255,255,0.4); text-decoration:none; font-family:'DM Sans',sans-serif; border:1px solid rgba(255,255,255,0.15); padding:6px 16px; border-radius:20px; transition:all 0.2s;" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold)'" onmouseout="this.style.color='rgba(255,255,255,0.4)';this.style.borderColor='rgba(255,255,255,0.15)'">عربية 🇸🇾</a>
+            <a href="index_ar.html" style="font-size:0.78rem; color:rgba(255,255,255,0.4); text-decoration:none; font-family:'Inter',sans-serif; border:1px solid rgba(255,255,255,0.15); padding:6px 16px; border-radius:20px; transition:all 0.2s;" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold)'" onmouseout="this.style.color='rgba(255,255,255,0.4)';this.style.borderColor='rgba(255,255,255,0.15)'">عربية 🇸🇾</a>
         </div>
     </div>
 
@@ -532,7 +532,7 @@
                 <div id="manager-title">Loading…</div>
             </div>
             <div style="display:flex; gap:8px; align-items:center;">
-                    <a href="index_ar.html" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.6); font-size:0.75rem; font-weight:500; font-family:'DM Sans',sans-serif; padding:7px 14px; border-radius:20px; cursor:pointer; text-decoration:none;">عربية</a>
+                    <a href="index_ar.html" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.6); font-size:0.75rem; font-weight:500; font-family:'Inter',sans-serif; padding:7px 14px; border-radius:20px; cursor:pointer; text-decoration:none;">عربية</a>
                     <button class="btn-logout" onclick="logout()">Sign Out</button>
                 </div>
         </div>
@@ -552,7 +552,7 @@
         <div id="search-bar" style="margin-bottom:10px; position:relative;">
             <input type="text" id="booking-search" placeholder="🔍 Search by name or phone…"
                 oninput="filterBookings(this.value)"
-                style="width:100%; padding:11px 16px; background:white; border:1.5px solid var(--border); border-radius:var(--radius-md); font-family:'DM Sans',sans-serif; font-size:0.88rem; color:var(--text-main); outline:none; transition:border 0.2s; box-sizing:border-box;"
+                style="width:100%; padding:11px 16px; background:white; border:1.5px solid var(--border); border-radius:var(--radius-md); font-family:'Inter',sans-serif; font-size:0.88rem; color:var(--text-main); outline:none; transition:border 0.2s; box-sizing:border-box;"
                 onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
         </div>
         <div class="stats-grid">
@@ -578,7 +578,7 @@
         <div id="blocked-panel" class="hidden">
 
             <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
-                <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Manage Blocked Dates</div>
+                <div style="font-family:'Playfair Display',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Manage Blocked Dates</div>
                 <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">Block full days or specific time slots — customers won't be able to book them online.</div>
             </div>
 
@@ -606,7 +606,7 @@
                     </div>
                 </div>
 
-                <button onclick="saveBlock()" style="width:100%; padding:13px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.88rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.2s;">
+                <button onclick="saveBlock()" style="width:100%; padding:13px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.88rem; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; transition:background 0.2s;">
                     Save Block
                 </button>
                 <div id="block-save-msg" style="display:none; background:var(--green-pale); color:var(--green); border:1px solid rgba(39,174,96,0.25); padding:10px 14px; border-radius:var(--radius-sm); text-align:center; font-size:0.82rem; font-weight:600; margin-top:10px;"></div>
@@ -627,7 +627,7 @@
         <!-- ── WAITLIST PANEL ── -->
         <div id="waitlist-panel" class="hidden">
             <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
-                <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Waitlist</div>
+                <div style="font-family:'Playfair Display',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Waitlist</div>
                 <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">Customers waiting for a slot to open up. Contact them via WhatsApp and mark as done.</div>
             </div>
             <div id="waitlist-container">
@@ -638,7 +638,7 @@
         <!-- ── PROFILE EDITOR PANEL ── -->
         <div id="profile-panel" class="hidden">
             <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
-                <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Restaurant Profile</div>
+                <div style="font-family:'Playfair Display',serif; font-size:1.3rem; color:white; margin-bottom:4px;">Restaurant Profile</div>
                 <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">This is what customers see when they tap your restaurant. Keep it updated to attract more bookings.</div>
             </div>
 
@@ -646,7 +646,7 @@
                 <div class="section-title-staff">About Your Restaurant</div>
 
                 <label class="modal-label">Description</label>
-                <textarea id="prof-description" style="width:100%; padding:12px 14px; background:var(--input-bg); border:1.5px solid transparent; border-radius:var(--radius-md); font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text-main); outline:none; resize:vertical; min-height:100px; transition:all 0.2s; margin-bottom:0;" placeholder="Tell customers about your restaurant — atmosphere, specialties, history…" oninput="this.style.borderColor='var(--gold)'"></textarea>
+                <textarea id="prof-description" style="width:100%; padding:12px 14px; background:var(--input-bg); border:1.5px solid transparent; border-radius:var(--radius-md); font-family:'Inter',sans-serif; font-size:14px; color:var(--text-main); outline:none; resize:vertical; min-height:100px; transition:all 0.2s; margin-bottom:0;" placeholder="Tell customers about your restaurant — atmosphere, specialties, history…" oninput="this.style.borderColor='var(--gold)'"></textarea>
             </div>
 
             <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
@@ -659,7 +659,7 @@
                     <input type="text" id="prof-gallery-url" class="modal-input" placeholder="Paste image URL…" style="flex:1; margin-bottom:0;">
                     <input type="file" id="prof-gallery-file" accept="image/*" style="display:none;" onchange="handleGalleryUpload(event)">
                     <button class="btn-upload" onclick="document.getElementById('prof-gallery-file').click()">📁</button>
-                    <button style="background:var(--charcoal); color:white; border:none; border-radius:var(--radius-sm); padding:0 14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; font-size:0.82rem;" onclick="addGalleryUrl()">Add</button>
+                    <button style="background:var(--charcoal); color:white; border:none; border-radius:var(--radius-sm); padding:0 14px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; font-size:0.82rem;" onclick="addGalleryUrl()">Add</button>
                 </div>
             </div>
 
@@ -674,20 +674,20 @@
                     <input type="text" id="prof-menu-url" class="modal-input" placeholder="Paste menu image URL…" style="flex:1; margin-bottom:0;">
                     <input type="file" id="prof-menu-file" accept="image/*" style="display:none;" onchange="handleMenuUpload(event)">
                     <button class="btn-upload" onclick="document.getElementById('prof-menu-file').click()">📁</button>
-                    <button style="background:var(--charcoal); color:white; border:none; border-radius:var(--radius-sm); padding:0 14px; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; font-size:0.82rem;" onclick="addMenuUrl()">Add</button>
+                    <button style="background:var(--charcoal); color:white; border:none; border-radius:var(--radius-sm); padding:0 14px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; font-size:0.82rem;" onclick="addMenuUrl()">Add</button>
                 </div>
 
                 <label class="modal-label">Menu PDF Link (optional)</label>
                 <input type="text" id="prof-menu-pdf" class="modal-input" placeholder="https://… link to your PDF menu" style="margin-bottom:0;">
             </div>
 
-            <button onclick="saveProfile()" style="width:100%; padding:14px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.9rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer; transition:background 0.2s; margin-bottom:8px;">Save Profile</button>
+            <button onclick="saveProfile()" style="width:100%; padding:14px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.9rem; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; transition:background 0.2s; margin-bottom:8px;">Save Profile</button>
             <div id="profile-save-msg" style="display:none; background:var(--green-pale); color:var(--green); border:1px solid rgba(39,174,96,0.25); padding:12px; border-radius:var(--radius-sm); text-align:center; font-size:0.82rem; font-weight:600;"></div>
 
             <!-- MATCH SCHEDULE — only shown for fan zone venues -->
             <div id="staff-matches-section" style="display:none; margin-top:16px;">
                 <div style="background:var(--charcoal); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:14px;">
-                    <div style="font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:white; margin-bottom:4px;">⚽ Match Schedule</div>
+                    <div style="font-family:'Playfair Display',serif; font-size:1.3rem; color:white; margin-bottom:4px;">⚽ Match Schedule</div>
                     <div style="font-size:0.78rem; color:rgba(255,255,255,0.4);">Manage upcoming matches. Customers will see these as booking options.</div>
                 </div>
 
@@ -749,7 +749,7 @@
                             <input type="number" id="staff-match-capacity" class="modal-input" placeholder="e.g. 50">
                         </div>
                     </div>
-                    <button onclick="staffAddMatch()" style="width:100%; padding:13px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.88rem; font-weight:700; font-family:'DM Sans',sans-serif; cursor:pointer;">+ Add Match</button>
+                    <button onclick="staffAddMatch()" style="width:100%; padding:13px; background:var(--charcoal); color:white; border:none; border-radius:var(--radius-md); font-size:0.88rem; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer;">+ Add Match</button>
                     <div id="staff-match-msg" style="display:none; margin-top:10px; text-align:center; font-size:0.78rem; font-weight:600; color:var(--green);"></div>
                 </div>
             </div>
@@ -1666,7 +1666,7 @@
                         <div style="font-weight:700; font-size:0.88rem;">${m.emoji} ${m.team1}${m.team2 ? ` vs ${m.team2}` : ''}</div>
                         <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">📅 ${m.date} · ⏰ ${m.time} · 🎟 ${m.capacity} spots${isPast ? ' · Past' : ''}</div>
                     </div>
-                    <button onclick="staffDeleteMatch('${m.id}')" style="background:var(--red-pale,rgba(192,57,43,0.08)); color:var(--red); border:none; border-radius:var(--radius-sm); padding:6px 12px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; flex-shrink:0;">Remove</button>
+                    <button onclick="staffDeleteMatch('${m.id}')" style="background:var(--red-pale,rgba(192,57,43,0.08)); color:var(--red); border:none; border-radius:var(--radius-sm); padding:6px 12px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; flex-shrink:0;">Remove</button>
                 </div>`;
             });
             list.innerHTML = html;
@@ -1769,7 +1769,7 @@
         container.innerHTML = profileMenuImages.map((img, i) => `
             <div style="position:relative;">
                 <img src="${img}" style="width:100%; border-radius:var(--radius-sm); border:1px solid var(--border);" loading="lazy">
-                <button onclick="removeMenuImg(${i})" style="position:absolute; top:8px; right:8px; background:rgba(192,57,43,0.9); color:white; border:none; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif;">Remove</button>
+                <button onclick="removeMenuImg(${i})" style="position:absolute; top:8px; right:8px; background:rgba(192,57,43,0.9); color:white; border:none; border-radius:20px; padding:4px 10px; font-size:0.72rem; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif;">Remove</button>
             </div>
         `).join('');
     }
