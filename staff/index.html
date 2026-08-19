@@ -61,7 +61,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg);
+            background: #F7F5F1;
             color: var(--text-main);
             padding: 16px 16px 100px;
             -webkit-font-smoothing: antialiased;
@@ -234,21 +234,23 @@
             background: white; padding: 16px;
             border-radius: var(--radius-lg);
             margin-bottom: 10px;
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--border);
+            border: 1px solid #E8E3DC;
+            border-left: 4px solid #E8E3DC;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            border-radius: 12px;
             display: flex; flex-direction: column; gap: 10px;
             position: relative; transition: box-shadow 0.2s;
         }
         .booking-card:hover { box-shadow: 0 4px 20px rgba(26,23,20,0.08); }
 
         /* Status left-border colors */
-        .status-Pending   { border-left-color: var(--orange); }
-        .status-Accepted  { border-left-color: var(--green); }
-        .status-Seated    { border-left-color: var(--blue); background: #F4F8FB; }
-        .status-Finished  { border-left-color: var(--text-hint); opacity: 0.82; }
-        .status-No-Show   { border-left-color: var(--red); background: var(--red-pale); opacity: 0.75; }
-        .status-Declined  { border-left-color: var(--text-hint); background: var(--cream); opacity: 0.7; }
-        .status-History   { border-left-color: var(--red); background: var(--red-pale); opacity: 0.7; }
+        .status-Pending   { border-left-color: #E67E22; }
+        .status-Accepted  { border-left-color: #27AE60; }
+        .status-Seated    { border-left-color: #2980B9; background: #F4F8FB; }
+        .status-Finished  { border-left-color: #9B9088; opacity: 0.82; }
+        .status-No-Show   { border-left-color: #E74C3C; background: var(--red-pale); opacity: 0.75; }
+        .status-Declined  { border-left-color: #9B9088; background: var(--cream); opacity: 0.7; }
+        .status-History   { border-left-color: #E74C3C; background: var(--red-pale); opacity: 0.7; }
 
         .card-title { font-size: 1rem; font-weight: 700; color: var(--text-main); font-family: 'Inter', sans-serif; }
         .card-meta {
@@ -435,7 +437,7 @@
             display: flex; align-items: center;
             justify-content: space-between; gap: 12px;
         }
-        .wl-card.contacted { opacity: 0.5; border-left-color: var(--green); }
+        .wl-card.contacted { opacity: 0.5; border-left-color: #27AE60; }
         .wl-name { font-weight: 700; font-size: 0.9rem; color: var(--text-main); }
         .wl-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; }
         .wl-actions { display: flex; gap: 6px; flex-shrink: 0; }
