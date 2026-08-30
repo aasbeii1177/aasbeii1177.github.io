@@ -1786,8 +1786,8 @@
         renderGalleryPreview();
     };
 
-    // ── IMAGE COMPRESSION HELPER ──
-    function compressImage(file, maxWidth, quality) {
+    // ── IMAGE COMPRESSION + CROP HELPER ──
+    function compressImage(file, maxWidth, quality, aspectRatio = null) {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -1796,10 +1796,21 @@
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const scale = img.width > maxWidth ? maxWidth / img.width : 1;
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
+                    if (aspectRatio) {
+                        const currentRatio = img.width / img.height;
+                        if (currentRatio > aspectRatio) {
+                            srcW = img.height * aspectRatio;
+                            srcX = (img.width - srcW) / 2;
+                        } else {
+                            srcH = img.width / aspectRatio;
+                            srcY = (img.height - srcH) / 2;
+                        }
+                    }
+                    const scale = srcW > maxWidth ? maxWidth / srcW : 1;
+                    canvas.width = srcW * scale;
+                    canvas.height = srcH * scale;
+                    canvas.getContext('2d').drawImage(img, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height);
                     canvas.toBlob((blob) => resolve(blob), 'image/jpeg', quality);
                 };
             };
@@ -1811,7 +1822,7 @@
         if (!file) return;
         if (profileGallery.length >= 6) return alert("الحد الأقصى 6 صور للمعرض.");
         try {
-            const compressed = await compressImage(file, 800, 0.8);
+            const compressed = await compressImage(file, 800, 0.8, 1/1);
             const storageRef = ref(storage, `gallery/${currentResDocId}/${Date.now()}_${file.name.replace(/\s+/g,'_')}`);
             await uploadBytes(storageRef, compressed);
             const url = await getDownloadURL(storageRef);
@@ -1837,7 +1848,7 @@
         const file = event.target.files[0];
         if (!file) return;
         try {
-            const compressed = await compressImage(file, 1200, 0.85);
+            const compressed = await compressImage(file, 1200, 0.85, 4/3);
             const storageRef = ref(storage, `menu/${currentResDocId}/${Date.now()}_${file.name.replace(/\s+/g,'_')}`);
             await uploadBytes(storageRef, compressed);
             const url = await getDownloadURL(storageRef);
