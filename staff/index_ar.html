@@ -654,7 +654,7 @@
 
             <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
                 <div class="section-title-staff">معرض الصور</div>
-                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">أضف حتى 6 صور. الصورة الأولى تُحدَّد من لوحة الإدارة. هذه صور إضافية للمعرض.</p>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">أضف أي عدد من الصور. الصورة الرئيسية تُحدَّد من لوحة الإدارة. هذه صور إضافية تظهر في صفحة المطعم.</p>
 
                 <div id="gallery-preview" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;"></div>
 
@@ -1775,7 +1775,6 @@
     window.addGalleryUrl = () => {
         const url = document.getElementById('prof-gallery-url').value.trim();
         if (!url) return;
-        if (profileGallery.length >= 6) return alert("الحد الأقصى 6 صور للمعرض.");
         profileGallery.push(url);
         document.getElementById('prof-gallery-url').value = '';
         renderGalleryPreview();
@@ -1820,7 +1819,6 @@
     window.handleGalleryUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
-        if (profileGallery.length >= 6) return alert("الحد الأقصى 6 صور للمعرض.");
         try {
             const compressed = await compressImage(file, 800, 0.8, 1/1);
             const storageRef = ref(storage, `gallery/${currentResDocId}/${Date.now()}_${file.name.replace(/\s+/g,'_')}`);
