@@ -1136,7 +1136,7 @@
 
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, addDoc, doc, getDoc, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, getDoc, query, where, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     // ==========================================
@@ -1264,6 +1264,19 @@
         const today = damascusDateStr();
         document.getElementById('date').setAttribute('min', today);
         const loader = document.getElementById('loader-main');
+
+        // Load homepage background from Firestore (same as English page)
+        const heroSection = document.querySelector(".hero-container");
+        if (heroSection) {
+            onSnapshot(doc(db, "app_settings", "homepage"), (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data && data.backgroundImage) {
+                        heroSection.style.backgroundImage = `linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(26,23,20,0.80)), url('${data.backgroundImage}')`;
+                    }
+                }
+            });
+        }
 
         try {
             const querySnapshot = await getDocs(collection(db, "restaurants"));
