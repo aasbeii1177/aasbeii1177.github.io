@@ -653,7 +653,7 @@
 
             <div style="background:white; border-radius:var(--radius-lg); border:1px solid var(--border); padding:20px; margin-bottom:12px;">
                 <div class="section-title-staff">Photo Gallery</div>
-                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">Add up to 6 photos. The first card image is set from the admin. These are extra gallery photos.</p>
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">Add as many photos as you like. The main card image is set from the admin portal. These are extra gallery photos shown on the restaurant profile.</p>
 
                 <div id="gallery-preview" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;"></div>
 
@@ -1781,7 +1781,6 @@
     window.addGalleryUrl = () => {
         const url = document.getElementById('prof-gallery-url').value.trim();
         if (!url) return;
-        if (profileGallery.length >= 6) return alert("Maximum 6 gallery photos.");
         profileGallery.push(url);
         document.getElementById('prof-gallery-url').value = '';
         renderGalleryPreview();
@@ -1826,7 +1825,6 @@
     window.handleGalleryUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
-        if (profileGallery.length >= 6) return alert("Maximum 6 gallery photos.");
         const btn = document.querySelector('button[onclick="document.getElementById(\'prof-gallery-file\').click()"]');
         if (btn) { btn.innerText = '⏳ Uploading…'; btn.disabled = true; }
         try {
