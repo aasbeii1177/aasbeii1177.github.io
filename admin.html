@@ -928,6 +928,7 @@
             await uploadBytes(storageRef, compressed);
             const url = await getDownloadURL(storageRef);
             await setDoc(doc(db, "app_settings", "homepage"), { backgroundImage: url, updatedAt: new Date() });
+            // Note: localStorage cache on client browsers will update automatically on next visit
             showSuccess("✨ Homepage picture updated globally!");
             document.getElementById('hero-image-text').value = "";
             document.getElementById('hero-upload-status').style.display = "none";
