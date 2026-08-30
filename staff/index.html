@@ -1831,6 +1831,7 @@
         if (btn) { btn.innerText = '⏳ Uploading…'; btn.disabled = true; }
         try {
             const compressed = await compressImage(file, 800, 0.8, 1/1);
+            const storageRef = ref(storage, `gallery/${currentResDocId}/${Date.now()}_${file.name.replace(/\s+/g,'_')}`);
             await uploadBytes(storageRef, compressed);
             const url = await getDownloadURL(storageRef);
             profileGallery.push(url);
@@ -1859,6 +1860,7 @@
         if (btn) { btn.innerText = '⏳ Uploading…'; btn.disabled = true; }
         try {
             const compressed = await compressImage(file, 1200, 0.85, 4/3);
+            const storageRef = ref(storage, `menu/${currentResDocId}/${Date.now()}_${file.name.replace(/\s+/g,'_')}`);
             await uploadBytes(storageRef, compressed);
             const url = await getDownloadURL(storageRef);
             profileMenuImages.push(url);
