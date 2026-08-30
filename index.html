@@ -504,8 +504,11 @@
         @keyframes slideInUp { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
 
         .profile-hero {
-            width: 100%; height: 240px; position: relative; overflow: hidden;
+            width: 100%; height: 300px; position: relative; overflow: hidden;
             background: var(--charcoal); flex-shrink: 0;
+        }
+        @media (min-width: 768px) {
+            .profile-hero { height: 420px; }
         }
         .profile-hero-img {
             position: absolute; inset: 0;
@@ -544,16 +547,57 @@
             background: white; border-bottom: 1px solid var(--border);
             display: flex; gap: 8px; padding: 10px 14px;
             overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
+            -webkit-overflow-scrolling: touch;
         }
         .gallery-strip::-webkit-scrollbar { display: none; }
         .gallery-thumb {
-            width: 68px; height: 52px; flex-shrink: 0;
+            width: 72px; height: 56px; flex-shrink: 0;
             background-size: cover; background-position: center;
             border-radius: var(--radius-sm); cursor: pointer;
-            border: 2px solid transparent; opacity: 0.6; transition: all 0.2s;
+            border: 2px solid transparent; opacity: 0.65; transition: all 0.2s;
         }
         .gallery-thumb.active { border-color: var(--gold); opacity: 1; }
         .gallery-thumb:hover { opacity: 0.9; }
+
+        /* Fullscreen image viewer with swipe */
+        .img-viewer {
+            display: none; position: fixed; inset: 0; z-index: 1002;
+            background: rgba(0,0,0,0.96);
+            justify-content: center; align-items: center;
+            flex-direction: column;
+        }
+        .img-viewer.open { display: flex; }
+        .img-viewer-img {
+            max-width: 95vw; max-height: 82vh;
+            object-fit: contain; border-radius: var(--radius-md);
+            user-select: none; -webkit-user-drag: none;
+            transition: opacity 0.15s ease;
+        }
+        .img-viewer-close {
+            position: absolute; top: 16px; right: 16px;
+            background: rgba(255,255,255,0.15); border: none; color: white;
+            font-size: 1.2rem; width: 40px; height: 40px;
+            border-radius: 50%; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .img-viewer-prev, .img-viewer-next {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.15); border: none; color: white;
+            width: 44px; height: 44px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; transition: background 0.2s;
+        }
+        .img-viewer-prev { left: 16px; }
+        .img-viewer-next { right: 16px; }
+        .img-viewer-prev:hover, .img-viewer-next:hover { background: rgba(255,255,255,0.3); }
+        .img-viewer-dots {
+            display: flex; gap: 6px; margin-top: 14px;
+        }
+        .img-viewer-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: rgba(255,255,255,0.3); transition: background 0.2s;
+        }
+        .img-viewer-dot.active { background: white; }
 
         /* Body */
         .profile-section { margin-top: 20px; }
@@ -1150,9 +1194,12 @@
     </div>
 
     <!-- Fullscreen image viewer -->
-    <div class="img-viewer" id="img-viewer" onclick="closeImgViewer()">
-        <button class="img-viewer-close">×</button>
-        <img id="img-viewer-img" src="" alt="">
+    <div class="img-viewer" id="img-viewer">
+        <button class="img-viewer-close" onclick="closeImgViewer()">×</button>
+        <button class="img-viewer-prev" onclick="imgViewerNav(-1)">‹</button>
+        <img class="img-viewer-img" id="img-viewer-img" src="" alt="">
+        <button class="img-viewer-next" onclick="imgViewerNav(1)">›</button>
+        <div class="img-viewer-dots" id="img-viewer-dots"></div>
     </div>
 
     <div class="footer">© 2026 Tawelty. All rights reserved.</div>
@@ -1982,15 +2029,24 @@
         // Gallery
         const gallery = document.getElementById('profile-gallery');
         const allPhotos = [branch.image, ...(branch.gallery || [])].filter(Boolean);
+        // Store photos globally for viewer access
+        window.currentProfilePhotos = allPhotos;
         if (allPhotos.length > 1) {
             gallery.innerHTML = allPhotos.map((img, i) =>
-                `<div class="gallery-thumb ${i === 0 ? 'active' : ''}" style="background-image:url('${img}')" onclick="switchHeroImg('${img}', this)"></div>`
+                `<div class="gallery-thumb ${i === 0 ? 'active' : ''}" style="background-image:url('${img}')"
+                    onclick="switchHeroImg('${img}', this); openImgViewer('${img}', window.currentProfilePhotos)"></div>`
             ).join('');
             gallery.style.display = 'flex';
         } else {
             gallery.innerHTML = '';
             gallery.style.display = 'none';
         }
+
+        // Make hero image tappable to open viewer
+        document.getElementById('profile-hero').style.cursor = 'pointer';
+        document.getElementById('profile-hero').onclick = () => {
+            if (allPhotos.length > 0) openImgViewer(allPhotos[0], allPhotos);
+        };
 
         // Info grid
         document.getElementById('profile-info-grid').innerHTML = `
@@ -2120,14 +2176,81 @@
         thumbEl.classList.add('active');
     };
 
-    window.openImgViewer = (imgUrl) => {
-        document.getElementById('img-viewer-img').src = imgUrl;
-        document.getElementById('img-viewer').style.display = 'flex';
+    // ── IMAGE VIEWER with swipe support ──
+    let viewerImages = [];
+    let viewerIndex = 0;
+    let touchStartX = 0;
+
+    window.openImgViewer = (imgUrl, images = null) => {
+        if (images) {
+            viewerImages = images;
+            viewerIndex = images.indexOf(imgUrl);
+            if (viewerIndex < 0) viewerIndex = 0;
+        } else {
+            viewerImages = [imgUrl];
+            viewerIndex = 0;
+        }
+        renderViewer();
+        const viewer = document.getElementById('img-viewer');
+        viewer.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    };
+
+    function renderViewer() {
+        const img = document.getElementById('img-viewer-img');
+        img.style.opacity = '0';
+        setTimeout(() => {
+            img.src = viewerImages[viewerIndex];
+            img.style.opacity = '1';
+        }, 80);
+
+        // Dots
+        const dotsEl = document.getElementById('img-viewer-dots');
+        if (viewerImages.length > 1) {
+            dotsEl.innerHTML = viewerImages.map((_, i) =>
+                `<div class="img-viewer-dot ${i === viewerIndex ? 'active' : ''}"></div>`
+            ).join('');
+        } else {
+            dotsEl.innerHTML = '';
+        }
+
+        // Show/hide nav buttons
+        document.querySelector('.img-viewer-prev').style.display = viewerImages.length > 1 ? 'flex' : 'none';
+        document.querySelector('.img-viewer-next').style.display = viewerImages.length > 1 ? 'flex' : 'none';
+    }
+
+    window.imgViewerNav = (dir) => {
+        viewerIndex = (viewerIndex + dir + viewerImages.length) % viewerImages.length;
+        renderViewer();
     };
 
     window.closeImgViewer = () => {
-        document.getElementById('img-viewer').style.display = 'none';
+        document.getElementById('img-viewer').classList.remove('open');
+        document.body.style.overflow = '';
     };
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        const viewer = document.getElementById('img-viewer');
+        if (!viewer.classList.contains('open')) return;
+        if (e.key === 'ArrowRight') imgViewerNav(1);
+        if (e.key === 'ArrowLeft') imgViewerNav(-1);
+        if (e.key === 'Escape') closeImgViewer();
+    });
+
+    // Touch swipe for viewer
+    document.getElementById('img-viewer').addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    document.getElementById('img-viewer').addEventListener('touchend', (e) => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) imgViewerNav(diff > 0 ? 1 : -1);
+    }, { passive: true });
+
+    // Close on backdrop tap (not on image/buttons)
+    document.getElementById('img-viewer').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('img-viewer')) closeImgViewer();
+    });
 </script>
 </body>
 </html>
