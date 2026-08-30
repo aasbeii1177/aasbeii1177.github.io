@@ -856,8 +856,7 @@
         statusEl.style.display = "block";
         try {
             // Compress before uploading
-            const compressed = await compressImage(file, 800, 0.8);
-            const filename = `restaurants/${Date.now()}_${file.name.replace(/\s+/g,'_')}`;
+            const compressed = await compressImage(file, 800, 0.8, 16/10);
             const storageRef = ref(storage, filename);
             await uploadBytes(storageRef, compressed);
             const url = await getDownloadURL(storageRef);
@@ -871,8 +870,9 @@
         }
     };
 
-    // ── IMAGE COMPRESSION HELPER ──
-    function compressImage(file, maxWidth, quality) {
+    // ── IMAGE COMPRESSION + CROP HELPER ──
+    // aspectRatio: width/height — e.g. 16/10 for cards, 2/1 for hero, 1/1 for gallery
+    function compressImage(file, maxWidth, quality, aspectRatio = null) {
         return new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -881,10 +881,27 @@
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const scale = img.width > maxWidth ? maxWidth / img.width : 1;
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    let srcX = 0, srcY = 0, srcW = img.width, srcH = img.height;
+
+                    // Crop to target aspect ratio from center
+                    if (aspectRatio) {
+                        const targetRatio = aspectRatio;
+                        const currentRatio = img.width / img.height;
+                        if (currentRatio > targetRatio) {
+                            // Image is wider than target — crop sides
+                            srcW = img.height * targetRatio;
+                            srcX = (img.width - srcW) / 2;
+                        } else {
+                            // Image is taller than target — crop top/bottom
+                            srcH = img.width / targetRatio;
+                            srcY = (img.height - srcH) / 2;
+                        }
+                    }
+
+                    const scale = srcW > maxWidth ? maxWidth / srcW : 1;
+                    canvas.width = srcW * scale;
+                    canvas.height = srcH * scale;
+                    canvas.getContext('2d').drawImage(img, srcX, srcY, srcW, srcH, 0, 0, canvas.width, canvas.height);
                     canvas.toBlob((blob) => resolve(blob), 'image/jpeg', quality);
                 };
             };
@@ -906,7 +923,7 @@
         const btn = document.querySelector('button[onclick="saveHomepageSettings()"]');
         btn.innerText = "⏳ Uploading…";
         try {
-            const compressed = await compressImage(tempHeroFile, 1920, 0.85);
+            const compressed = await compressImage(tempHeroFile, 1920, 0.85, 2/1);
             const storageRef = ref(storage, `homepage/background_${Date.now()}.jpg`);
             await uploadBytes(storageRef, compressed);
             const url = await getDownloadURL(storageRef);
