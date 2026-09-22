@@ -943,6 +943,8 @@
                 const resSnap = await getDocs(q);
                 if (!resSnap.empty) {
                     const d = resSnap.docs[0].data();
+                    currentResDocId = resSnap.docs[0].id;
+                    currentResData = d;
                     // Load Arabic name — falls back to English if not set
                     currentRestaurantNameAr = d.nameAr || currentRestaurant;
                     // Show Arabic name in header if available
