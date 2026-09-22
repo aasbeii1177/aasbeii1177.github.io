@@ -857,6 +857,7 @@
         try {
             // Compress before uploading
             const compressed = await compressImage(file, 800, 0.8, 16/10);
+            const filename = `restaurants/card_${Date.now()}_${file.name.replace(/\s+/g,'_')}`;
             const storageRef = ref(storage, filename);
             await uploadBytes(storageRef, compressed);
             const url = await getDownloadURL(storageRef);
@@ -964,6 +965,8 @@
         const rMenuPdf = document.getElementById('res-menu-pdf').value.trim();
         const rBtnText = document.getElementById('res-btn-text').value.trim();
         const rBtnTextAr = document.getElementById('res-btn-text-ar').value.trim();
+        const rPri = document.getElementById('res-price').value || "$$";
+        const mUsername = document.getElementById('mgr-username').value.trim();
         const mPass = document.getElementById('mgr-pass').value;
         const btn = document.getElementById('btn-submit');
 
