@@ -946,6 +946,8 @@
                 const resSnap = await getDocs(q);
                 if (!resSnap.empty) {
                     const d = resSnap.docs[0].data();
+                    currentResDocId = resSnap.docs[0].id;
+                    currentResData = d;
                     currentRestaurantNameAr = d.nameAr || currentRestaurant;
                     maxGuests = d.capacity || 20;
                     maxTables = d.tables || 10;
