@@ -302,6 +302,8 @@
         }
         .badge-active { background: rgba(39,174,96,0.12); color: var(--green); }
         .badge-hidden { background: rgba(192,57,43,0.10); color: var(--red); }
+        .badge-pending { background: rgba(184,146,42,0.14); color: var(--gold-dark); }
+        .badge-rejected { background: rgba(192,57,43,0.10); color: var(--red); }
 
         .btn-action {
             border: none; padding: 8px 11px;
@@ -312,6 +314,21 @@
         .btn-edit:hover { background: rgba(36,113,163,0.12); }
         .btn-delete { background: rgba(192,57,43,0.08); color: var(--red); }
         .btn-delete:hover { background: rgba(192,57,43,0.15); }
+        .btn-accept { background: rgba(39,174,96,0.10); color: var(--green); }
+        .btn-accept:hover { background: rgba(39,174,96,0.18); }
+
+        .tab-count {
+            display: inline-block; margin-left: 5px;
+            background: var(--red); color: white;
+            border-radius: 20px; padding: 1px 7px;
+            font-size: 0.65rem; font-weight: 700;
+        }
+        .request-note {
+            font-size: 0.78rem; color: var(--text-muted);
+            margin-top: 6px; line-height: 1.6;
+            background: var(--input-bg); border-radius: var(--radius-sm);
+            padding: 8px 10px;
+        }
 
         /* ── GLOBAL SETTINGS BOX ── */
         .settings-box {
@@ -667,6 +684,7 @@
         <div class="dashboard-card" style="padding:20px 24px;">
             <div class="tab-row">
                 <button id="tab-venues" class="tab-btn active" onclick="switchAdminView('venues')">🍽 Manage Venues</button>
+                <button id="tab-requests" class="tab-btn" onclick="switchAdminView('requests')">📥 Requests<span id="requests-badge"></span></button>
                 <button id="tab-analytics" class="tab-btn" onclick="switchAdminView('analytics')">📊 Analytics</button>
             </div>
 
@@ -674,6 +692,14 @@
             <div id="view-venues">
                 <div id="restaurants-container" class="res-list">
                     <p style="text-align:center; color:var(--text-hint); padding:20px 0; font-size:0.85rem;">Loading venues…</p>
+                </div>
+            </div>
+
+            <!-- REQUESTS VIEW -->
+            <div id="view-requests" class="hidden">
+                <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">Signups submitted from the "Join Us" form on the customer site. Accept to pre-fill the venue form above, then finish setting it up and submit as usual.</p>
+                <div id="requests-container" class="res-list">
+                    <p style="text-align:center; color:var(--text-hint); padding:20px 0; font-size:0.85rem;">Loading requests…</p>
                 </div>
             </div>
 
@@ -841,6 +867,7 @@
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.remove('hidden');
             loadRestaurants();
+            refreshRequestsBadge();
         } else {
             document.getElementById('login-section').classList.remove('hidden');
             document.getElementById('dashboard-section').classList.add('hidden');
@@ -1160,6 +1187,101 @@
         document.getElementById('btn-cancel').style.display = 'none';
     }
 
+    // ── JOIN-US SIGNUP REQUESTS ──
+    window.refreshRequestsBadge = async () => {
+        try {
+            const snap = await getDocs(collection(db, "signup_requests"));
+            let pending = 0;
+            snap.forEach(d => { if ((d.data().status || "pending") === "pending") pending++; });
+            const badge = document.getElementById('requests-badge');
+            badge.innerHTML = pending > 0 ? `<span class="tab-count">${pending}</span>` : '';
+        } catch (e) { console.error(e); }
+    };
+
+    window.loadRequests = async () => {
+        const container = document.getElementById('requests-container');
+        container.innerHTML = '<p style="text-align:center; color:var(--text-hint); padding:20px 0; font-size:0.85rem;"><span class="loader"></span> Loading…</p>';
+        try {
+            const snap = await getDocs(collection(db, "signup_requests"));
+            if (snap.empty) { container.innerHTML = '<p style="text-align:center; color:var(--text-hint); padding:20px 0;">No requests yet.</p>'; return; }
+
+            const requests = [];
+            snap.forEach(docSnap => requests.push({ id: docSnap.id, ...docSnap.data() }));
+            requests.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+
+            let html = '';
+            requests.forEach(r => {
+                const safeName = (r.name || r.nameAr || 'Unnamed').replace(/'/g, "\\'");
+                const status = r.status || "pending";
+                const badge = status === "accepted"
+                    ? `<span class="badge badge-active">Accepted</span>`
+                    : status === "rejected"
+                    ? `<span class="badge badge-rejected">Rejected</span>`
+                    : `<span class="badge badge-pending">Pending</span>`;
+
+                const contactBits = [
+                    r.ownerName ? `👤 ${r.ownerName}` : '',
+                    r.phone ? `📱 +${r.phone}` : '',
+                    r.email ? `✉️ ${r.email}` : ''
+                ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+                const actions = status === "pending"
+                    ? `<button class="btn-action btn-accept" onclick="acceptRequest('${r.id}')">✓ Accept</button>
+                       <button class="btn-action btn-delete" onclick="rejectRequest('${r.id}')">✕ Reject</button>`
+                    : `<button class="btn-action btn-edit" onclick="acceptRequest('${r.id}')">↻ Fill Form Again</button>`;
+
+                html += `
+                <div class="res-item" style="flex-direction:column; align-items:stretch;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; width:100%;">
+                        <div class="res-info">
+                            <div class="res-name">${safeName} ${r.nameAr ? `<span style="direction:rtl;">(${r.nameAr})</span>` : ''} ${badge}</div>
+                            <div class="res-meta">${r.type || 'Restaurant'}${r.cuisine ? ' · ' + r.cuisine : ''} &nbsp;·&nbsp; ${r.city || ''}, ${r.location || ''}</div>
+                        </div>
+                        <div style="flex-shrink:0;">${actions}</div>
+                    </div>
+                    ${contactBits ? `<div class="request-note">${contactBits}${r.message ? `<br>💬 ${r.message}` : ''}</div>` : ''}
+                </div>`;
+            });
+            container.innerHTML = html;
+        } catch (e) { console.error(e); container.innerHTML = '<p style="text-align:center; color:var(--red); padding:20px 0; font-size:0.85rem;">Error loading requests.</p>'; }
+    };
+
+    window.acceptRequest = async (requestId) => {
+        try {
+            const snap = await getDoc(doc(db, "signup_requests", requestId));
+            if (!snap.exists()) return alert("Request not found.");
+            const r = snap.data();
+
+            cancelEdit(); // reset the form to a clean "create" state
+
+            document.getElementById('res-name').value = r.name || '';
+            document.getElementById('res-name-ar').value = r.nameAr || '';
+            document.getElementById('res-city').value = r.city || 'Damascus';
+            document.getElementById('res-location').value = r.location || '';
+            document.getElementById('res-venue-type').value = 'restaurant';
+            toggleVenueType();
+            document.getElementById('res-cuisine').value = r.cuisine || r.type || 'General';
+
+            if ((r.status || "pending") === "pending") {
+                await updateDoc(doc(db, "signup_requests", requestId), { status: "accepted", acceptedAt: new Date() });
+                loadRequests();
+                refreshRequestsBadge();
+            }
+
+            window.scrollTo(0, 0);
+            showSuccess("📋 Request loaded into the form below — finish the remaining details and submit.");
+        } catch (e) { alert("Error: " + e.message); }
+    };
+
+    window.rejectRequest = async (requestId) => {
+        if (!confirm("Reject this request?")) return;
+        try {
+            await updateDoc(doc(db, "signup_requests", requestId), { status: "rejected", rejectedAt: new Date() });
+            loadRequests();
+            refreshRequestsBadge();
+        } catch (e) { alert("Error: " + e.message); }
+    };
+
     window.deleteRestaurant = async (id, name) => {
         if (confirm(`Delete "${name}"? This cannot be undone.`)) {
             await deleteDoc(doc(db, "restaurants", id));
@@ -1304,15 +1426,17 @@
 
     window.switchAdminView = (view) => {
         const btnV = document.getElementById('tab-venues');
+        const btnR = document.getElementById('tab-requests');
         const btnA = document.getElementById('tab-analytics');
-        if (view === 'venues') {
-            document.getElementById('view-venues').classList.remove('hidden');
-            document.getElementById('view-analytics').classList.add('hidden');
-            btnV.classList.add('active'); btnA.classList.remove('active');
-        } else {
-            document.getElementById('view-venues').classList.add('hidden');
-            document.getElementById('view-analytics').classList.remove('hidden');
-            btnA.classList.add('active'); btnV.classList.remove('active');
+        const views = { venues: 'view-venues', requests: 'view-requests', analytics: 'view-analytics' };
+        const btns = { venues: btnV, requests: btnR, analytics: btnA };
+        Object.keys(views).forEach(key => {
+            document.getElementById(views[key]).classList.toggle('hidden', key !== view);
+            btns[key].classList.toggle('active', key === view);
+        });
+        if (view === 'requests') {
+            loadRequests();
+        } else if (view === 'analytics') {
             populateAnalyticsDropdown();
             initCustomMonthPicker();
         }
