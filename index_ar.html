@@ -430,13 +430,17 @@
         .policy-box input { margin-top: 4px; accent-color: var(--gold); flex-shrink: 0; }
 
         /* ── MODALS ── */
-        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(20,16,12,0.65); backdrop-filter: blur(10px); }
+        .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(20,16,12,0.65); backdrop-filter: blur(10px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .modal-content {
             background: white; width: 90%; max-width: 400px;
-            margin: 12vh auto; padding: 32px;
+            margin: 40px auto; padding: 32px;
             border-radius: var(--radius-xl); text-align: right; position: relative;
             box-shadow: 0 30px 80px rgba(0,0,0,0.25);
             animation: modalIn 0.25s ease-out;
+            max-height: none;
+        }
+        @media (max-width: 480px) {
+            .modal-content { width: 92%; padding: 26px 20px; margin: 24px auto; }
         }
         @keyframes modalIn { from { opacity: 0; transform: translateY(20px) scale(0.97); } to { opacity: 1; transform: none; } }
         .modal-content h2 { font-size: 1.7rem; margin-bottom: 22px; }
